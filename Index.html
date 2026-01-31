@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Cotizador Satelital | Sella El Techo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Montserrat:wght@700;800&display=swap"
+    rel="stylesheet">
+  <!-- HTML2PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+  <style>
+    :root {
+      --bg-color: #0a192f;
+      --card-bg: #112240;
+      --text-main: #e6f1ff;
+      --text-muted: #8892b0;
+      --accent: #ff9900;
+      --border: #233554;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .wizard-container {
+      max-width: 900px;
+      width: 100%;
+      background: var(--card-bg);
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      position: relative;
+      overflow: hidden;
+      min-height: 600px;
+      /* Ensure space for map */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header & Progress */
+    .w-header {
+      padding: 20px 30px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(10, 25, 47, 0.95);
+    }
+
+    .progress-track {
+      height: 4px;
+      background: var(--border);
+      width: 100%;
+      margin-top: 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.4s ease;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* Step Content */
+    .step-content {
+      flex-grow: 1;
+      padding: 20px;
+      /* Reduced padding for map space */
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .step-content.active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Map Specifics */
+    #map-container {
+      width: 100%;
+      height: 450px;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      position: relative;
+      background: #000;
+      /* Loading state */
+    }
+
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+
+    /* Inputs & UI */
+    .search-lg {
+      background: transparent;
+      border: 2px solid var(--border);
+      color: white;
+      font-size: 1.2rem;
+      padding: 15px 20px;
+      border-radius: 12px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+
+    .search-lg:focus {
+      border-color: var(--accent);
+      outline: none;
+      box-shadow: 0 0 20px rgba(255, 153, 0, 0.1);
+    }
+
+    .option-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+      height: 100%;
+    }
+
+    .option-card:hover,
+    .option-card.selected {
+      border-color: var(--accent);
+      background: rgba(255, 153, 0, 0.05);
+    }
+
+    .option-card img {
+      max-height: 120px;
+      margin-bottom: 15px;
+      transition: transform 0.3s;
+    }
+
+    .option-card:hover img {
+      transform: scale(1.05);
+    }
+
+    /* 3D Asset Style */
+    .img-3d {
+      max-height: 200px;
+      animation: float 5s ease-in-out infinite;
+      /* Seamless Solid Style */
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+    }
+
+    @keyframes float {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
+
+    /* Footer Navigation */
+    .w-footer {
+      padding: 20px 30px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      background: var(--bg-color);
+      position: relative;
+      z-index: 10000;
+      /* FORCE TOP LAYER */
+    }
+
+    .btn-nav {
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-next {
+      background: var(--accent);
+      color: #000;
+      border: none;
+    }
+
+    .btn-next:hover {
+      background: #ffaa33;
+    }
+
+    .btn-next:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+
+    .btn-prev {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .btn-prev:hover {
+      border-color: white;
+      color: white;
+    }
+
+    /* Summary Specific */
+    .summary-table td {
+      color: var(--text-muted);
+      padding: 8px 0;
+    }
+
+    .summary-table .price {
+      color: white;
+      text-align: right;
+      font-family: monospace;
+      font-size: 1.1rem;
+    }
+
+    .total-row {
+      border-top: 1px solid var(--border);
+      margin-top: 10px;
+      padding-top: 10px;
+      font-size: 1.5rem;
+      color: var(--accent);
+      font-weight: 800;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 768px) {
+      body {
+        padding: 0;
+        background-color: var(--card-bg);
+        /* Full screen app feel */
+      }
+
+      .wizard-container {
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+        height: 100vh;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .w-header {
+        padding: 15px;
+      }
+
+      .w-header img {
+        max-height: 80px !important;
+        /* Smaller logo on mobile */
+      }
+
+      .step-content {
+        padding: 15px;
+        overflow-y: auto;
+        /* Allow scrolling content */
+      }
+
+      #map-container {
+        height: 50vh;
+        /* Adjust map height for mobile */
+      }
+
+      .search-lg {
+        font-size: 1rem;
+        padding: 10px 15px;
+      }
+
+      h2 {
+        font-size: 1.5rem;
+      }
+
+      h3 {
+        font-size: 1.3rem;
+      }
+
+      .w-footer {
+        padding: 15px;
+        background: var(--card-bg);
+        /* Match bg */
+        position: sticky;
+        bottom: 0;
+      }
+
+      .btn-nav {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="wizard-container">
+
+    <!-- Header -->
+    <div class="w-header">
+      <div class="d-flex align-items-center gap-3">
+        <img src="assets/logo_white_ps.png" alt="Sella El Techo"
+          style="max-height: 140px; width: auto; object-fit: contain;">
+        <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal"
+          data-bs-target="#nosotrosModal">Nosotros</button>
+      </div>
+      <div class="text-muted small">Paso <span id="stepCount font-monospace">1</span> de 6</div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- STEP 1: Address Search -->
+    <div class="step-content active" id="step1">
+      <div class="text-center my-auto px-5">
+        <h2 class="mb-3">¿Dónde es el proyecto?</h2>
+        <p class="text-muted mb-4">Ingresa la dirección para localizar la propiedad vía satélite.</p>
+
+        <div class="position-relative">
+          <input type="text" id="addressInput" class="search-lg" placeholder="Ej. Calle San Jorge 123, San Juan..."
+            style="padding-right: 180px;">
+          <button class="btn btn-warning text-dark fw-bold position-absolute end-0 top-50 translate-middle-y me-2"
+            onclick="useCurrentLocation()" style="z-index: 10;">
+            📍 Usar mi ubicación
+          </button>
+        </div>
+
+        <div id="map-preview-hidden" style="display:none;"></div> <!-- Invisible map init -->
+      </div>
+    </div>
+
+    <!-- STEP 2: Satellite Map -->
+    <div class="step-content" id="step2">
+      <div class="row h-100">
+        <div class="col-12 mb-3">
+          <div class="d-flex justify-content-between align-items-end mb-2">
+            <div>
+              <h3 class="mb-1">Selecciona el Techo</h3>
+              <p class="text-muted small m-0">Haz clic en la casa para detectar. O usa modo manual.</p>
+            </div>
+            <button id="btnDrawToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleDrawMode()">✏️ Dibujar
+              Manual</button>
+          </div>
+          <script>
+            let manualMode = false;
+            function toggleDrawMode() {
+              manualMode = !manualMode;
+              if (window.setManualDraw) window.setManualDraw(manualMode);
+              const btn = document.getElementById('btnDrawToggle');
+              if (manualMode) {
+                btn.className = 'btn btn-sm btn-primary';
+                btn.innerText = '👆 Volver a Auto';
+              } else {
+                btn.className = 'btn btn-sm btn-outline-secondary';
+                btn.innerText = '✏️ Dibujar Manual';
+              }
+            }
+          </script>
+        </div>
+        <div class="col-12">
+          <div id="map-container">
+            <div id="map"></div>
+
+            <!-- Floating Area Badge -->
+            <!-- Floating Area Badge -->
+            <div
+              class="position-absolute bottom-0 end-0 m-3 bg-dark text-white p-3 rounded shadow border border-secondary"
+              style="max-width: 280px; z-index: 1000;">
+              <small class="text-muted d-block uppercase" style="font-size:0.7em;">Area Promedio Estimada</small>
+              <div class="fw-bold fs-3 text-warning mb-2 lh-1"><span id="liveArea">0</span> <small
+                  class="fs-6 text-white">ft²</small></div>
+
+              <div class="small border-top border-secondary pt-2 mb-2">
+                <div class="d-flex justify-content-between">
+                  <span class="text-muted">📡 Satélite:</span>
+                  <span id="valSat" class="fw-bold text-light">-</span>
+                </div>
+
+              </div>
+
+              <div class="mt-2 text-end border-top border-secondary pt-2">
+                <small class="text-muted d-block mb-1" style="font-size:0.75em">Verificar en:</small>
+                <div class="btn-group btn-group-sm w-100">
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: Cistern -->
+    <div class="step-content" id="step3">
+      <div class="text-center my-auto">
+        <img src="assets/cistern.png" class="img-3d img-fluid mb-4">
+        <h3 class="mb-3">¿Tienes Cisterna?</h3>
+        <div class="row justify-content-center g-3">
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('cistern', false, this)">
+              <h5 class="mt-2">No</h5>
+              <small class="text-muted">Techo libre</small>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('cistern', true, this)">
+              <h5 class="mt-2">Sí (+$150)</h5>
+              <small class="text-muted">Incluye movimiento</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4: Solar -->
+    <div class="step-content" id="step4">
+      <div class="text-center my-auto">
+        <img src="assets/solar.png" class="img-3d img-fluid mb-4">
+        <h3 class="mb-3">¿Placas Solares?</h3>
+        <div class="row justify-content-center g-3">
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('solar', false, this)">
+              <h5 class="mt-2">No</h5>
+              <small class="text-muted">Sin sistema solar</small>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('solar', true, this)">
+              <h5 class="mt-2">Sí (+$1,000)</h5>
+              <small class="text-muted">Protección especial</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 5: Service Type -->
+    <div class="step-content" id="step5">
+      <div class="text-center my-auto">
+        <img src="assets/service.png" class="img-3d img-fluid mb-4">
+        <h3 class="mb-3">Tipo de Sellado</h3>
+        <div class="row justify-content-center g-3">
+          <div class="col-md-4">
+            <div class="option-card" onclick="setOption('service', 'Silicona', this)">
+              <h5 class="mt-2 text-warning">Silicona 100%</h5>
+              <small class="text-muted">Premium Reflectivo</small>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="option-card" onclick="setOption('service', 'Danosa', this)">
+              <h5 class="mt-2">Danosa</h5>
+              <small class="text-muted">Membrana Asfáltica</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 6: Quote Summary -->
+    <div class="step-content" id="step6">
+      <div class="row justify-content-center h-100 align-items-center">
+        <div class="col-md-8">
+          <div class="p-4 rounded border border-secondary" style="background: rgba(0,0,0,0.2)" id="quoteContent">
+            <h4 class="mb-4 text-center text-warning">Propuesta Estimada</h4>
+
+            <table class="w-100 summary-table">
+              <tr>
+                <td>Área Geométrica (3D)</td>
+                <td class="text-end"><span id="sumAreaRaw">0</span> ft²</td>
+              </tr>
+              <tr class="text-muted small">
+                <td>+ Seguridad (<span id="lblWaste">15</span>%)</td>
+                <td class="text-end">+<span id="sumWaste">0</span> ft²</td>
+              </tr>
+              <tr class="border-bottom border-secondary">
+                <td class="pb-2">Material Requerido</td>
+                <td class="text-end fw-bold pb-2" id="sumeffectiveArea">0 ft²</td>
+              </tr>
+              <tr>
+                <td class="pt-2">Precio Base</td>
+                <td class="price pt-2" id="sumBase">$0.00</td>
+              </tr>
+              <tr id="rowCistern" style="display:none">
+                <td>Manejo de Cisterna</td>
+                <td class="price text-warning">+$150.00</td>
+              </tr>
+              <tr id="rowSolar" style="display:none">
+                <td>Protección Placas Solares</td>
+                <td class="price text-warning">+$1,000.00</td>
+              </tr>
+              <tr>
+                <td class="pt-3 border-top border-secondary">IVU (11.5%)</td>
+                <td class="pt-3 border-top border-secondary price" id="sumTax">$0.00</td>
+              </tr>
+            </table>
+
+            <div class="total-row">
+              <span>TOTAL</span>
+              <span id="sumTotal">$0.00</span>
+            </div>
+
+            <p class="mt-3 text-center text-muted small fst-italic">
+              *Precio sujeto a inspección física final.
+            </p>
+          </div>
+
+          <div class="text-center mt-4">
+            <button class="btn btn-warning w-100 py-3 fw-bold mb-2">📥 Descargar PDF</button>
+            <a href="#" onclick="location.reload()" class="text-muted small text-decoration-none">Empezar de nuevo</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="w-footer">
+      <button class="btn btn-nav btn-prev" id="btnPrev" type="button" onclick="changeStep(-1)">Atrás</button>
+      <button class="btn btn-nav btn-next" id="btnNext" type="button" onclick="changeStep(1)"
+        disabled>Siguiente</button>
+    </div>
+
+  </div>
+
+  </div>
+
+  <!-- Nosotros Modal -->
+  <div class="modal fade" id="nosotrosModal" tabindex="-1" aria-labelledby="nosotrosModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content"
+        style="background-color: var(--card-bg); color: var(--text-main); border: 1px solid var(--border);">
+        <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+          <h5 class="modal-title fw-bold text-warning" id="nosotrosModalLabel">Sobre Sella El Techo</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>En <strong>Sella El Techo</strong>, revolucionamos la manera de cotizar el sellado de tu techo. Utilizamos
+            tecnología satelital avanzada para medir con precisión tu propiedad sin necesidad de visitas iniciales.</p>
+          <ul class="list-unstyled">
+            <li class="mb-2">🛰️ <strong>Precisión Satelital:</strong> Utilizamos APIs de Google Maps y algoritmos de
+              geometría para calcular el área exacta.</li>
+            <li class="mb-2">⚡ <strong>Cotización Instantánea:</strong> Obtén un estimado detallado en segundos.</li>
+            <li class="mb-2">🛡️ <strong>Materiales Premium:</strong> Trabajamos exclusivamente con Danosa y Silicona
+              100% para garantizar durabilidad.</li>
+          </ul>
+          <p class="small text-muted mb-0">Nuestro compromiso es la transparencia y la calidad. Protege tu inversión con
+            los expertos.</p>
+        </div>
+        <div class="modal-footer" style="border-top: 1px solid var(--border);">
+          <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS (Required for Modal) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Logic -->
+  <script src="js/map_logic.js?v=simulation_v2"></script>
+  <!-- Google Maps API -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR72tWGSonQu3eMgfcEUZdDiAcqaQ_bhA&libraries=places,drawing,geometry&callback=initMap"
+    async defer></script>
+
+  <script>
+    let currentStep = 1;
+    const totalSteps = 6;
+    const state = {
+      address: '',
+      area: 0,
+      cistern: null,
+      solar: null,
+      service: null
+    };
+
+    function updateSteps() {
+      console.log("Updating steps. Current:", currentStep);
+      // Show/Hide steps
+      document.querySelectorAll('.step-content').forEach((el, idx) => {
+        el.classList.toggle('active', (idx + 1) === currentStep);
+      });
+
+      // Progress
+      const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.getElementById('stepCount').innerText = currentStep;
+
+      // Buttons
+      const prevBtn = document.getElementById('btnPrev');
+      // Visual "Disabled" state using opacity (never actually hide or disable attribute to avoid bugs)
+      if (currentStep === 1) {
+        prevBtn.style.opacity = '0.3';
+        prevBtn.style.cursor = 'default';
+        prevBtn.style.pointerEvents = 'none'; // Prevent clicks CSS-side
+      } else {
+        prevBtn.style.opacity = '1';
+        prevBtn.style.cursor = 'pointer';
+        prevBtn.style.pointerEvents = 'auto';
+        prevBtn.style.visibility = 'visible';
+      }
+
+      const nextBtn = document.getElementById('btnNext');
+      nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
+      nextBtn.style.display = (currentStep === totalSteps) ? 'none' : 'block';
+
+      // Step Specific Logic
+      validateStep();
+
+      // Map Resize Hack
+      if (currentStep === 2 && window.map) {
+        setTimeout(() => {
+          google.maps.event.trigger(window.map, 'resize');
+          if (window.mapCenter) window.map.setCenter(window.mapCenter);
+        }, 100);
+      }
+
+      if (currentStep === 6) renderSummary();
+    }
+
+    function changeStep(dir) {
+      console.log("changeStep called with:", dir);
+
+      if (dir === -1) {
+        // Debug Alert: visual confirmation for user
+        // alert("Regresando..."); 
+      }
+
+      if (dir === 1 && !validateStep(true)) {
+        console.log("Validation failed for next step");
+        return;
+      }
+      currentStep += dir;
+      // Safety bounds
+      if (currentStep < 1) currentStep = 1;
+      if (currentStep > totalSteps) currentStep = totalSteps;
+
+      console.log("New step:", currentStep);
+      updateSteps();
+    }
+    function validateStep(shake = false) {
+      const nextBtn = document.getElementById('btnNext');
+      let valid = false;
+
+      if (currentStep === 1) {
+        const addrInput = document.getElementById('addressInput');
+        valid = addrInput && addrInput.value.length > 5;
+      } else if (currentStep === 2) {
+        valid = state.area > 0;
+      } else if (currentStep === 3) {
+        valid = state.cistern !== null;
+      } else if (currentStep === 4) {
+        valid = state.solar !== null;
+      } else if (currentStep === 5) {
+        valid = state.service !== null;
+      }
+
+      if (nextBtn) nextBtn.disabled = !valid;
+      return valid;
+    }
+
+    function setOption(key, val, card) {
+      state[key] = val;
+      // UI selection
+      const siblings = card.parentElement.parentElement.querySelectorAll('.option-card');
+      siblings.forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      validateStep();
+    }
+
+    function renderSummary() {
+      const WASTE_FACTOR = 1.15;
+      const PRICE_SQFT = 4.50;
+      const TAX_RATE = 0.115;
+
+      const rawArea = state.area;
+
+      // Smart Waste Logic:
+      // If we have satellite stats, use the calculated "Material Needed" (includes complexity).
+      // If manual drawing, use default 1.15 factor.
+      let effectiveArea;
+      if (state.stats && state.stats.material_needed) {
+        effectiveArea = state.stats.material_needed;
+      } else {
+        effectiveArea = rawArea * 1.15;
+      }
+      const baseCost = effectiveArea * PRICE_SQFT;
+
+      const cisternCost = state.cistern ? 150 : 0;
+      const solarCost = state.solar ? 1000 : 0;
+
+      const subtotal = baseCost + cisternCost + solarCost;
+      const tax = subtotal * TAX_RATE;
+      const total = subtotal + tax;
+
+      // UI Updates
+      const wasteSqFt = effectiveArea - rawArea;
+      const wastePct = rawArea > 0 ? Math.round((wasteSqFt / rawArea) * 100) : 0;
+
+      document.getElementById('sumAreaRaw').innerText = Math.round(rawArea).toLocaleString();
+      if (document.getElementById('lblWaste')) document.getElementById('lblWaste').innerText = wastePct;
+      if (document.getElementById('sumWaste')) document.getElementById('sumWaste').innerText = Math.round(wasteSqFt).toLocaleString();
+      if (document.getElementById('sumeffectiveArea')) document.getElementById('sumeffectiveArea').innerText = Math.round(effectiveArea).toLocaleString();
+
+      document.getElementById('sumBase').innerText = formatMoney(baseCost);
+
+      const rowCistern = document.getElementById('rowCistern');
+      if (rowCistern) rowCistern.style.display = state.cistern ? 'table-row' : 'none';
+
+      const rowSolar = document.getElementById('rowSolar');
+      if (rowSolar) rowSolar.style.display = state.solar ? 'table-row' : 'none';
+
+      document.getElementById('sumTax').innerText = formatMoney(tax);
+      document.getElementById('sumTotal').innerText = formatMoney(total);
+    }
+
+    function formatMoney(n) {
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // Bridging Map Logic
+    // Bridging Map Logic
+    window.updateAreaState = function (sqft, stats = null) {
+      state.area = sqft;
+      state.stats = stats;
+
+      // Update Main Display
+      document.getElementById('liveArea').innerText = Math.round(sqft).toLocaleString();
+
+      // Update Table if stats provided
+      if (document.getElementById('valSat')) {
+        const displayVal = stats ? stats.geometric : sqft;
+        document.getElementById('valSat').innerText = Math.round(displayVal).toLocaleString() + " ft²";
+      }
+
+      validateStep();
+    };
+
+    // Make functions globally available
+    window.updateSteps = updateSteps;
+    window.validateStep = validateStep;
+    window.setOption = setOption;
+    window.changeStep = changeStep;
+
+    // Verification Links
+
+
+    // Initial Init
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log("Wizard Initializing...");
+
+      // Input Listener for real-time validation
+      const addrInput = document.getElementById('addressInput');
+      if (addrInput) {
+        addrInput.addEventListener('input', () => {
+          validateStep();
+        });
+      }
+
+      updateSteps(); // Initial UI Sync
+    });
+
+  </script>
+</body>
