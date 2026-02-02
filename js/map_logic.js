@@ -1,6 +1,11 @@
+console.log("🚀 map_logic.js is parsing...");
 let map;
 let drawingManager;
 let currentPolygon = null;
+
+// Expose vital functions globally (Hoisting allows this)
+window.useCurrentLocation = useCurrentLocation;
+window.initMap = initMap;
 
 // Global Pricing Constants
 const CONSTANTS = {
@@ -8,6 +13,26 @@ const CONSTANTS = {
     PRICE_SQFT: 4.50,   // Base price example
     TAX_RATE: 0.115
 };
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Bind Address Input Autocomplete
+    const input = document.getElementById("addressInput");
+    if (input) {
+        // ... (existing autocomplete logic usually here or initMap)
+    }
+
+    // Bind Use Location Button
+    const btnUseLoc = document.getElementById("btnUseLocation");
+    if (btnUseLoc) {
+        btnUseLoc.addEventListener("click", () => {
+            console.log("📍 Button Clicked (Event Listener)");
+            useCurrentLocation();
+        });
+    } else {
+        console.error("❌ 'Use My Location' button not found in DOM");
+    }
+});
 
 function initMap() {
     // 1. Initialize Map centered on Puerto Rico
@@ -83,265 +108,375 @@ function initAutocomplete() {
 }
 
 function useCurrentLocation() {
-    if (!navigator.geolocation) {
-        alert("Tu navegador no soporta geolocalización.");
-        return;
-    }
+    try {
+        console.log("📍 Button Clicked: Starting Geolocation...");
 
-    const btn = document.querySelector("button[onclick='useCurrentLocation()']");
-    const originalText = btn.innerText;
-    btn.innerText = "⏳ Buscando...";
-
-    navigator.geolocation.getCurrentPosition(
-        (position) => {
-            const pos = {
-                lat: position.coords.latitude,
-                lng: position.coords.longitude,
-            };
-
-            // 1. Save Center
-            window.mapCenter = pos;
-
-            // 2. Reverse Geocode to get address text
-            const geocoder = new google.maps.Geocoder();
-            geocoder.geocode({ location: pos }, (results, status) => {
-                if (status === "OK" && results[0]) {
-                    document.getElementById("addressInput").value = results[0].formatted_address;
-                    document.getElementById("btnNext").disabled = false;
-
-                    // AUTO-ADVANCE: Set map view and jump
-                    if (window.map) {
-                        window.map.setCenter(pos);
-                        window.map.setZoom(21);
-                        window.map.setHeading(0);
-                        window.map.setTilt(45);
-                    }
-                    if (window.changeStep) window.changeStep(1);
-
-                    // TRIGGER SOLAR API
-                    fetchSolarData(pos.lat, pos.lng);
-
-                } else {
-                    document.getElementById("addressInput").value = "Ubicación detectada (Lat: " + pos.lat.toFixed(4) + ")";
-                }
-                btn.innerText = originalText;
-            });
-        },
-        () => {
-            alert("No pudimos detectar tu ubicación. Por favor escríbela manual.");
-            btn.innerText = originalText;
+        if (!navigator.geolocation) {
+            alert("Tu navegador no soporta geolocalización.");
+            return;
         }
-    );
+
+        const btn = document.querySelector("button[onclick='useCurrentLocation()']") || document.getElementById('btnUseLocation');
+        let originalText = "📍 Usar mi ubicación";
+        if (btn) {
+            originalText = btn.innerText;
+            btn.innerText = "⏳ Buscando...";
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const pos = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude,
+                };
+
+                console.log("📍 Location Found:", pos);
+
+                // 1. Save Center
+                window.mapCenter = pos;
+
+                // 2. Reverse Geocode to get address text
+                const geocoder = new google.maps.Geocoder();
+                geocoder.geocode({ location: pos }, (results, status) => {
+                    if (status === "OK" && results[0]) {
+                        const addrInput = document.getElementById("addressInput");
+                        if (addrInput) addrInput.value = results[0].formatted_address;
+
+                        const nextBtn = document.getElementById("btnNext");
+                        if (nextBtn) nextBtn.disabled = false;
+
+                        // AUTO-ADVANCE: Set map view and jump
+                        if (window.map) {
+                            window.map.setCenter(pos);
+                            window.map.setZoom(21);
+                            window.map.setHeading(0);
+                            window.map.setTilt(45);
+                        }
+                        if (window.changeStep) window.changeStep(1);
+
+                        // TRIGGER SOLAR API
+                        fetchSolarData(pos.lat, pos.lng);
+
+                    } else {
+                        const addrInput = document.getElementById("addressInput");
+                        if (addrInput) addrInput.value = "Ubicación detectada (Lat: " + pos.lat.toFixed(4) + ")";
+                    }
+                    if (btn) btn.innerText = originalText;
+                });
+            },
+            (error) => {
+                console.error("Geolocation Error:", error);
+                let errorMsg = "No pudimos detectar tu ubicación.";
+                switch (error.code) {
+                    case error.PERMISSION_DENIED:
+                        errorMsg = "❌ Denegaste el permiso de ubicación. Actívalo en el navegador.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        errorMsg = "❌ La información de ubicación no está disponible.";
+                        break;
+                    case error.TIMEOUT:
+                        errorMsg = "❌ Tiempo de espera agotado al buscar ubicación.";
+                        break;
+                    default:
+                        errorMsg = "❌ Error desconocido al ubicarte.";
+                        break;
+                }
+                alert(errorMsg);
+                if (btn) btn.innerText = originalText;
+            }
+        );
+    } catch (e) {
+        alert("Error crítico en geolocalización: " + e.message);
+        console.error(e);
+    }
 }
+window.useCurrentLocation = useCurrentLocation;
 
 // SOLAR API INTEGRATION
+// SOLAR API INTEGRATION (Modified for Local CV)
+// SOLAR API INTEGRATION (Prioritized: Google -> Local -> Sim)
 async function fetchSolarData(lat, lng) {
-    const apiKey = "AIzaSyBR72tWGSonQu3eMgfcEUZdDiAcqaQ_bhA";
-    const url = `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${lat}&location.longitude=${lng}&requiredQuality=HIGH&key=${apiKey}`;
-
-    // Show loading state in UI
     const areaLabel = document.getElementById('liveArea');
-    if (areaLabel) areaLabel.innerText = "Calculando IA...";
+    if (areaLabel) areaLabel.innerText = "Analizando...";
+
+    // 1. TRY GOOGLE SOLAR API (The "Real" Auto-Mapping)
+    // ----------------------------------------------------------------
+    // INSTRUCTIONS: To enable Google Solar, paste your API Key here.
+    // It must have "Solar API" enabled in Google Cloud Console.
+    const googleApiKey = "AIzaSyBR72tWGSonQu3eMgfcEUZdDiAcqaQ_bhA"; // <--- PASTE KEY HERE
+    // ----------------------------------------------------------------
 
     try {
+        if (!googleApiKey || googleApiKey.length < 10) throw new Error("No Google Key Configured");
+
+        const url = `https://solar.googleapis.com/v1/buildingInsights:findClosest?location.latitude=${lat}&location.longitude=${lng}&requiredQuality=HIGH&key=${googleApiKey}`;
+
+        console.log("Calling Google Solar API...");
         const response = await fetch(url);
+
+        // If 403/400, key is invalid or quota exceeded
+        if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Google API Failed (${response.status}): ${errText}`);
+        }
+
         const data = await response.json();
 
         if (data.solarPotential && data.solarPotential.wholeRoofStats) {
+            console.log("✅ Google Solar Success!", data);
 
-            // 1. Get Area
+            // A. Get Area Stats
             const areaM2 = data.solarPotential.wholeRoofStats.areaMeters2;
             const areaSqFt = areaM2 * 10.7639;
 
-            console.log("Solar API Success:", areaSqFt);
+            // B. Draw Roof (Polygon) - Detailed Segments
+            // Google Solar returns segments. We will draw ALL of them to form the shape.
 
-            // 2. DRAW THE ROOF (High Precision Polygon)
-            // Instead of a simple box, we try to draw the actual segments.
-            if (currentPolygon) currentPolygon.setMap(null);
+            if (currentPolygon) currentPolygon.setMap(null); // Clear main
 
-            // If we have segments, draw them. Otherwise fallback to box.
-            const segments = data.solarPotential.roofSegmentStats;
-            if (segments && segments.length > 0) {
-                // Google Solar unfortunately doesn't return the *vertices* of the polygon segments directly in this endpoint.
-                // It only returns bounding boxes for segments. 
-                // Best approach: Draw the main bounding box, but make it easier to edit.
+            // Clear any previous segments if we stored them (we might need a global array for this)
+            if (window.roofSegments) {
+                window.roofSegments.forEach(s => s.setMap(null));
+            }
+            window.roofSegments = [];
+
+            const segments = data.solarPotential.roofSegmentStats || [];
+            if (segments.length > 0) {
+                console.log("Drawing " + segments.length + " segments...");
+
+                segments.forEach(seg => {
+                    const sBox = seg.boundingBox;
+                    const segPoly = new google.maps.Rectangle({
+                        strokeColor: "#00FF00",
+                        strokeOpacity: 0.8,
+                        strokeWeight: 2,
+                        fillColor: "#00FF00",
+                        fillOpacity: 0.4,
+                        map: window.map,
+                        bounds: {
+                            north: sBox.ne.latitude,
+                            south: sBox.sw.latitude,
+                            east: sBox.ne.longitude,
+                            west: sBox.sw.longitude
+                        },
+                        clickable: false // Let clicks pass through or handle separately
+                    });
+                    window.roofSegments.push(segPoly);
+                });
+
+                // Create a main transparent "Interaction" box for area calculation/dragging
+                // Or just use the main bounding box for user adjustments
+                const totalBox = data.solarPotential.wholeRoofStats.boundingBox;
+                currentPolygon = new google.maps.Rectangle({
+                    strokeColor: "#FFFFFF",
+                    strokeOpacity: 0.5,
+                    strokeWeight: 2,
+                    fillColor: "#000000",
+                    fillOpacity: 0.0, // Transparent, just for bounds
+                    map: window.map,
+                    bounds: {
+                        north: totalBox.ne.latitude,
+                        south: totalBox.sw.latitude,
+                        east: totalBox.ne.longitude,
+                        west: totalBox.sw.longitude
+                    },
+                    editable: true,
+                    draggable: true
+                });
+
+            } else {
+                // Fallback to single box if no segments
+                const box = data.solarPotential.wholeRoofStats.boundingBox;
+                currentPolygon = new google.maps.Rectangle({
+                    strokeColor: "#00FF00",
+                    strokeOpacity: 0.8,
+                    strokeWeight: 3,
+                    fillColor: "#00FF00",
+                    fillOpacity: 0.3,
+                    map: window.map,
+                    bounds: {
+                        north: box.ne.latitude,
+                        south: box.sw.latitude,
+                        east: box.ne.longitude,
+                        west: box.sw.longitude
+                    },
+                    editable: true,
+                    draggable: true
+                });
             }
 
-            currentPolygon = new google.maps.Rectangle({
+            // Listener for the Main Box (currentPolygon)
+            currentPolygon.addListener("bounds_changed", () => {
+                const ne = currentPolygon.getBounds().getNorthEast();
+                const sw = currentPolygon.getBounds().getSouthWest();
+                const height = google.maps.geometry.spherical.computeDistanceBetween(ne, { lat: ne.lat(), lng: sw.lng() });
+                const width = google.maps.geometry.spherical.computeDistanceBetween(ne, { lat: sw.lat(), lng: ne.lng() });
+                const newArea = (height * width) * 10.7639;
+                if (window.updateAreaState) window.updateAreaState(newArea);
+            });
+
+            // Calculate Precision Stats
+            if (window.updateAreaState) {
+                // Approximate complexity by segment count
+                // More physics-based waste factor
+                // e.g. if many segments, higher waste
+                const wasteFactor = segments.length > 4 ? 1.15 : 1.10;
+
+                const stats = {
+                    geometric: Math.round(areaSqFt),
+                    waste_factor: wasteFactor,
+                    material_needed: Math.round(areaSqFt * wasteFactor),
+                    complexity_score: segments.length
+                };
+
+                window.updateAreaState(stats.geometric, stats);
+                alert(`✅ Techo Detectado (Google Solar)\n\nSe trazaron ${segments.length} secciones del techo.`);
+            }
+
+            // Fit map nicely
+            if (currentPolygon) window.map.fitBounds(currentPolygon.getBounds());
+
+            return; // EXIT SUCCESS
+        }
+
+    } catch (googleError) {
+        console.warn("Google Solar API unavailable (Reason: " + googleError.message + "). Trying Local AI...");
+    }
+
+    // 2. TRY LOCAL BACKEND (CV Auto-Trace)
+    // ----------------------------------------------------------------
+    try {
+        const localUrl = `http://localhost:8000/segment?lat=${lat}&lng=${lng}`;
+        console.log("Calling Local CV Backend...");
+        const response = await fetch(localUrl).catch(e => { throw new Error("Local Server Off"); });
+
+        if (!response.ok) throw new Error("Local Backend Failed");
+
+        const data = await response.json();
+
+        if (data.roofSegmentStats && data.roofSegmentStats.length > 0) {
+            console.log("✅ Local CV Success!", data);
+
+            const polyCoords = data.roofSegmentStats[0].boundingPolygon;
+
+            if (currentPolygon) currentPolygon.setMap(null);
+
+            currentPolygon = new google.maps.Polygon({
+                paths: polyCoords,
                 strokeColor: "#00FF00",
                 strokeOpacity: 0.8,
                 strokeWeight: 3,
                 fillColor: "#00FF00",
                 fillOpacity: 0.3,
                 map: window.map,
-                bounds: {
-                    north: box.ne.latitude,
-                    south: box.sw.latitude,
-                    east: box.ne.longitude,
-                    west: box.sw.longitude
-                },
                 editable: true,
                 draggable: true
             });
 
-            // Add listener to recalculate if user fixes the box
-            currentPolygon.addListener("bounds_changed", () => {
-                // Re-calculate manual area if modified
-                // Re-calculate manual area if modified
-                // We use height * width for the rectangle approximation
-                const ne = currentPolygon.getBounds().getNorthEast();
-                const sw = currentPolygon.getBounds().getSouthWest();
-                const height = google.maps.geometry.spherical.computeDistanceBetween(ne, { lat: ne.lat(), lng: sw.lng() });
-                const width = google.maps.geometry.spherical.computeDistanceBetween(ne, { lat: sw.lat(), lng: ne.lng() });
-                const newAreaSqFt = (height * width) * 10.7639;
+            // Calculate Area
+            const areaM2 = google.maps.geometry.spherical.computeArea(currentPolygon.getPath());
+            const areaSqFt = areaM2 * 10.7639;
 
-                // Fallback to manual mode logic
-                if (window.updateAreaState) window.updateAreaState(newAreaSqFt);
-            });
+            if (window.updateAreaState) window.updateAreaState(areaSqFt);
+            alert("✅ Techo Detectado (Local AI)");
+            return; // EXIT SUCCESS
 
-
-            // Fit map nicely
-            window.map.fitBounds(currentPolygon.getBounds());
-
-            // Update Global State
-            if (window.updateAreaState) {
-                // Count segments for complexity
-                const segmentCount = (data.solarPotential.roofSegmentStats || []).length;
-
-                const stats = calculatePrecisionArea(areaSqFt, segmentCount);
-
-                console.log("Precision Calc:", stats);
-
-                // ALERT for User Feedback (To ensure they feel the difference)
-                alert(`✅ MODO PRECISIÓN 3D ACTIVADO\n\n• Complejidad de Techo: ${segmentCount > 5 ? 'ALTA' : 'ESTÁNDAR'}\n• Desperdicio Ajustado: ${Math.round((stats.waste_factor - 1) * 100)}%\n• Material Calculado: ${stats.material_needed} ft²`);
-
-                // Pass Geometric Area to UI so it displays "Measured".
-                // We pass the full stats so the UI can use the accurate "material_needed" for pricing.
-                window.updateAreaState(stats.geometric, stats);
-
-                // Notify user
-                setTimeout(() => {
-                    // alert(`🏠 Techo Detectado con Precisión\n\nÁrea Geométrica: ${stats.geometric} ft²\nMaterial Estimado: ${stats.material_needed} ft² (incluye ${Math.round((stats.waste_factor-1)*100)}% de desperdicio y pretiles).`);
-                }, 800);
-            }
-        } else {
-            console.warn("Solar API: No roof stats found for this location.");
-            if (areaLabel) areaLabel.innerText = "0";
         }
-    } catch (error) {
-        console.error("Solar API Error:", error);
-
-        // AUTO-SIMULATION MODE (Requested "Lo Mejor")
-        const userWantsDemo = confirm("⚠️ Alerta Google Solar: Tu API Key no es válida.\n\n¿Quieres activar el MODO SIMULACIÓN para ver cómo funcionaría el sistema con una llave real?");
-
-        if (userWantsDemo) {
-            simulateSolarData();
-        } else {
-            if (areaLabel) areaLabel.innerText = "0";
-        }
+    } catch (localError) {
+        console.warn("Local Smart Trace failed:", localError);
     }
+
+    // 3. FALLBACK: MANUAL PROMPT
+    // ----------------------------------------------------------------
+    console.warn("All auto-methods failed. User must draw manually.");
+    alert("⚠️ No pudimos detectar el techo en este punto.\n\nPor favor usa el botón '✏️ Dibujar Manual' para trazarlo tú mismo.");
+    window.toggleManualMode(true);
+    // Helper: Simulation REMOVED per user request
+    // If API fails, better to let user draw manually than show a random box.
 }
 
-// Helper: Simulate Data if API breaks
-function simulateSolarData() {
-    const center = window.map.getCenter();
-
-    // 1. Draw Mock Green Box (Precision)
-    if (currentPolygon) currentPolygon.setMap(null);
-    const size = 0.0001; // Approx 10 meters
-    const bounds = {
-        north: center.lat() + size,
-        south: center.lat() - size,
-        east: center.lng() + size,
-        west: center.lng() - size
-    };
-
-    currentPolygon = new google.maps.Rectangle({
-        strokeColor: "#00FF00",
-        strokeOpacity: 0.8,
-        strokeWeight: 3,
-        fillColor: "#00FF00",
-        fillOpacity: 0.3,
-        map: window.map,
-        bounds: bounds,
-        editable: true,
-        draggable: true
-    });
-
-    // Add listener (Same as real mode)
-    currentPolygon.addListener("bounds_changed", () => {
-        const ne = currentPolygon.getBounds().getNorthEast();
-        const sw = currentPolygon.getBounds().getSouthWest();
-        const height = google.maps.geometry.spherical.computeDistanceBetween(ne, { lat: ne.lat(), lng: sw.lng() });
-        const width = google.maps.geometry.spherical.computeDistanceBetween(ne, { lat: sw.lat(), lng: ne.lng() });
-        const newAreaSqFt = (height * width) * 10.7639;
-        if (window.updateAreaState) window.updateAreaState(newAreaSqFt);
-    });
-
-    // 2. Mock Stats (High Complexity Example)
-    const mockStat = {
-        geometric: 1250,
-        waste_factor: 1.25, // Complex
-        material_needed: 1563,
-        complexity_score: 8
-    };
-
-    alert(`✅ [SIMULACIÓN] MODO PRECISIÓN 3D ACTIVADO\n\n• Complejidad de Techo: ALTA (Simulada)\n• Desperdicio Ajustado: 25%\n• Material Calculado: ${mockStat.material_needed} ft²`);
-
-    if (window.updateAreaState) window.updateAreaState(mockStat.geometric, mockStat);
-
-    window.map.fitBounds(currentPolygon.getBounds());
-}
+let manualMode = false; // Global state for manual drawing
 
 function initDrawingManager() {
     // Helper to toggle mode
-    window.setManualDraw = (enable) => {
-        console.log("Setting Manual Draw:", enable);
-        if (drawingManager) {
-            drawingManager.setDrawingMode(enable ? google.maps.drawing.OverlayType.POLYGON : null);
-            drawingManager.setOptions({ drawingControl: false });
+    window.toggleManualMode = function (forceManual) {
+        manualMode = forceManual !== undefined ? forceManual : !manualMode;
+
+        const btn = document.getElementById('btnManual');
+
+        if (manualMode) {
+            // Activate Drawing
+            window.drawingManager.setDrawingMode(google.maps.drawing.OverlayType.POLYGON);
+            window.drawingManager.setOptions({
+                drawingControl: true
+            });
+            // Clear existing
+            if (currentPolygon) currentPolygon.setMap(null);
+            if (window.roofSegments) window.roofSegments.forEach(s => s.setMap(null));
+        } else {
+            // Deactivate
+            window.drawingManager.setDrawingMode(null);
+            window.drawingManager.setOptions({
+                drawingControl: false
+            });
+        }
+
+        // Update Button UI
+        if (btn) {
+            if (manualMode) {
+                btn.className = 'btn btn-sm btn-primary';
+                btn.innerText = '👆 Volver a Auto';
+            } else {
+                btn.className = 'btn btn-sm btn-outline-secondary';
+                btn.innerText = '✏️ Dibujar Manual';
+            }
         }
     };
 
-    drawingManager = new google.maps.drawing.DrawingManager({
-        drawingMode: null, // Default to Hand Mode (Click Selection)
-        drawingControl: false, // Hidden by default, use custom buttons
+    window.drawingManager = new google.maps.drawing.DrawingManager({
+        drawingMode: null, // Start disabled
+        drawingControl: false,
         drawingControlOptions: {
             position: google.maps.ControlPosition.TOP_CENTER,
             drawingModes: [google.maps.drawing.OverlayType.POLYGON],
         },
         polygonOptions: {
-            fillColor: "#ff9900",
-            fillOpacity: 0.4,
+            fillColor: "#00FF00",
+            fillOpacity: 0.3,
             strokeWeight: 2,
-            strokeColor: "#ff9900",
-            clickable: true,
             editable: true,
-            draggable: true,
-            zIndex: 1,
-        },
+            draggable: true
+        }
     });
 
-    drawingManager.setMap(map);
+    window.drawingManager.setMap(window.map);
 
-    google.maps.event.addListener(drawingManager, "overlaycomplete", function (event) {
-        if (currentPolygon) {
-            currentPolygon.setMap(null);
+    // Event: When polygon is complete
+    google.maps.event.addListener(window.drawingManager, 'overlaycomplete', function (event) {
+        if (event.type === 'polygon') {
+            // Remove previous
+            if (currentPolygon) currentPolygon.setMap(null);
+            if (window.roofSegments) window.roofSegments.forEach(s => s.setMap(null));
+
+            currentPolygon = event.overlay;
+
+            // Add listener to new polygon
+            currentPolygon.getPath().addListener("set_at", updateAreaFromPolygon);
+            currentPolygon.getPath().addListener("insert_at", updateAreaFromPolygon);
+
+            // Initial calc
+            updateAreaFromPolygon();
+
+            // Switch back to "Auto" UI state but keep the polygon
+            // manualMode = false; 
+            // window.drawingManager.setDrawingMode(null);
+            // window.toggleManualMode(false); 
         }
-
-        currentPolygon = event.overlay;
-        drawingManager.setDrawingMode(null);
-        calculateArea();
-
-        const path = currentPolygon.getPath();
-        google.maps.event.addListener(path, "set_at", calculateArea);
-        google.maps.event.addListener(path, "insert_at", calculateArea);
     });
 }
 
-function calculateArea() {
+function updateAreaFromPolygon() {
     if (!currentPolygon) return;
-
     const areaM2 = google.maps.geometry.spherical.computeArea(currentPolygon.getPath());
     const areaSqFt = areaM2 * 10.7639;
 

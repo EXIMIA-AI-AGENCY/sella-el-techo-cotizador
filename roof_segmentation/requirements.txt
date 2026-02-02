@@ -1,9 +1,10 @@
-
 torch
 torchvision
-opencv-python
+opencv-python-headless
 fastapi
 uvicorn
 tqdm
 numpy
 segmentation-models-pytorch
+requests
+python-multipart

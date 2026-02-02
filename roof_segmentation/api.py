@@ -8,11 +8,12 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
 import uvicorn
 
-import config
-from model import DeepLabV3Plus
-from utils import mask_to_geojson
+from . import config
+from .model import DeepLabV3Plus
+from .utils import mask_to_geojson, fetch_satellite_tile, segment_roof_from_center, pixels_to_latlng
 
 app = FastAPI(title="Roof Segmentation API", version="1.0")
+# Trigger Reload
 
 # Load Model
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -60,6 +61,37 @@ async def predict_roof(file: UploadFile = File(...)):
     geojson = mask_to_geojson(mask_resized)
     
     return JSONResponse(content=geojson)
+
+@app.get("/segment")
+async def segment_roof_location(lat: float, lng: float):
+    # Imports already handled globally
+    
+    print(f"Segmenting request for {lat}, {lng}...")
+    
+    # 1. Fetch Tile
+    image, bbox = fetch_satellite_tile(lat, lng)
+    
+    if image is None:
+        return JSONResponse(content={"error": "Failed to fetch satellite tile"}, status_code=500)
+    
+    # 2. Segment (CV)
+    pixel_polygon = segment_roof_from_center(image)
+    
+    if len(pixel_polygon) == 0:
+        return JSONResponse(content={"error": "No roof segments detected"}, status_code=404)
+        
+    # 3. Convert to GeoCoords
+    geo_polygon = pixels_to_latlng(pixel_polygon, bbox, image.shape)
+    
+    # 4. Result
+    return JSONResponse(content={
+        "roofSegmentStats": [{"boundingPolygon": geo_polygon}],
+        "solarPotential": {
+            "wholeRoofStats": {
+                "areaMeters2": 100 # Placeholder for CV area calc
+            }
+        }
+    })
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)

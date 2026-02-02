@@ -17,10 +17,16 @@
     :root {
       --bg-color: #0a192f;
       --card-bg: #112240;
-      --text-main: #e6f1ff;
-      --text-muted: #8892b0;
+      --text-main: #ffffff;
+      --text-muted: #e0e0e0;
+      /* Made nearly white per user request */
       --accent: #ff9900;
       --border: #233554;
+    }
+
+    /* Override Bootstrap muted text for better visibility on dark theme */
+    .text-muted {
+      color: var(--text-muted) !important;
     }
 
     body {
@@ -153,10 +159,17 @@
       background: rgba(255, 153, 0, 0.05);
     }
 
-    .option-card img {
-      max-height: 120px;
-      margin-bottom: 15px;
-      transition: transform 0.3s;
+    .option-card .img-3d {
+      max-height: 180px;
+      width: auto;
+      filter: drop-shadow(0 10px 15px rgba(0, 0, 0, 0.3));
+      transition: all 0.3s ease;
+    }
+
+    /* Ensure Danosa image fits well */
+    #serviceImg {
+      max-height: 180px;
+      object-fit: contain;
     }
 
     .option-card:hover img {
@@ -340,78 +353,113 @@
       <div class="progress-fill" id="progressFill"></div>
     </div>
 
-    <!-- STEP 1: Address Search -->
+    <!-- STEP 1: Qualification -->
     <div class="step-content active" id="step1">
       <div class="text-center my-auto px-5">
-        <h2 class="mb-3">¿Dónde es el proyecto?</h2>
-        <p class="text-muted mb-4">Ingresa la dirección para localizar la propiedad vía satélite.</p>
-
-        <div class="position-relative">
-          <input type="text" id="addressInput" class="search-lg" placeholder="Ej. Calle San Jorge 123, San Juan..."
-            style="padding-right: 180px;">
-          <button class="btn btn-warning text-dark fw-bold position-absolute end-0 top-50 translate-middle-y me-2"
-            onclick="useCurrentLocation()" style="z-index: 10;">
-            📍 Usar mi ubicación
-          </button>
+        <h2 class="mb-4">¿Conoces los pies cuadrados de tu techo?</h2>
+        <div class="row justify-content-center g-4">
+          <div class="col-md-5">
+            <div class="option-card" onclick="setKnowsSqFt(true, this)">
+              <h1 class="mb-0">✅</h1>
+              <h3 class="mt-3">Sí, los conozco</h3>
+              <small class="text-muted">Ingresar medidas manuales</small>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="option-card" onclick="setKnowsSqFt(false, this)">
+              <h1 class="mb-0">❌</h1>
+              <h3 class="mt-3">No, necesito ayuda</h3>
+              <small class="text-muted">Agendar cita con un experto</small>
+            </div>
+          </div>
         </div>
-
-        <div id="map-preview-hidden" style="display:none;"></div> <!-- Invisible map init -->
       </div>
     </div>
 
-    <!-- STEP 2: Satellite Map -->
-    <div class="step-content" id="step2">
-      <div class="row h-100">
-        <div class="col-12 mb-3">
-          <div class="d-flex justify-content-between align-items-end mb-2">
-            <div>
-              <h3 class="mb-1">Selecciona el Techo</h3>
-              <p class="text-muted small m-0">Haz clic en la casa para detectar. O usa modo manual.</p>
+    <!-- STEP 2A: Manual Input (YES path) -->
+    <div class="step-content" id="step2A">
+      <div class="text-center my-auto px-5">
+        <h3 class="mb-4">Ingresa el tamaño del techo</h3>
+        <div class="d-flex justify-content-center align-items-center gap-3">
+          <input type="number" id="inputSqFt" class="search-lg text-center" placeholder="1500" style="width: 200px;">
+          <span class="fs-4 text-muted">ft²</span>
+        </div>
+        <p class="text-muted mt-3">Ingresa el área total a sellar.</p>
+        <button class="btn btn-warning fw-bold px-5 mt-3" onclick="confirmManualSqFt()">Continuar ➡️</button>
+      </div>
+    </div>
+
+    <!-- STEP 2B: Calendar (NO path) -->
+    <div class="step-content" id="step2B">
+      <div class="text-center h-100 d-flex flex-column">
+        <h3 class="mb-2">Agenda tu Inspección</h3>
+        <p class="text-muted mb-3">Uno de nuestros expertos te visitará para medir.</p>
+
+        <!-- CALENDAR EMBED -->
+        <div class="flex-grow-1 border border-secondary rounded overflow-hidden"
+          style="background: #fff; min-height: 600px;">
+          <iframe src="https://api.leadconnectorhq.com/widget/booking/hSO8bJXNuwvua7DybRJ7"
+            style="width: 100%; height: 100%; border:none; overflow: hidden;" scrolling="no"
+            id="hSO8bJXNuwvua7DybRJ7_1769897386462">
+          </iframe>
+          <script src="https://link.msgsndr.com/js/form_embed.js" type="text/javascript"></script>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Step 2 Legacy Map (Preserved but Hidden) -->
+    <div class="step-content" id="stepMapHidden" style="display:none!important">
+      <div class="step-content" id="step2">
+        <div class="row h-100">
+          <div class="col-12 mb-3">
+            <div class="d-flex justify-content-between align-items-end mb-2">
+              <div>
+                <h3 class="mb-1">Selecciona el Techo</h3>
+                <p class="text-muted small m-0">Haz clic en la casa para detectar. O usa modo manual.</p>
+              </div>
+              <button id="btnDrawToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleDrawMode()">✏️ Dibujar
+                Manual</button>
             </div>
-            <button id="btnDrawToggle" class="btn btn-sm btn-outline-secondary" onclick="toggleDrawMode()">✏️ Dibujar
-              Manual</button>
-          </div>
-          <script>
-            let manualMode = false;
-            function toggleDrawMode() {
-              manualMode = !manualMode;
-              if (window.setManualDraw) window.setManualDraw(manualMode);
-              const btn = document.getElementById('btnDrawToggle');
-              if (manualMode) {
-                btn.className = 'btn btn-sm btn-primary';
-                btn.innerText = '👆 Volver a Auto';
-              } else {
-                btn.className = 'btn btn-sm btn-outline-secondary';
-                btn.innerText = '✏️ Dibujar Manual';
+            <script>
+              let manualMode = false;
+              function toggleDrawMode() {
+                manualMode = !manualMode;
+                if (window.setManualDraw) window.setManualDraw(manualMode);
+                const btn = document.getElementById('btnDrawToggle');
+                if (manualMode) {
+                  btn.className = 'btn btn-sm btn-primary';
+                  btn.innerText = '👆 Volver a Auto';
+                } else {
+                  btn.className = 'btn btn-sm btn-outline-secondary';
+                  btn.innerText = '✏️ Dibujar Manual';
+                }
               }
-            }
-          </script>
-        </div>
-        <div class="col-12">
-          <div id="map-container">
-            <div id="map"></div>
+            </script>
+          </div>
+          <div class="col-12">
+            <div id="map-container">
+              <div id="map"></div>
 
-            <!-- Floating Area Badge -->
-            <!-- Floating Area Badge -->
-            <div
-              class="position-absolute bottom-0 end-0 m-3 bg-dark text-white p-3 rounded shadow border border-secondary"
-              style="max-width: 280px; z-index: 1000;">
-              <small class="text-muted d-block uppercase" style="font-size:0.7em;">Area Promedio Estimada</small>
-              <div class="fw-bold fs-3 text-warning mb-2 lh-1"><span id="liveArea">0</span> <small
-                  class="fs-6 text-white">ft²</small></div>
+              <!-- Floating Area Badge -->
+              <!-- Floating Area Badge -->
+              <div
+                class="position-absolute bottom-0 end-0 m-3 bg-dark text-white p-3 rounded shadow border border-secondary"
+                style="max-width: 280px; z-index: 1000;">
+                <small class="text-muted d-block uppercase" style="font-size:0.7em;">Area Promedio Estimada</small>
+                <div class="fw-bold fs-3 text-warning mb-2 lh-1"><span id="liveArea">0</span> <small
+                    class="fs-6 text-white">ft²</small></div>
 
-              <div class="small border-top border-secondary pt-2 mb-2">
-                <div class="d-flex justify-content-between">
-                  <span class="text-muted">📡 Satélite:</span>
-                  <span id="valSat" class="fw-bold text-light">-</span>
+                <div class="small border-top border-secondary pt-2 mb-2">
+                  <div class="d-flex justify-content-between">
+                    <span class="text-muted">📡 Satélite:</span>
+                    <span id="valSat" class="fw-bold text-light">-</span>
+                  </div>
                 </div>
 
-              </div>
-
-              <div class="mt-2 text-end border-top border-secondary pt-2">
-                <small class="text-muted d-block mb-1" style="font-size:0.75em">Verificar en:</small>
-                <div class="btn-group btn-group-sm w-100">
-
+                <div class="mt-2 text-end border-top border-secondary pt-2">
+                  <button class="btn btn-warning w-100 fw-bold" onclick="changeStep(1)">
+                    ✅ Confirmar y Seguir
+                  </button>
                 </div>
               </div>
             </div>
@@ -419,6 +467,7 @@
         </div>
       </div>
     </div>
+
 
     <!-- STEP 3: Cistern -->
     <div class="step-content" id="step3">
@@ -467,9 +516,10 @@
     <!-- STEP 5: Service Type -->
     <div class="step-content" id="step5">
       <div class="text-center my-auto">
-        <img src="assets/service.png" class="img-3d img-fluid mb-4">
+        <img src="assets/service.png" id="serviceImg" class="img-3d img-fluid mb-4">
         <h3 class="mb-3">Tipo de Sellado</h3>
-        <div class="row justify-content-center g-3">
+
+        <div class="row justify-content-center g-3 mb-4">
           <div class="col-md-4">
             <div class="option-card" onclick="setOption('service', 'Silicona', this)">
               <h5 class="mt-2 text-warning">Silicona 100%</h5>
@@ -483,6 +533,30 @@
             </div>
           </div>
         </div>
+
+        <!-- DANOSA EXTRA OPTIONS -->
+        <div id="danosaOptions" class="mt-4 p-3 border border-secondary rounded"
+          style="display:none; background: rgba(255,153,0,0.05);">
+          <h5 class="mb-3 text-warning">Opciones de Remoción</h5>
+          <p class="small text-muted">¿Necesitas remover membrana vieja?</p>
+
+          <div class="d-flex justify-content-center gap-3 mb-3">
+            <button class="btn btn-outline-light btn-sm" onclick="setRemoval(false, this)">No, techo limpio</button>
+            <button class="btn btn-outline-light btn-sm" onclick="setRemoval(true, this)">Sí, remover viejo</button>
+          </div>
+
+          <div id="layersInput" style="display:none;">
+            <label class="small text-muted mb-2">¿Cuántas capas estimadas hay?</label>
+            <div class="d-flex justify-content-center align-items-center gap-2">
+              <button class="btn btn-secondary btn-sm" onclick="adjLayers(-1)">-</button>
+              <span id="layerCount" class="fw-bold fs-5 px-3">1</span>
+              <button class="btn btn-secondary btn-sm" onclick="adjLayers(1)">+</button>
+            </div>
+            <small class="text-warning d-block mt-2">*Si hay más de 2 capas, se cobra extra ($1/ft² por capa
+              adicional).</small>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -511,11 +585,11 @@
                 <td class="price pt-2" id="sumBase">$0.00</td>
               </tr>
               <tr id="rowCistern" style="display:none">
-                <td>Manejo de Cisterna</td>
+                <td>Remoción / Manejo de Cisterna</td>
                 <td class="price text-warning">+$150.00</td>
               </tr>
               <tr id="rowSolar" style="display:none">
-                <td>Protección Placas Solares</td>
+                <td>Remoción / Desmontaje Placas Solares</td>
                 <td class="price text-warning">+$1,000.00</td>
               </tr>
               <tr>
@@ -534,9 +608,11 @@
             </p>
           </div>
 
-          <div class="text-center mt-4">
-            <button class="btn btn-warning w-100 py-3 fw-bold mb-2">📥 Descargar PDF</button>
-            <a href="#" onclick="location.reload()" class="text-muted small text-decoration-none">Empezar de nuevo</a>
+          <div class="text-center mt-4 d-grid gap-2">
+            <button class="btn btn-primary py-3 fw-bold" onclick="goToCalendar(6)">📅 Agendar día del sellado</button>
+            <button class="btn btn-warning py-3 fw-bold">📥 Descargar PDF</button>
+            <button onclick="location.reload()" class="btn btn-link text-muted small text-decoration-none mt-2">Empezar
+              de nuevo</button>
           </div>
         </div>
       </div>
@@ -586,7 +662,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <!-- Logic -->
-  <script src="js/map_logic.js?v=simulation_v2"></script>
+  <script src="js/map_logic.js?v=fix_loc_final"></script>
   <!-- Google Maps API -->
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBR72tWGSonQu3eMgfcEUZdDiAcqaQ_bhA&libraries=places,drawing,geometry&callback=initMap"
@@ -600,15 +676,226 @@
       area: 0,
       cistern: null,
       solar: null,
-      service: null
+      service: null,
+      // New fields
+      knowsSqFt: null,
+      removal: false,
+      layers: 1
     };
+
+    // --- NEW LOGIC START ---
+
+    let previousStepForCalendar = 1;
+
+    function goToCalendar(originStep) {
+      previousStepForCalendar = originStep;
+      showStep('step2B');
+      currentStep = 99; // Calendar Mode
+      document.querySelector('.w-footer').style.display = 'block'; // Ensure Footer is visible for "Back"
+      updateSteps();
+    }
+
+    function setKnowsSqFt(knows, el) {
+      console.log("setKnowsSqFt clicked:", knows);
+      state.knowsSqFt = knows;
+
+      // Visual feedback
+      const cards = document.querySelectorAll('#step1 .option-card');
+      cards.forEach(c => c.classList.remove('selected'));
+      if (el) el.classList.add('selected');
+
+      setTimeout(() => {
+        if (knows) {
+          // Go to Manual Input
+          showStep('step2A');
+          currentStep = 2; // technical mapping
+        } else {
+          // Go to Calendar
+          goToCalendar(1);
+        }
+        updateSteps();
+      }, 300);
+    }
+
+    function confirmManualSqFt() {
+      const input = document.getElementById('inputSqFt');
+      const val = parseFloat(input.value);
+      if (!val || val < 100) {
+        alert("Por favor ingresa un tamaño válido (min 100 ft).");
+        return;
+      }
+      state.area = val;
+      window.manualArea = val; // Robust backup
+
+      // console.log("Manual Area Saved:", val);
+      // alert("DEBUG: Area guardada correctamente: " + val);
+
+      // Jump to Step 3 (Cistern) - skipping map logic
+      currentStep = 3;
+      showStep('step' + currentStep);
+      updateSteps();
+    }
+
+    // ...
+
+    function renderSummary() {
+      console.log("--- RENDER SUMMARY CALLED ---");
+      // BASE RATES
+      let rate = 4.50; // Default (Silicona)
+      let surcharge = 0;
+
+      // Danosa Logic ($3.50 Base)
+      if (state.service === 'Danosa') {
+        rate = 3.50;
+        // Surcharge: $1.00 per layer starting from the 2nd layer
+        if (state.removal && state.layers >= 2) {
+          surcharge = (state.layers - 1) * 1.00;
+        }
+      }
+      console.log("Rate:", rate, "Surcharge:", surcharge);
+
+      const TAX_RATE = 0.115;
+
+      // AREA SELECTION PRIORITY: Manual > State > 0
+      let effectiveArea = 0;
+
+      console.log("Window ManualArea:", window.manualArea);
+      console.log("State Area:", state.area);
+
+      // Force read from global manualArea if present
+      if (typeof window.manualArea === 'number' && window.manualArea > 0) {
+        effectiveArea = window.manualArea;
+      } else {
+        effectiveArea = state.area;
+      }
+
+      if (effectiveArea === 0) {
+        // Attempt recovery from input if stuck
+        const inputVal = parseFloat(document.getElementById('inputSqFt').value);
+        console.log("Recovering from input:", inputVal);
+        if (inputVal > 0) effectiveArea = inputVal;
+      }
+
+      console.log("Effective Area:", effectiveArea);
+
+      // DEBUG: If area is 0, alert user to find out why
+      if (effectiveArea === 0 || !effectiveArea) {
+        console.error("Area is 0 in renderSummary!");
+        alert("CRITICAL ERROR: Area is 0. \nManual: " + window.manualArea + "\nState: " + state.area + "\nInput: " + document.getElementById('inputSqFt').value);
+      }
+
+      const materialCost = effectiveArea * (rate + surcharge);
+      const cisternCost = state.cistern ? 150 : 0;
+      const solarCost = state.solar ? 1000 : 0;
+
+      const subtotal = materialCost + cisternCost + solarCost;
+      const tax = subtotal * TAX_RATE;
+      const total = subtotal + tax;
+
+      console.log("Material:", materialCost, "Total:", total);
+
+      // UI Updates
+      document.getElementById('sumAreaRaw').innerText = Math.round(effectiveArea).toLocaleString();
+
+      // Update Lines
+      document.getElementById('sumeffectiveArea').innerText = Math.round(effectiveArea).toLocaleString() + " ft²";
+      document.getElementById('sumBase').innerText = formatMoney(materialCost) + (surcharge > 0 ? " (Inc. Remoción)" : "");
+
+      const rowCistern = document.getElementById('rowCistern');
+      if (rowCistern) rowCistern.style.display = state.cistern ? 'table-row' : 'none';
+
+      const rowSolar = document.getElementById('rowSolar');
+      if (rowSolar) rowSolar.style.display = state.solar ? 'table-row' : 'none';
+
+      document.getElementById('sumTax').innerText = formatMoney(tax);
+      document.getElementById('sumTotal').innerText = formatMoney(total);
+    }
+
+    // DANOSA LOGIC
+    function setRemoval(isRemoval, btn) {
+      state.removal = isRemoval;
+      // UI toggle
+      const parent = btn.parentElement;
+      parent.querySelectorAll('.btn').forEach(b => {
+        b.classList.remove('btn-light', 'text-dark');
+        b.classList.add('btn-outline-light');
+      });
+      btn.classList.remove('btn-outline-light');
+      btn.classList.add('btn-light', 'text-dark');
+
+      const layerDiv = document.getElementById('layersInput');
+      layerDiv.style.display = isRemoval ? 'block' : 'none';
+
+      validateStep();
+    }
+
+    function adjLayers(delta) {
+      let newL = state.layers + delta;
+      if (newL < 1) newL = 1;
+      if (newL > 5) newL = 5;
+      state.layers = newL;
+      document.getElementById('layerCount').innerText = newL;
+    }
+
+    // Helper to manually show specific ID (bypassing number logic occasionally)
+    function showStep(id) {
+      document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+
+      // Progress Bar Update based on numeric currentStep
+      // If 99 (Calendar), full bar
+      let pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      if (currentStep === 99) pct = 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+      document.querySelector('.w-header .small span').innerText = (currentStep > 6) ? '-' : currentStep;
+    }
+
+    // --- NEW LOGIC END ---
 
     function updateSteps() {
       console.log("Updating steps. Current:", currentStep);
-      // Show/Hide steps
-      document.querySelectorAll('.step-content').forEach((el, idx) => {
-        el.classList.toggle('active', (idx + 1) === currentStep);
-      });
+
+      // Handle Calendar Mode (Step 99)
+      if (currentStep === 99) {
+        document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+        document.getElementById('step2B').classList.add('active');
+        document.getElementById('progressFill').style.width = '100%';
+        return;
+      }
+
+      // Show/Hide steps (Standard Flow)
+      // Note: Step 1 (idx 0) -> Step 2A (idx 1) -> Step 2B (idx 2, skipped by logic usually) -> Step Hidden (idx 3) -> Step 3 (idx 4)...
+      // This numeric logic is now fragile. Ideally we should use IDs.
+      // But for now, if currentStep=2, it hits Step 2A (idx 1). 
+      // If currentStep=3, it targets idx 2 (Step 2B)? No, we want Step 3 (cistern).
+
+      // FIXING INDEX MAPPING:
+      // Step 1: ID step1
+      // Step 2: ID step2A
+      // Step 3: ID step3
+      // ...
+
+      // Let's use explicit ID mapping for safety now that DOM is mixed
+      const stepMap = {
+        1: 'step1',
+        2: 'step2A',
+        3: 'step3',
+        4: 'step4',
+        5: 'step5',
+        6: 'step6'
+      };
+
+      const targetId = stepMap[currentStep];
+      if (targetId) {
+        document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+        const target = document.getElementById(targetId);
+        if (target) target.classList.add('active');
+      } else {
+        // Fallback legacy numeric (if map logic tries to use it)
+        document.querySelectorAll('.step-content').forEach((el, idx) => {
+          // el.classList.toggle('active', (idx + 1) === currentStep); 
+        });
+      }
 
       // Progress
       const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
@@ -631,6 +918,7 @@
 
       const nextBtn = document.getElementById('btnNext');
       nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
+      // Show Next button on Step 1 too (User Request)
       nextBtn.style.display = (currentStep === totalSteps) ? 'none' : 'block';
 
       // Step Specific Logic
@@ -645,20 +933,106 @@
       }
 
       if (currentStep === 6) renderSummary();
+
+      // DEBUG: Log all active steps (to catch duplicates)
+      const activeSteps = document.querySelectorAll('.step-content.active');
+      if (activeSteps.length > 1) {
+        console.error("MULTIPLE STEPS ACTIVE:", activeSteps);
+      }
     }
 
-    function changeStep(dir) {
+    async function changeStep(dir) {
       console.log("changeStep called with:", dir);
 
       if (dir === -1) {
-        // Debug Alert: visual confirmation for user
-        // alert("Regresando..."); 
-      }
+        // BACK NAVIGATION LOGIC
+        if (currentStep === 99) {
+          // Return from Calendar to Origin
+          currentStep = previousStepForCalendar;
+          // If coming back to Step 1, explicitly set it
+          if (previousStepForCalendar === 1) {
+            showStep('step1');
+          } else {
+            // If was at 6, go back to 6
+            if (previousStepForCalendar === 6) renderSummary();
+            // Force update via standard logic if numeric match
+          }
+        }
+        else if (currentStep === 3) {
+          // Step 3 (Cistern) -> Step 2A (Manual Input)
+          // Step 2 is legacy map, Step 2A is Manual. 
+          // Since we force Step 2A or 2B in Step 1, we should go back to Step 2A.
+          currentStep = 2;
+        }
+        else {
+          currentStep += dir;
+        }
 
-      if (dir === 1 && !validateStep(true)) {
-        console.log("Validation failed for next step");
+        // Safety bounds
+        if (currentStep < 1) currentStep = 1;
+        updateSteps();
         return;
       }
+
+      // Going Forward logic
+      if (dir === 1) {
+        if (!validateStep(true)) {
+          console.log("Validation failed for next step");
+          // Highlight error
+          if (currentStep === 1) {
+            // No specific input to highlight anymore
+          }
+          return;
+        }
+
+        // Special Handling for Step 1 -> 2 (Address Search) - REMOVED/SKIPPED for now
+        if (currentStep === 1) {
+          const inputVal = document.getElementById('addressInput').value;
+
+          // If mapCenter is not set (User typed but didn't pick from dropdown)
+          if (!window.mapCenter && inputVal.length > 3) {
+            const btn = document.getElementById('btnNext');
+            const oldText = btn.innerText;
+            btn.innerText = "🔍 Buscando...";
+            btn.disabled = true;
+
+            try {
+              // Manual Geocode
+              const geocoder = new google.maps.Geocoder();
+              const result = await new Promise((resolve, reject) => {
+                geocoder.geocode({ address: inputVal, componentRestrictions: { country: 'PR' } }, (results, status) => {
+                  if (status === 'OK' && results[0]) resolve(results[0]);
+                  else reject(status);
+                });
+              });
+
+              // Success
+              const location = result.geometry.location;
+              window.mapCenter = location;
+
+              // Trigger Solar Logic
+              if (window.fetchSolarData) window.fetchSolarData(location.lat(), location.lng());
+
+              // Update Map
+              if (window.map) {
+                window.map.setCenter(location);
+                window.map.setZoom(20);
+                window.map.setTilt(45);
+              }
+
+            } catch (e) {
+              console.error("Geocode Failed:", e);
+              alert("⚠️ No encontramos esa dirección. Intenta ser más específico o usa el mapa.");
+              btn.innerText = oldText;
+              btn.disabled = false;
+              return; // STOP
+            }
+            btn.innerText = oldText;
+            btn.disabled = false;
+          }
+        }
+      }
+
       currentStep += dir;
       // Safety bounds
       if (currentStep < 1) currentStep = 1;
@@ -672,8 +1046,8 @@
       let valid = false;
 
       if (currentStep === 1) {
-        const addrInput = document.getElementById('addressInput');
-        valid = addrInput && addrInput.value.length > 5;
+        // Validation handled by card selection
+        valid = state.knowsSqFt !== null;
       } else if (currentStep === 2) {
         valid = state.area > 0;
       } else if (currentStep === 3) {
@@ -694,54 +1068,27 @@
       const siblings = card.parentElement.parentElement.querySelectorAll('.option-card');
       siblings.forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
+
+      // Toggle Danosa Options visibility AND Image Logic
+      if (key === 'service') {
+        const danosaOpts = document.getElementById('danosaOptions');
+        const serviceImg = document.getElementById('serviceImg');
+
+        if (val === 'Danosa') {
+          danosaOpts.style.display = 'block';
+          if (serviceImg) serviceImg.src = 'assets/danosa_membrane.png?v=' + new Date().getTime() + '_2';
+        } else {
+          danosaOpts.style.display = 'none';
+          state.removal = false; // reset
+          if (serviceImg) serviceImg.src = 'assets/service.png?v=2';
+        }
+      }
+
       validateStep();
     }
 
-    function renderSummary() {
-      const WASTE_FACTOR = 1.15;
-      const PRICE_SQFT = 4.50;
-      const TAX_RATE = 0.115;
-
-      const rawArea = state.area;
-
-      // Smart Waste Logic:
-      // If we have satellite stats, use the calculated "Material Needed" (includes complexity).
-      // If manual drawing, use default 1.15 factor.
-      let effectiveArea;
-      if (state.stats && state.stats.material_needed) {
-        effectiveArea = state.stats.material_needed;
-      } else {
-        effectiveArea = rawArea * 1.15;
-      }
-      const baseCost = effectiveArea * PRICE_SQFT;
-
-      const cisternCost = state.cistern ? 150 : 0;
-      const solarCost = state.solar ? 1000 : 0;
-
-      const subtotal = baseCost + cisternCost + solarCost;
-      const tax = subtotal * TAX_RATE;
-      const total = subtotal + tax;
-
-      // UI Updates
-      const wasteSqFt = effectiveArea - rawArea;
-      const wastePct = rawArea > 0 ? Math.round((wasteSqFt / rawArea) * 100) : 0;
-
-      document.getElementById('sumAreaRaw').innerText = Math.round(rawArea).toLocaleString();
-      if (document.getElementById('lblWaste')) document.getElementById('lblWaste').innerText = wastePct;
-      if (document.getElementById('sumWaste')) document.getElementById('sumWaste').innerText = Math.round(wasteSqFt).toLocaleString();
-      if (document.getElementById('sumeffectiveArea')) document.getElementById('sumeffectiveArea').innerText = Math.round(effectiveArea).toLocaleString();
-
-      document.getElementById('sumBase').innerText = formatMoney(baseCost);
-
-      const rowCistern = document.getElementById('rowCistern');
-      if (rowCistern) rowCistern.style.display = state.cistern ? 'table-row' : 'none';
-
-      const rowSolar = document.getElementById('rowSolar');
-      if (rowSolar) rowSolar.style.display = state.solar ? 'table-row' : 'none';
-
-      document.getElementById('sumTax').innerText = formatMoney(tax);
-      document.getElementById('sumTotal').innerText = formatMoney(total);
-    }
+    // Old renderSummary deleted to avoid shadowing. 
+    // The active renderSummary is now located closer to confirmManualSqFt.
 
     function formatMoney(n) {
       return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -749,9 +1096,27 @@
 
     // Bridging Map Logic
     // Bridging Map Logic
+    // Bridging Map Logic
     window.updateAreaState = function (sqft, stats = null) {
+      // CRITICAL FIX: If we are in manual mode (state.knowsSqFt === true),
+      // DO NOT let the background map logic overwrite our manual area with 0 or small value.
+      // We trust the manual input over an empty map.
+      if (state.knowsSqFt === true) {
+        if (sqft < 10 && state.area > 10) {
+          console.log("Blocking map update (0/low) because Manual Area is set:", state.area);
+          return;
+        }
+        // Even if map returns a value, if we are in Manual Mode, we probably want to ignore it 
+        // unless we explicitly allow "hybrid" mode (which we don't right now).
+        if (state.area > 0 && currentStep >= 2) {
+          return;
+        }
+      }
+
       state.area = sqft;
       state.stats = stats;
+
+      console.log("Area updated to:", state.area);
 
       // Update Main Display
       document.getElementById('liveArea').innerText = Math.round(sqft).toLocaleString();
@@ -761,6 +1126,9 @@
         const displayVal = stats ? stats.geometric : sqft;
         document.getElementById('valSat').innerText = Math.round(displayVal).toLocaleString() + " ft²";
       }
+
+      // If we are on the quote page, re-render
+      if (currentStep === 6) renderSummary();
 
       validateStep();
     };
@@ -789,5 +1157,111 @@
       updateSteps(); // Initial UI Sync
     });
 
+    // Rotation Control Logic
+    let lastSliderVal = 0;
+    function handleSliderRotation(val) {
+      const delta = val - lastSliderVal;
+      lastSliderVal = val;
+      if (window.rotatePolygon) window.rotatePolygon(delta);
+    }
+
+    // Expose control visibility
+    window.showRotationControls = function (show) {
+      const el = document.getElementById('rotationControls');
+      if (el) el.style.display = show ? 'block' : 'none';
+
+      // Reset slider when showing
+      if (show) {
+        const slider = document.getElementById('rotSlider');
+        if (slider) slider.value = 0;
+        lastSliderVal = 0;
+      }
+    };
+  </script>
+
+  <!-- CRITICAL BACKUP SCRIPT: Geolocation -->
+  <!-- Embedded to ensure functionality even if map_logic.js fails -->
+  <script>
+    console.log("⚡ Main HTML Script Loaded. Defining useCurrentLocation...");
+
+    window.useCurrentLocation = function () {
+      console.log("📍 HTML-embedded useCurrentLocation triggered.");
+      if (!navigator.geolocation) {
+        alert("Tu navegador no soporta geolocalización.");
+        return;
+      }
+
+      const btn = document.getElementById('btnUseLocation');
+      let originalText = "📍 Usar mi ubicación";
+      if (btn) {
+        originalText = btn.innerText;
+        btn.innerText = "⏳ Buscando...";
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          console.log("📍 Location Found:", position);
+
+          // Debug Alert for User
+          // alert("📍 Ubicación detectada. Entrando al mapa...");
+
+          const pos = { lat: position.coords.latitude, lng: position.coords.longitude };
+
+          // Update Map if available
+          if (window.map) {
+            window.map.setCenter(pos);
+            window.map.setZoom(21);
+            window.map.setHeading(0);
+            window.map.setTilt(45);
+          }
+          if (window.mapCenter) window.mapCenter = pos;
+
+          // Update UI
+          const addrInput = document.getElementById("addressInput");
+          if (addrInput) addrInput.value = "Ubicación detectada (" + pos.lat.toFixed(5) + ", " + pos.lng.toFixed(5) + ")";
+
+          const nextBtn = document.getElementById("btnNext");
+          if (nextBtn) nextBtn.disabled = false;
+
+          // Call Solar Logic (Backend)
+          if (window.fetchSolarData) {
+            window.fetchSolarData(pos.lat, pos.lng);
+          } else {
+            console.warn("fetchSolarData not ready yet. Calling manually after delay.");
+            setTimeout(() => {
+              if (window.fetchSolarData) window.fetchSolarData(pos.lat, pos.lng);
+            }, 2000);
+          }
+
+          if (btn) btn.innerText = originalText;
+
+          // FORCE ADVANCE STEP
+          if (typeof window.changeStep === 'function') {
+            console.log("🚀 Advancing to Step 2...");
+            window.changeStep(1);
+          } else {
+            alert("Error: changeStep no existe. Recarga la página.");
+          }
+        },
+        (error) => {
+          console.error("Geo Error:", error);
+          let msg = "No pudimos ubicarte.";
+          if (error.code === 1) msg = "❌ Permiso denegado. Revisa la configuración del navegador.";
+          if (error.code === 2) msg = "❌ Señal GPS no disponible.";
+          if (error.code === 3) msg = "❌ Tiempo de espera agotado (Timeout).";
+
+          alert(msg + "\n\nPor favor escribe tu dirección manualmente y dale a 'Siguiente'.");
+
+          if (btn) btn.innerText = originalText;
+
+          // FALLBACK: Enable Next button so they are not stuck
+          const nextBtn = document.getElementById("btnNext");
+          if (nextBtn) nextBtn.disabled = false;
+        },
+        { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }
+      );
+    };
   </script>
 </body>
+
+</html>
