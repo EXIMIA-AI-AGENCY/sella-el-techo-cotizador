@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sella El Techo - Cotizador</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Sella El Techo</h1>
+            <p class="subtitle">Cotizador de Sellado de Techos</p>
+        </header>
+
+        <main class="calculator">
+            <section class="input-section">
+                <h2>Información del Proyecto</h2>
+
+                <div class="form-group">
+                    <label for="squareFeet">Pies Cuadrados del Techo</label>
+                    <input type="number" id="squareFeet" min="0" placeholder="Ej: 1500" />
+                    <span class="price-info">Precio base: $3.50 por pie cuadrado</span>
+                </div>
+            </section>
+
+            <section class="addons-section">
+                <h2>Servicios Adicionales (Add-ons)</h2>
+
+                <div class="addon-item">
+                    <label>
+                        <input type="checkbox" id="addonAire" data-price="350" />
+                        <span class="addon-name">Remover Aire Acondicionado</span>
+                        <span class="addon-price">$350.00</span>
+                    </label>
+                </div>
+
+                <div class="addon-item">
+                    <label>
+                        <input type="checkbox" id="addonSolar" data-price="500" />
+                        <span class="addon-name">Remover Placas Solares</span>
+                        <span class="addon-price">$500.00</span>
+                    </label>
+                </div>
+
+                <div class="addon-item">
+                    <label>
+                        <input type="checkbox" id="addonCisterna" data-price="250" />
+                        <span class="addon-name">Remover Cisterna</span>
+                        <span class="addon-price">$250.00</span>
+                    </label>
+                </div>
+
+                <div class="addon-item">
+                    <label>
+                        <input type="checkbox" id="addonAntena" data-price="150" />
+                        <span class="addon-name">Remover Antena/Satélite</span>
+                        <span class="addon-price">$150.00</span>
+                    </label>
+                </div>
+
+                <div class="addon-item">
+                    <label>
+                        <input type="checkbox" id="addonLimpieza" data-price="200" />
+                        <span class="addon-name">Limpieza Profunda del Techo</span>
+                        <span class="addon-price">$200.00</span>
+                    </label>
+                </div>
+            </section>
+
+            <section class="quote-section">
+                <h2>Cotización</h2>
+
+                <div class="quote-breakdown">
+                    <div class="quote-line">
+                        <span>Sellado de Techo (<span id="displaySqFt">0</span> sq ft × $3.50)</span>
+                        <span class="quote-amount" id="basePrice">$0.00</span>
+                    </div>
+
+                    <div class="quote-line addons-total" id="addonsBreakdown">
+                        <!-- Add-ons breakdown will be inserted here -->
+                    </div>
+
+                    <div class="quote-line subtotal">
+                        <span>Subtotal Add-ons</span>
+                        <span class="quote-amount" id="addonsTotal">$0.00</span>
+                    </div>
+                </div>
+
+                <div class="quote-total">
+                    <span>TOTAL</span>
+                    <span class="total-amount" id="totalPrice">$0.00</span>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2024 Sella El Techo - Todos los derechos reservados</p>
+        </footer>
+    </div>
+
+    <script src="calculator.js"></script>
+</body>
+</html>
