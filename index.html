@@ -46,6 +46,8 @@
       /* Prevent text selection on touch for better UX */
       -webkit-tap-highlight-color: rgba(255, 153, 0, 0.2);
       /* Custom tap highlight color */
+      /* Add padding for chat widget (typically 80-100px wide/tall) */
+      padding-bottom: 120px;
     }
 
     /* Prevent unwanted behaviors on mobile */
@@ -332,6 +334,8 @@
     @media (max-width: 768px) {
       body {
         padding: 0;
+        padding-bottom: 0;
+        /* Remove bottom padding on mobile, handled by footer */
         background-color: var(--card-bg);
         /* Full screen app feel */
       }
@@ -354,8 +358,8 @@
       }
 
       .w-header img {
-        max-height: 60px !important;
-        /* Smaller logo on mobile */
+        max-height: 80px !important;
+        /* Larger logo on mobile for better branding */
       }
 
       .w-header .btn {
@@ -431,11 +435,15 @@
       /* Larger, more tappable buttons */
       .w-footer {
         padding: 15px;
+        padding-bottom: 25px;
+        /* Extra padding for chat widget */
         background: var(--card-bg);
         position: sticky;
         bottom: 0;
         box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
         /* Elevation for footer */
+        z-index: 900;
+        /* Below chat widget but above content */
       }
 
       .btn-nav {
@@ -567,7 +575,7 @@
     /* Extra small devices (phones in portrait) */
     @media (max-width: 576px) {
       .w-header img {
-        max-height: 50px !important;
+        max-height: 70px !important;
       }
 
       h3 {
@@ -656,6 +664,36 @@
         font-size: 1.1rem !important;
       }
     }
+
+    /* Chat widget accommodation */
+    /* Ensure chat widget doesn't cover important content */
+    @media (max-width: 768px) {
+      /* Add safe area for chat widget on mobile */
+      .wizard-container {
+        padding-bottom: 80px;
+        /* Space for chat widget bubble */
+      }
+
+      /* Adjust footer to stay above fold with chat widget */
+      .w-footer {
+        margin-bottom: 0;
+        padding-bottom: 20px;
+      }
+
+      /* Ensure summary content doesn't get hidden */
+      #step6 {
+        padding-bottom: 100px !important;
+      }
+    }
+
+    /* Desktop chat widget spacing */
+    @media (min-width: 769px) {
+      /* Ensure PDF button and actions don't overlap with chat */
+      #step6 .col-md-8 {
+        padding-right: 120px;
+        /* Space for chat widget on right side */
+      }
+    }
   </style>
 </head>
 
@@ -667,7 +705,7 @@
     <div class="w-header">
       <div class="d-flex align-items-center gap-3">
         <img src="assets/logo_white_ps.png" alt="Sella El Techo"
-          style="max-height: 140px; width: auto; object-fit: contain;">
+          style="max-height: 180px; width: auto; object-fit: contain;">
         <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal"
           data-bs-target="#nosotrosModal">Nosotros</button>
       </div>
