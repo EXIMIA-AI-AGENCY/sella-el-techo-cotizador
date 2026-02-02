@@ -705,11 +705,13 @@
       <div class="text-center my-auto px-5">
         <h3 class="mb-4">Ingresa el tamaño del techo</h3>
         <div class="d-flex justify-content-center align-items-center gap-3">
-          <input type="number" id="inputSqFt" class="search-lg text-center" placeholder="1500" style="width: 200px;">
+          <input type="number" id="inputSqFt" class="search-lg text-center" placeholder="1500" style="width: 200px;" min="100" step="1">
           <span class="fs-4 text-muted">ft²</span>
         </div>
         <p class="text-muted mt-3">Ingresa el área total a sellar.</p>
         <button class="btn btn-warning fw-bold px-5 mt-3" onclick="confirmManualSqFt()">Continuar ➡️</button>
+        <!-- Debug info -->
+        <div id="debugArea" class="mt-3 small text-warning" style="display:none;"></div>
       </div>
     </div>
 
@@ -888,6 +890,14 @@
     <div class="step-content" id="step6">
       <div class="row justify-content-center h-100 align-items-center">
         <div class="col-md-8">
+          <!-- Debug alert for missing area -->
+          <div id="areaWarning" class="alert alert-danger mb-3" style="display:none;">
+            <strong>⚠️ ERROR:</strong> No se detectó el área del techo.<br>
+            <small>state.area = <span id="debugStateArea">0</span></small><br>
+            <small>window.manualArea = <span id="debugWindowArea">0</span></small><br>
+            <small>DOM input = <span id="debugDomInput">N/A</span></small>
+          </div>
+
           <div class="p-4 rounded border border-secondary" style="background: rgba(0,0,0,0.2)" id="quoteContent">
             <h4 class="mb-4 text-center text-warning">Propuesta Estimada</h4>
 
@@ -1068,6 +1078,13 @@
         windowManualArea: window.manualArea
       });
 
+      // Show debug info
+      const debugDiv = document.getElementById('debugArea');
+      if (debugDiv) {
+        debugDiv.style.display = 'block';
+        debugDiv.innerHTML = `✅ Área capturada: ${val} ft² (state.area: ${state.area}, window.manualArea: ${window.manualArea})`;
+      }
+
       // NAVIGATE TO STEP 3
       currentStep = 3;
       showStep('step3'); // Explicit ID
@@ -1081,6 +1098,15 @@
       console.log("DEBUG: state.area =", state.area);
       console.log("DEBUG: window.manualArea =", window.manualArea);
       console.log("DEBUG: state.knowsSqFt =", state.knowsSqFt);
+      console.log("DEBUG: state =", JSON.stringify(state));
+
+      // Update debug display
+      const inputEl = document.getElementById('inputSqFt');
+      const inputValue = inputEl ? inputEl.value : 'N/A';
+
+      document.getElementById('debugStateArea').innerText = state.area || '0 (undefined)';
+      document.getElementById('debugWindowArea').innerText = window.manualArea || '0 (undefined)';
+      document.getElementById('debugDomInput').innerText = inputValue;
 
       // 1. RESOLVE AREA
       // Priority: State -> Window Global -> DOM Input
@@ -1097,7 +1123,6 @@
       // Fallback 2: Read DOM Input directly (Crucial for "User entered footage" handling)
       if (!finalArea || finalArea === 0) {
         console.log("DEBUG: Trying to read from DOM input");
-        const inputEl = document.getElementById('inputSqFt');
         if (inputEl && inputEl.value) {
           const val = parseFloat(inputEl.value);
           if (val > 0) {
@@ -1114,12 +1139,19 @@
       if (!finalArea || finalArea === 0) {
         console.error("❌ ERROR: Area could not be resolved. It is 0.");
         console.error("DEBUG: All fallbacks failed!");
+
+        // Show warning alert
+        document.getElementById('areaWarning').style.display = 'block';
+
         // Display error message
         document.getElementById('sumBase').innerText = "$0.00 (Falta Área)";
         document.getElementById('sumTax').innerText = "$0.00";
         document.getElementById('sumTotal').innerText = "$0.00";
         return; // Stop processing if no area is available
       }
+
+      // Hide warning if area found
+      document.getElementById('areaWarning').style.display = 'none';
 
       console.log("✅ SUCCESS: finalArea resolved to:", finalArea);
 
