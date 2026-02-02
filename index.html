@@ -1300,8 +1300,13 @@
 
       const nextBtn = document.getElementById('btnNext');
       nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
-      // Show Next button on Step 1 too (User Request)
-      nextBtn.style.display = (currentStep === totalSteps) ? 'none' : 'block';
+      // Hide Next button on Step 2 (manual input has its own Continuar button)
+      // Also hide on Step 6 (summary) and Step 99 (calendar)
+      if (currentStep === 2 || currentStep === totalSteps || currentStep === 99) {
+        nextBtn.style.display = 'none';
+      } else {
+        nextBtn.style.display = 'block';
+      }
 
       // Step Specific Logic
       validateStep();
@@ -1369,6 +1374,24 @@
             // No specific input to highlight anymore
           }
           return;
+        }
+
+        // CRITICAL: Capture area from input when leaving Step 2A
+        if (currentStep === 2) {
+          const inputEl = document.getElementById('inputSqFt');
+          if (inputEl && inputEl.value) {
+            const val = parseFloat(inputEl.value);
+            if (val > 0 && (!state.area || state.area === 0)) {
+              // User entered value but didn't click Continuar
+              // Capture it now before advancing
+              state.area = val;
+              state.knowsSqFt = true;
+              state.manualOverride = true;
+              window.manualArea = val;
+              console.log("⚠️ CAPTURED AREA FROM INPUT (user used Siguiente instead of Continuar):", val);
+              console.log("State updated:", { area: state.area, manualOverride: state.manualOverride });
+            }
+          }
         }
 
         // Special Handling for Step 1 -> 2 (Address Search) - REMOVED/SKIPPED for now
