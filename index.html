@@ -680,7 +680,8 @@
       // New fields
       knowsSqFt: null,
       removal: false,
-      layers: 1
+      layers: 1,
+      manualOverride: false
     };
 
     // --- NEW LOGIC START ---
@@ -720,17 +721,28 @@
     function confirmManualSqFt() {
       const input = document.getElementById('inputSqFt');
       const val = parseFloat(input.value);
+
+      console.log("confirmManualSqFt() called with input value:", input.value);
+      console.log("Parsed value:", val);
+
       if (!val || val < 100) {
         alert("Por favor ingresa un tamaño válido (min 100 ft).");
         return;
       }
 
-      // STRICT STATE SETTING
+      // STRICT STATE SETTING - Triple redundancy to ensure persistence
       state.area = val;
       state.knowsSqFt = true;
+      state.manualOverride = true; // Flag to prevent map from overwriting
       window.manualArea = val;
 
-      console.log("CONFIRMED MANUAL AREA:", val);
+      console.log("✅ CONFIRMED MANUAL AREA:", val);
+      console.log("State after confirmation:", {
+        area: state.area,
+        knowsSqFt: state.knowsSqFt,
+        manualOverride: state.manualOverride,
+        windowManualArea: window.manualArea
+      });
 
       // NAVIGATE TO STEP 3
       currentStep = 3;
@@ -742,60 +754,99 @@
 
     function renderSummary() {
       console.log("--- RENDER SUMMARY (ROBUST REWRITE) ---");
+      console.log("DEBUG: state.area =", state.area);
+      console.log("DEBUG: window.manualArea =", window.manualArea);
+      console.log("DEBUG: state.knowsSqFt =", state.knowsSqFt);
 
       // 1. RESOLVE AREA
       // Priority: State -> Window Global -> DOM Input
       let finalArea = state.area;
 
       if (!finalArea || finalArea === 0) {
+        console.log("DEBUG: state.area is 0 or empty, trying window.manualArea");
         if (typeof window.manualArea === 'number' && window.manualArea > 0) {
           finalArea = window.manualArea;
+          console.log("DEBUG: Using window.manualArea =", finalArea);
         }
       }
 
       // Fallback 2: Read DOM Input directly (Crucial for "User entered footage" handling)
       if (!finalArea || finalArea === 0) {
+        console.log("DEBUG: Trying to read from DOM input");
         const inputEl = document.getElementById('inputSqFt');
         if (inputEl && inputEl.value) {
           const val = parseFloat(inputEl.value);
-          if (val > 0) finalArea = val;
+          if (val > 0) {
+            finalArea = val;
+            console.log("DEBUG: Using DOM input value =", finalArea);
+            // Update state to preserve this value
+            state.area = val;
+            window.manualArea = val;
+          }
         }
       }
 
       // Final Validity Check
       if (!finalArea || finalArea === 0) {
-        console.error("Area could not be resolved. It is 0.");
-        // We do NOT return here, we let it display $0.00 but log error
-        // Actually, let's try to update the UI to warn user
+        console.error("❌ ERROR: Area could not be resolved. It is 0.");
+        console.error("DEBUG: All fallbacks failed!");
+        // Display error message
         document.getElementById('sumBase').innerText = "$0.00 (Falta Área)";
+        document.getElementById('sumTax').innerText = "$0.00";
+        document.getElementById('sumTotal').innerText = "$0.00";
+        return; // Stop processing if no area is available
       }
+
+      console.log("✅ SUCCESS: finalArea resolved to:", finalArea);
 
       // 2. CALCULATE RATES & SURCHARGES
       let baseRate = 4.50; // Default Silicona
       let surchargeRate = 0;
       let surchargeLabel = "";
 
+      console.log("Service type:", state.service);
+
       if (state.service === 'Danosa') {
         baseRate = 3.50;
+        console.log("✅ Danosa selected - Using $3.50 per ft²");
         // Logic: Removal adds $1.00 starting from 2nd layer
         if (state.removal && state.layers >= 2) {
           const extra = state.layers - 1;
           surchargeRate = extra * 1.00;
           surchargeLabel = ` (Inc. ${extra} capa${extra > 1 ? 's' : ''} removida${extra > 1 ? 's' : ''})`;
+          console.log(`Adding removal surcharge: ${extra} layer(s) × $1.00 = $${surchargeRate}/ft²`);
         }
+      } else {
+        console.log("Silicona selected - Using $4.50 per ft²");
       }
 
       const totalRate = baseRate + surchargeRate;
       const materialCost = finalArea * totalRate;
 
+      console.log("Calculation breakdown:");
+      console.log(`  Base rate: $${baseRate}/ft²`);
+      console.log(`  Surcharge: $${surchargeRate}/ft²`);
+      console.log(`  Total rate: $${totalRate}/ft²`);
+      console.log(`  Area: ${finalArea} ft²`);
+      console.log(`  Material cost: $${materialCost.toFixed(2)}`);
+
       // 3. FIXED COSTS
       const cisternCost = state.cistern ? 150.00 : 0;
       const solarCost = state.solar ? 1000.00 : 0;
+
+      console.log("Add-ons:");
+      console.log(`  Cisterna: ${state.cistern ? 'Yes' : 'No'} - $${cisternCost}`);
+      console.log(`  Placas Solares: ${state.solar ? 'Yes' : 'No'} - $${solarCost}`);
 
       // 4. TOTALS
       const subtotal = materialCost + cisternCost + solarCost;
       const tax = subtotal * 0.115; // 11.5% IVU
       const grandTotal = subtotal + tax;
+
+      console.log("Final totals:");
+      console.log(`  Subtotal: $${subtotal.toFixed(2)}`);
+      console.log(`  Tax (11.5%): $${tax.toFixed(2)}`);
+      console.log(`  Grand Total: $${grandTotal.toFixed(2)}`);
 
       // 5. UPDATE UI SAFEGUARDS
       safeSetText('sumAreaRaw', Math.round(finalArea).toLocaleString());
@@ -939,7 +990,11 @@
         }, 100);
       }
 
-      if (currentStep === 6) renderSummary();
+      if (currentStep === 6) {
+        console.log("📊 Step 6 reached - calling renderSummary()");
+        console.log("Current state before renderSummary:", state);
+        renderSummary();
+      }
 
       // DEBUG: Log all active steps (to catch duplicates)
       const activeSteps = document.querySelectorAll('.step-content.active');
@@ -1056,7 +1111,10 @@
         // Validation handled by card selection
         valid = state.knowsSqFt !== null;
       } else if (currentStep === 2) {
-        valid = state.area > 0;
+        // For step 2A (manual input), check if area is set
+        // OR check if input has a valid value
+        const inputEl = document.getElementById('inputSqFt');
+        valid = state.area > 0 || (inputEl && parseFloat(inputEl.value) >= 100);
       } else if (currentStep === 3) {
         valid = state.cistern !== null;
       } else if (currentStep === 4) {
