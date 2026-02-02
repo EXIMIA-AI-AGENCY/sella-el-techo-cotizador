@@ -436,7 +436,8 @@
       .w-footer {
         padding: 15px;
         padding-bottom: 25px;
-        /* Extra padding for chat widget */
+        padding-right: 90px;
+        /* Extra padding for chat widget on right */
         background: var(--card-bg);
         position: sticky;
         bottom: 0;
@@ -452,6 +453,9 @@
         min-height: 50px;
         /* Better touch target */
         font-weight: 700;
+        max-width: 48%;
+        /* Ensure buttons don't stretch too much */
+        flex-shrink: 1;
       }
 
       /* Summary table improvements */
@@ -601,6 +605,8 @@
       /* Stack footer buttons on very small screens if needed */
       .w-footer {
         padding: 12px;
+        padding-right: 85px;
+        /* Space for chat widget */
       }
 
       input[type="number"] {
@@ -678,6 +684,8 @@
       .w-footer {
         margin-bottom: 0;
         padding-bottom: 20px;
+        padding-right: 90px;
+        /* Critical: Ensure buttons don't overlap with chat */
       }
 
       /* Ensure summary content doesn't get hidden */
