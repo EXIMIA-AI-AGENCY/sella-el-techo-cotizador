@@ -4,7 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Cotizador Satelital | Sella El Techo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a192f">
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Fonts -->
@@ -39,6 +43,26 @@
       align-items: center;
       justify-content: center;
       padding: 20px;
+      /* Prevent text selection on touch for better UX */
+      -webkit-tap-highlight-color: rgba(255, 153, 0, 0.2);
+      /* Custom tap highlight color */
+    }
+
+    /* Prevent unwanted behaviors on mobile */
+    * {
+      -webkit-touch-callout: none;
+      /* Disable callout on long press */
+    }
+
+    /* Allow text selection for inputs and text content */
+    input,
+    textarea,
+    p,
+    span,
+    td,
+    th {
+      -webkit-touch-callout: default;
+      user-select: text;
     }
 
     .wizard-container {
@@ -151,12 +175,20 @@
       transition: all 0.2s;
       text-align: center;
       height: 100%;
+      user-select: none;
+      /* Prevent text selection */
     }
 
     .option-card:hover,
     .option-card.selected {
       border-color: var(--accent);
       background: rgba(255, 153, 0, 0.05);
+    }
+
+    /* Active state for touch feedback */
+    .option-card:active {
+      transform: scale(0.98);
+      background: rgba(255, 153, 0, 0.1);
     }
 
     .option-card .img-3d {
@@ -216,6 +248,8 @@
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 1px;
+      transition: all 0.2s;
+      user-select: none;
     }
 
     .btn-next {
@@ -228,9 +262,15 @@
       background: #ffaa33;
     }
 
+    .btn-next:active {
+      transform: scale(0.96);
+      background: #ff8800;
+    }
+
     .btn-next:disabled {
       background: #555;
       cursor: not-allowed;
+      transform: none;
     }
 
     .btn-prev {
@@ -242,6 +282,26 @@
     .btn-prev:hover {
       border-color: white;
       color: white;
+    }
+
+    .btn-prev:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Better touch feedback for all buttons */
+    .btn {
+      transition: all 0.2s;
+      user-select: none;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: scale(0.96);
+    }
+
+    .btn-warning:active {
+      background: #e68900 !important;
+      transform: scale(0.96);
     }
 
     /* Summary Specific */
@@ -268,7 +328,7 @@
       justify-content: space-between;
     }
 
-    /* Mobile Responsiveness */
+    /* Mobile Responsiveness - Enhanced */
     @media (max-width: 768px) {
       body {
         padding: 0;
@@ -284,52 +344,316 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        max-width: 100%;
       }
 
       .w-header {
-        padding: 15px;
+        padding: 12px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
       .w-header img {
-        max-height: 80px !important;
+        max-height: 60px !important;
         /* Smaller logo on mobile */
       }
 
+      .w-header .btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+      }
+
+      .w-header .small {
+        font-size: 0.8rem !important;
+      }
+
       .step-content {
-        padding: 15px;
+        padding: 20px 15px;
         overflow-y: auto;
-        /* Allow scrolling content */
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scrolling on iOS */
       }
 
       #map-container {
-        height: 50vh;
+        height: 45vh;
         /* Adjust map height for mobile */
       }
 
       .search-lg {
-        font-size: 1rem;
-        padding: 10px 15px;
+        font-size: 1.1rem;
+        padding: 14px 18px;
+        /* Larger touch target */
+      }
+
+      h1 {
+        font-size: 2rem !important;
       }
 
       h2 {
-        font-size: 1.5rem;
+        font-size: 1.5rem !important;
       }
 
       h3 {
-        font-size: 1.3rem;
+        font-size: 1.25rem !important;
       }
 
+      h4 {
+        font-size: 1.1rem !important;
+      }
+
+      h5 {
+        font-size: 1rem !important;
+      }
+
+      /* Improved option cards for touch */
+      .option-card {
+        padding: 25px 15px;
+        min-height: 140px;
+        /* Larger touch target */
+        border-width: 3px;
+        /* More visible */
+      }
+
+      .option-card h5 {
+        font-size: 1.1rem !important;
+        margin-top: 10px !important;
+      }
+
+      .option-card small {
+        font-size: 0.9rem !important;
+      }
+
+      /* Better spacing for option grids */
+      .row.g-3 {
+        gap: 15px !important;
+      }
+
+      /* Larger, more tappable buttons */
       .w-footer {
         padding: 15px;
         background: var(--card-bg);
-        /* Match bg */
         position: sticky;
         bottom: 0;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+        /* Elevation for footer */
       }
 
       .btn-nav {
-        padding: 10px 20px;
-        font-size: 0.9rem;
+        padding: 14px 24px;
+        font-size: 1rem;
+        min-height: 50px;
+        /* Better touch target */
+        font-weight: 700;
+      }
+
+      /* Summary table improvements */
+      .summary-table td {
+        padding: 10px 0;
+        font-size: 0.95rem;
+      }
+
+      .summary-table .price {
+        font-size: 1rem;
+      }
+
+      .total-row {
+        font-size: 1.3rem;
+        padding-top: 15px;
+      }
+
+      /* Input improvements */
+      input[type="number"] {
+        font-size: 1.5rem !important;
+        padding: 18px !important;
+        text-align: center;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+      }
+
+      /* Remove spinner from number inputs */
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Floating area badge on map */
+      #map-container .position-absolute {
+        max-width: 95% !important;
+        margin: 10px !important;
+      }
+
+      /* Images */
+      .img-3d {
+        max-height: 140px !important;
+      }
+
+      #serviceImg {
+        max-height: 120px !important;
+      }
+
+      /* Calendar iframe */
+      #step2B .flex-grow-1 {
+        min-height: 70vh !important;
+      }
+
+      /* Danosa options */
+      #danosaOptions {
+        padding: 20px 15px !important;
+        margin-top: 20px !important;
+      }
+
+      #danosaOptions .btn {
+        padding: 12px 18px !important;
+        font-size: 0.95rem !important;
+        min-height: 48px;
+        /* Touch friendly */
+      }
+
+      /* Layer adjustment buttons */
+      #layersInput .btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        padding: 0;
+      }
+
+      #layersInput #layerCount {
+        font-size: 1.8rem !important;
+        min-width: 60px;
+      }
+
+      /* Action buttons (Continuar, etc) */
+      .btn-warning {
+        font-size: 1.1rem !important;
+        padding: 15px 30px !important;
+        min-height: 54px;
+      }
+
+      /* PDF Download button */
+      .btn-success {
+        font-size: 1rem !important;
+        padding: 12px 20px !important;
+        min-height: 50px;
+      }
+
+      /* Quote content box */
+      #quoteContent {
+        padding: 20px 15px !important;
+      }
+
+      /* Better text sizing */
+      p {
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      small {
+        font-size: 0.875rem !important;
+      }
+
+      /* Prevent zoom on focus for iOS */
+      select,
+      textarea,
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="tel"] {
+        font-size: 16px !important;
+        /* Prevents zoom on iOS */
+      }
+    }
+
+    /* Extra small devices (phones in portrait) */
+    @media (max-width: 576px) {
+      .w-header img {
+        max-height: 50px !important;
+      }
+
+      h3 {
+        font-size: 1.15rem !important;
+      }
+
+      .option-card {
+        padding: 20px 12px;
+      }
+
+      .btn-nav {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+      }
+
+      .total-row {
+        font-size: 1.2rem;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+      }
+
+      /* Stack footer buttons on very small screens if needed */
+      .w-footer {
+        padding: 12px;
+      }
+
+      input[type="number"] {
+        font-size: 1.3rem !important;
+        padding: 15px !important;
+      }
+    }
+
+    /* Modal improvements for mobile */
+    @media (max-width: 768px) {
+      .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+      }
+
+      .modal-content {
+        border-radius: 15px;
+      }
+
+      .modal-body {
+        padding: 20px;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      .modal-header {
+        padding: 15px 20px;
+      }
+
+      .modal-title {
+        font-size: 1.25rem !important;
+      }
+
+      .btn-close {
+        font-size: 1.2rem;
+        padding: 10px;
+      }
+    }
+
+    /* Landscape mobile optimization */
+    @media (max-width: 896px) and (orientation: landscape) {
+      .wizard-container {
+        max-height: 100vh;
+        overflow-y: auto;
+      }
+
+      .step-content {
+        padding: 15px;
+      }
+
+      .img-3d {
+        max-height: 100px !important;
+      }
+
+      .option-card {
+        padding: 15px 10px;
+        min-height: 100px;
+      }
+
+      h3 {
+        font-size: 1.1rem !important;
       }
     }
   </style>
