@@ -724,91 +724,98 @@
         alert("Por favor ingresa un tamaño válido (min 100 ft).");
         return;
       }
+
+      // STRICT STATE SETTING
       state.area = val;
-      window.manualArea = val; // Robust backup
+      state.knowsSqFt = true;
+      window.manualArea = val;
 
-      // console.log("Manual Area Saved:", val);
-      // alert("DEBUG: Area guardada correctamente: " + val);
+      console.log("CONFIRMED MANUAL AREA:", val);
 
-      // Jump to Step 3 (Cistern) - skipping map logic
+      // NAVIGATE TO STEP 3
       currentStep = 3;
-      showStep('step' + currentStep);
+      showStep('step3'); // Explicit ID
       updateSteps();
     }
 
     // ...
 
     function renderSummary() {
-      console.log("--- RENDER SUMMARY CALLED ---");
-      // BASE RATES
-      let rate = 4.50; // Default (Silicona)
-      let surcharge = 0;
+      console.log("--- RENDER SUMMARY (ROBUST REWRITE) ---");
 
-      // Danosa Logic ($3.50 Base)
-      if (state.service === 'Danosa') {
-        rate = 3.50;
-        // Surcharge: $1.00 per layer starting from the 2nd layer
-        if (state.removal && state.layers >= 2) {
-          surcharge = (state.layers - 1) * 1.00;
+      // 1. RESOLVE AREA
+      // Priority: State -> Window Global -> DOM Input
+      let finalArea = state.area;
+
+      if (!finalArea || finalArea === 0) {
+        if (typeof window.manualArea === 'number' && window.manualArea > 0) {
+          finalArea = window.manualArea;
         }
       }
-      console.log("Rate:", rate, "Surcharge:", surcharge);
 
-      const TAX_RATE = 0.115;
-
-      // AREA SELECTION PRIORITY: Manual > State > 0
-      let effectiveArea = 0;
-
-      console.log("Window ManualArea:", window.manualArea);
-      console.log("State Area:", state.area);
-
-      // Force read from global manualArea if present
-      if (typeof window.manualArea === 'number' && window.manualArea > 0) {
-        effectiveArea = window.manualArea;
-      } else {
-        effectiveArea = state.area;
+      // Fallback 2: Read DOM Input directly (Crucial for "User entered footage" handling)
+      if (!finalArea || finalArea === 0) {
+        const inputEl = document.getElementById('inputSqFt');
+        if (inputEl && inputEl.value) {
+          const val = parseFloat(inputEl.value);
+          if (val > 0) finalArea = val;
+        }
       }
 
-      if (effectiveArea === 0) {
-        // Attempt recovery from input if stuck
-        const inputVal = parseFloat(document.getElementById('inputSqFt').value);
-        console.log("Recovering from input:", inputVal);
-        if (inputVal > 0) effectiveArea = inputVal;
+      // Final Validity Check
+      if (!finalArea || finalArea === 0) {
+        console.error("Area could not be resolved. It is 0.");
+        // We do NOT return here, we let it display $0.00 but log error
+        // Actually, let's try to update the UI to warn user
+        document.getElementById('sumBase').innerText = "$0.00 (Falta Área)";
       }
 
-      console.log("Effective Area:", effectiveArea);
+      // 2. CALCULATE RATES & SURCHARGES
+      let baseRate = 4.50; // Default Silicona
+      let surchargeRate = 0;
+      let surchargeLabel = "";
 
-      // DEBUG: If area is 0, alert user to find out why
-      if (effectiveArea === 0 || !effectiveArea) {
-        console.error("Area is 0 in renderSummary!");
-        alert("CRITICAL ERROR: Area is 0. \nManual: " + window.manualArea + "\nState: " + state.area + "\nInput: " + document.getElementById('inputSqFt').value);
+      if (state.service === 'Danosa') {
+        baseRate = 3.50;
+        // Logic: Removal adds $1.00 starting from 2nd layer
+        if (state.removal && state.layers >= 2) {
+          const extra = state.layers - 1;
+          surchargeRate = extra * 1.00;
+          surchargeLabel = ` (Inc. ${extra} capa${extra > 1 ? 's' : ''} removida${extra > 1 ? 's' : ''})`;
+        }
       }
 
-      const materialCost = effectiveArea * (rate + surcharge);
-      const cisternCost = state.cistern ? 150 : 0;
-      const solarCost = state.solar ? 1000 : 0;
+      const totalRate = baseRate + surchargeRate;
+      const materialCost = finalArea * totalRate;
 
+      // 3. FIXED COSTS
+      const cisternCost = state.cistern ? 150.00 : 0;
+      const solarCost = state.solar ? 1000.00 : 0;
+
+      // 4. TOTALS
       const subtotal = materialCost + cisternCost + solarCost;
-      const tax = subtotal * TAX_RATE;
-      const total = subtotal + tax;
+      const tax = subtotal * 0.115; // 11.5% IVU
+      const grandTotal = subtotal + tax;
 
-      console.log("Material:", materialCost, "Total:", total);
+      // 5. UPDATE UI SAFEGUARDS
+      safeSetText('sumAreaRaw', Math.round(finalArea).toLocaleString());
+      safeSetText('sumeffectiveArea', Math.round(finalArea).toLocaleString() + " ft²");
 
-      // UI Updates
-      document.getElementById('sumAreaRaw').innerText = Math.round(effectiveArea).toLocaleString();
+      safeSetText('sumBase', formatMoney(materialCost) + surchargeLabel);
 
-      // Update Lines
-      document.getElementById('sumeffectiveArea').innerText = Math.round(effectiveArea).toLocaleString() + " ft²";
-      document.getElementById('sumBase').innerText = formatMoney(materialCost) + (surcharge > 0 ? " (Inc. Remoción)" : "");
+      const rCis = document.getElementById('rowCistern');
+      if (rCis) rCis.style.display = state.cistern ? 'table-row' : 'none';
 
-      const rowCistern = document.getElementById('rowCistern');
-      if (rowCistern) rowCistern.style.display = state.cistern ? 'table-row' : 'none';
+      const rSol = document.getElementById('rowSolar');
+      if (rSol) rSol.style.display = state.solar ? 'table-row' : 'none';
 
-      const rowSolar = document.getElementById('rowSolar');
-      if (rowSolar) rowSolar.style.display = state.solar ? 'table-row' : 'none';
+      safeSetText('sumTax', formatMoney(tax));
+      safeSetText('sumTotal', formatMoney(grandTotal));
+    }
 
-      document.getElementById('sumTax').innerText = formatMoney(tax);
-      document.getElementById('sumTotal').innerText = formatMoney(total);
+    function safeSetText(id, text) {
+      const el = document.getElementById(id);
+      if (el) el.innerText = text;
     }
 
     // DANOSA LOGIC
@@ -1098,28 +1105,22 @@
     // Bridging Map Logic
     // Bridging Map Logic
     window.updateAreaState = function (sqft, stats = null) {
-      // CRITICAL FIX: If we are in manual mode (state.knowsSqFt === true),
-      // DO NOT let the background map logic overwrite our manual area with 0 or small value.
-      // We trust the manual input over an empty map.
-      if (state.knowsSqFt === true) {
-        if (sqft < 10 && state.area > 10) {
-          console.log("Blocking map update (0/low) because Manual Area is set:", state.area);
-          return;
-        }
-        // Even if map returns a value, if we are in Manual Mode, we probably want to ignore it 
-        // unless we explicitly allow "hybrid" mode (which we don't right now).
-        if (state.area > 0 && currentStep >= 2) {
-          return;
-        }
+      // 1. STRICT MANUAL OVERRIDE CHECK
+      // If the user manually entered a value, the map should NEVER overwrite it.
+      if (state.manualOverride === true || state.knowsSqFt === true || (window.manualArea && window.manualArea > 0)) {
+        console.log("Blocking map update because Manual Override is active.");
+        return;
       }
 
+      // 2. Standard Logic
       state.area = sqft;
       state.stats = stats;
 
       console.log("Area updated to:", state.area);
 
       // Update Main Display
-      document.getElementById('liveArea').innerText = Math.round(sqft).toLocaleString();
+      const liveArea = document.getElementById('liveArea');
+      if (liveArea) liveArea.innerText = Math.round(sqft).toLocaleString();
 
       // Update Table if stats provided
       if (document.getElementById('valSat')) {
