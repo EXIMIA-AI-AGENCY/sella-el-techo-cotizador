@@ -911,6 +911,13 @@
       <div class="progress-fill" id="progressFill"></div>
     </div>
 
+    <!-- Back Button -->
+    <div class="px-3 pt-2" id="backButtonContainer" style="display: none;">
+      <button class="btn btn-link text-muted p-0" id="btnPrev" type="button" onclick="changeStep(-1)">
+        <span style="font-size: 14px;">← Atrás</span>
+      </button>
+    </div>
+
     <!-- STEP 1: Qualification -->
     <div class="step-content active" id="step1">
       <div class="text-center my-auto px-5">
@@ -1246,13 +1253,6 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="w-footer">
-      <button class="btn btn-nav btn-prev" id="btnPrev" type="button" onclick="changeStep(-1)">Atrás</button>
-      <button class="btn btn-nav btn-next" id="btnNext" type="button" onclick="changeStep(1)"
-        disabled>Siguiente</button>
-    </div>
-
   </div>
 
   </div>
@@ -1292,7 +1292,6 @@
       previousStepForCalendar = originStep;
       showStep('step2B');
       currentStep = 99; // Calendar Mode
-      document.querySelector('.w-footer').style.display = 'block'; // Ensure Footer is visible for "Back"
       updateSteps();
     }
 
@@ -1887,28 +1886,15 @@
         stepCounter.style.display = (currentStep === 7) ? 'none' : 'block';
       }
 
-      // Buttons
-      const prevBtn = document.getElementById('btnPrev');
-      // Visual "Disabled" state using opacity (never actually hide or disable attribute to avoid bugs)
-      if (currentStep === 1) {
-        prevBtn.style.opacity = '0.3';
-        prevBtn.style.cursor = 'default';
-        prevBtn.style.pointerEvents = 'none'; // Prevent clicks CSS-side
-      } else {
-        prevBtn.style.opacity = '1';
-        prevBtn.style.cursor = 'pointer';
-        prevBtn.style.pointerEvents = 'auto';
-        prevBtn.style.visibility = 'visible';
-      }
-
-      const nextBtn = document.getElementById('btnNext');
-      nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
-      // Hide Next button on Step 2 (manual input has its own Continuar button)
-      // Also hide on Step 6 (contact form - has its own submit button), Step 7 (summary) and Step 99 (calendar)
-      if (currentStep === 2 || currentStep === 6 || currentStep === totalSteps || currentStep === 99) {
-        nextBtn.style.display = 'none';
-      } else {
-        nextBtn.style.display = 'block';
+      // Back Button - Show/hide based on current step
+      const backBtnContainer = document.getElementById('backButtonContainer');
+      if (backBtnContainer) {
+        // Hide on step 1 (nothing to go back to) and step 7 (quote summary has its own buttons)
+        if (currentStep === 1 || currentStep === 7 || currentStep === 99) {
+          backBtnContainer.style.display = 'none';
+        } else {
+          backBtnContainer.style.display = 'block';
+        }
       }
 
       // Step Specific Logic
@@ -1997,52 +1983,6 @@
           }
         }
 
-        // Special Handling for Step 1 -> 2 (Address Search) - REMOVED/SKIPPED for now
-        if (currentStep === 1) {
-          const inputVal = document.getElementById('addressInput').value;
-
-          // If mapCenter is not set (User typed but didn't pick from dropdown)
-          if (!window.mapCenter && inputVal.length > 3) {
-            const btn = document.getElementById('btnNext');
-            const oldText = btn.innerText;
-            btn.innerText = "🔍 Buscando...";
-            btn.disabled = true;
-
-            try {
-              // Manual Geocode
-              const geocoder = new google.maps.Geocoder();
-              const result = await new Promise((resolve, reject) => {
-                geocoder.geocode({ address: inputVal, componentRestrictions: { country: 'PR' } }, (results, status) => {
-                  if (status === 'OK' && results[0]) resolve(results[0]);
-                  else reject(status);
-                });
-              });
-
-              // Success
-              const location = result.geometry.location;
-              window.mapCenter = location;
-
-              // Trigger Solar Logic
-              if (window.fetchSolarData) window.fetchSolarData(location.lat(), location.lng());
-
-              // Update Map
-              if (window.map) {
-                window.map.setCenter(location);
-                window.map.setZoom(20);
-                window.map.setTilt(45);
-              }
-
-            } catch (e) {
-              console.error("Geocode Failed:", e);
-              alert("⚠️ No encontramos esa dirección. Intenta ser más específico o usa el mapa.");
-              btn.innerText = oldText;
-              btn.disabled = false;
-              return; // STOP
-            }
-            btn.innerText = oldText;
-            btn.disabled = false;
-          }
-        }
       }
 
       currentStep += dir;
@@ -2054,7 +1994,6 @@
       updateSteps();
     }
     function validateStep(shake = false) {
-      const nextBtn = document.getElementById('btnNext');
       let valid = false;
 
       if (currentStep === 1) {
@@ -2073,10 +2012,9 @@
         valid = state.service !== null;
       } else if (currentStep === 6) {
         // Contact form validation - handled by submitContactAndProceed()
-        valid = true; // No next button shown, validation happens on submit
+        valid = true; // Validation happens on submit
       }
 
-      if (nextBtn) nextBtn.disabled = !valid;
       return valid;
     }
 
@@ -2391,9 +2329,6 @@
           const addrInput = document.getElementById("addressInput");
           if (addrInput) addrInput.value = "Ubicación detectada (" + pos.lat.toFixed(5) + ", " + pos.lng.toFixed(5) + ")";
 
-          const nextBtn = document.getElementById("btnNext");
-          if (nextBtn) nextBtn.disabled = false;
-
           // Call Solar Logic (Backend)
           if (window.fetchSolarData) {
             window.fetchSolarData(pos.lat, pos.lng);
@@ -2421,13 +2356,9 @@
           if (error.code === 2) msg = "❌ Señal GPS no disponible.";
           if (error.code === 3) msg = "❌ Tiempo de espera agotado (Timeout).";
 
-          alert(msg + "\n\nPor favor escribe tu dirección manualmente y dale a 'Siguiente'.");
+          alert(msg + "\n\nPor favor escribe tu dirección manualmente.");
 
           if (btn) btn.innerText = originalText;
-
-          // FALLBACK: Enable Next button so they are not stuck
-          const nextBtn = document.getElementById("btnNext");
-          if (nextBtn) nextBtn.disabled = false;
         },
         { enableHighAccuracy: false, timeout: 8000, maximumAge: 0 }
       );
