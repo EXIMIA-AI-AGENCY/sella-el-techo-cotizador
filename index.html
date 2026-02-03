@@ -1351,6 +1351,7 @@
         const ghlApiUrl = 'https://services.leadconnectorhq.com/contacts/';
 
         const contactData = {
+          locationId: 'LVwbqYFEmGiKJ7AgtSIf',
           firstName: name.split(' ')[0] || name,
           lastName: name.split(' ').slice(1).join(' ') || '',
           email: email,
@@ -1360,32 +1361,24 @@
           tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
           customFields: [
             {
-              key: 'area_pies_cuadrados',
+              key: 'pies_cuadrados',
               value: Math.round(finalArea).toString()
             },
             {
-              key: 'valor_cotizacion',
+              key: 'valor_de_cotizacion',
               value: grandTotal.toFixed(2)
             },
             {
-              key: 'tipo_servicio',
-              value: state.service || 'No seleccionado'
-            },
-            {
-              key: 'tiene_cisterna',
+              key: 'cisterna',
               value: state.cistern ? 'Sí' : 'No'
             },
             {
-              key: 'tiene_placas_solares',
+              key: 'placas_solares',
               value: state.solar ? 'Sí' : 'No'
             },
             {
-              key: 'direccion_propiedad',
-              value: address || 'No proporcionada'
-            },
-            {
               key: 'material_deseado',
-              value: state.service || 'No seleccionado'
+              value: state.service === 'Silicona' ? 'Silicone' : state.service || 'No seleccionado'
             }
           ]
         };
