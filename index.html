@@ -4,7 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Cotizador Satelital | Sella El Techo</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0a192f">
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Fonts -->
@@ -15,13 +19,46 @@
 
   <style>
     :root {
+      /* Core Colors */
       --bg-color: #0a192f;
+      --bg-secondary: #0d1f3c;
       --card-bg: #112240;
+      --card-elevated: #1a2f4f;
       --text-main: #ffffff;
-      --text-muted: #e0e0e0;
-      /* Made nearly white per user request */
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
       --accent: #ff9900;
-      --border: #233554;
+      --accent-hover: #ffaa33;
+      --accent-light: rgba(255, 153, 0, 0.1);
+      --border: #1e3a5f;
+      --border-light: #2d4a6f;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+      --shadow-glow: 0 0 20px rgba(255, 153, 0, 0.3);
+
+      /* Spacing */
+      --spacing-xs: 0.25rem;
+      --spacing-sm: 0.5rem;
+      --spacing-md: 1rem;
+      --spacing-lg: 1.5rem;
+      --spacing-xl: 2rem;
+      --spacing-2xl: 3rem;
+
+      /* Border Radius */
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-2xl: 1.5rem;
+
+      /* Transitions */
+      --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     /* Override Bootstrap muted text for better visibility on dark theme */
@@ -30,64 +67,118 @@
     }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-color);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, var(--bg-color) 0%, var(--bg-secondary) 100%);
       color: var(--text-main);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: var(--spacing-xl);
+      padding-bottom: 120px;
+      -webkit-tap-highlight-color: var(--accent-light);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      text-rendering: optimizeLegibility;
+    }
+
+    /* Prevent unwanted behaviors on mobile */
+    * {
+      -webkit-touch-callout: none;
+      /* Disable callout on long press */
+    }
+
+    /* Allow text selection for inputs and text content */
+    input,
+    textarea,
+    p,
+    span,
+    td,
+    th {
+      -webkit-touch-callout: default;
+      user-select: text;
     }
 
     .wizard-container {
-      max-width: 900px;
+      max-width: 1000px;
       width: 100%;
       background: var(--card-bg);
-      border-radius: 20px;
+      border-radius: var(--radius-2xl);
       border: 1px solid var(--border);
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      box-shadow: var(--shadow-xl);
       position: relative;
       overflow: hidden;
-      min-height: 600px;
-      /* Ensure space for map */
+      min-height: 650px;
       display: flex;
       flex-direction: column;
+      backdrop-filter: blur(10px);
     }
 
     /* Header & Progress */
     .w-header {
-      padding: 20px 30px;
+      padding: var(--spacing-xl) var(--spacing-2xl);
       border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(10, 25, 47, 0.95);
+      background: linear-gradient(180deg, rgba(10, 25, 47, 0.95) 0%, rgba(17, 34, 64, 0.95) 100%);
+      backdrop-filter: blur(10px);
+    }
+
+    .w-header img {
+      filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+      transition: transform var(--transition-base);
+    }
+
+    .w-header img:hover {
+      transform: scale(1.02);
     }
 
     .progress-track {
-      height: 4px;
+      height: 6px;
       background: var(--border);
       width: 100%;
       margin-top: 0;
+      position: relative;
+      overflow: hidden;
     }
 
     .progress-fill {
       height: 100%;
-      background: var(--accent);
+      background: linear-gradient(90deg, var(--accent) 0%, var(--accent-hover) 100%);
       width: 0%;
-      transition: width 0.4s ease;
-      box-shadow: 0 0 10px var(--accent);
+      transition: width var(--transition-slow);
+      box-shadow: var(--shadow-glow);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+      100% {
+        transform: translateX(100%);
+      }
     }
 
     /* Step Content */
     .step-content {
       flex-grow: 1;
-      padding: 20px;
-      /* Reduced padding for map space */
+      padding: var(--spacing-2xl);
       display: none;
-      animation: fadeIn 0.4s ease;
+      animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     .step-content.active {
@@ -95,16 +186,45 @@
       flex-direction: column;
     }
 
-    @keyframes fadeIn {
+    @keyframes fadeInUp {
       from {
         opacity: 0;
-        transform: translateY(10px);
+        transform: translateY(24px);
       }
-
       to {
         opacity: 1;
         transform: translateY(0);
       }
+    }
+
+    /* Typography Improvements */
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    h1 {
+      font-size: 2.5rem;
+    }
+
+    h2 {
+      font-size: 2rem;
+      color: var(--text-main);
+    }
+
+    h3 {
+      font-size: 1.75rem;
+      color: var(--text-main);
+    }
+
+    p {
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+
+    small {
+      color: var(--text-muted);
     }
 
     /* Map Specifics */
@@ -143,20 +263,56 @@
     }
 
     .option-card {
-      background: rgba(255, 255, 255, 0.03);
+      background: linear-gradient(135deg, var(--card-elevated) 0%, var(--card-bg) 100%);
       border: 2px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: var(--radius-xl);
+      padding: var(--spacing-2xl);
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all var(--transition-base);
       text-align: center;
       height: 100%;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
     }
 
-    .option-card:hover,
+    .option-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      opacity: 0;
+      transition: opacity var(--transition-base);
+    }
+
+    .option-card:hover {
+      border-color: var(--accent);
+      background: linear-gradient(135deg, var(--card-elevated) 0%, rgba(255, 153, 0, 0.05) 100%);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      transform: translateY(-4px);
+    }
+
+    .option-card:hover::before {
+      opacity: 1;
+    }
+
     .option-card.selected {
       border-color: var(--accent);
-      background: rgba(255, 153, 0, 0.05);
+      background: linear-gradient(135deg, rgba(255, 153, 0, 0.1) 0%, var(--card-elevated) 100%);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+
+    .option-card.selected::before {
+      opacity: 1;
+    }
+
+    .option-card:active {
+      transform: translateY(0) scale(0.98);
     }
 
     .option-card .img-3d {
@@ -210,54 +366,147 @@
       /* FORCE TOP LAYER */
     }
 
+    /* Professional Button System */
+    .btn {
+      font-weight: 600;
+      transition: all var(--transition-base);
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+      border-radius: var(--radius-lg);
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn:active::before {
+      width: 300px;
+      height: 300px;
+    }
+
     .btn-nav {
-      padding: 12px 30px;
-      border-radius: 8px;
+      padding: 14px 32px;
+      border-radius: var(--radius-lg);
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
+      font-size: 0.875rem;
+      transition: all var(--transition-base);
+      user-select: none;
+      box-shadow: var(--shadow-md);
     }
 
     .btn-next {
-      background: var(--accent);
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
       color: #000;
       border: none;
+      font-weight: 700;
     }
 
     .btn-next:hover {
-      background: #ffaa33;
+      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      transform: translateY(-2px);
+    }
+
+    .btn-next:active {
+      transform: translateY(0);
     }
 
     .btn-next:disabled {
-      background: #555;
+      background: var(--border);
       cursor: not-allowed;
+      transform: none;
+      opacity: 0.5;
+      box-shadow: none;
     }
 
     .btn-prev {
       background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
+      border: 2px solid var(--border);
+      color: var(--text-secondary);
+      font-weight: 600;
     }
 
     .btn-prev:hover {
-      border-color: white;
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
+      transform: translateY(-2px);
+    }
+
+    .btn-prev:active {
+      transform: translateY(0);
+    }
+
+    /* Warning Button (Continuar, etc) */
+    .btn-warning {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+      border: none;
+      color: #000;
+      font-weight: 700;
+      box-shadow: var(--shadow-md), var(--shadow-glow);
+      transition: all var(--transition-base);
+    }
+
+    .btn-warning:hover {
+      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
+      box-shadow: var(--shadow-lg), 0 0 30px rgba(255, 153, 0, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-warning:active {
+      transform: translateY(0);
+    }
+
+    /* Primary Button */
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      border: none;
       color: white;
+      font-weight: 700;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
     }
 
     /* Summary Specific */
     .summary-table td {
       color: var(--text-muted);
-      padding: 8px 0;
+      padding: 10px 0;
+      font-size: 0.95rem;
     }
 
     .summary-table .price {
       color: white;
       text-align: right;
-      font-family: monospace;
-      font-size: 1.1rem;
+      font-family: 'Inter', monospace;
+      font-size: 1.15rem;
+      font-weight: 600;
     }
 
-    .total-row {
+    /* Professional quote header on step 6 */
+    #step6 h3 {
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    /* Improved total box */
+    #step6 .total-row {
       border-top: 1px solid var(--border);
       margin-top: 10px;
       padding-top: 10px;
@@ -268,10 +517,12 @@
       justify-content: space-between;
     }
 
-    /* Mobile Responsiveness */
+    /* Mobile Responsiveness - Enhanced */
     @media (max-width: 768px) {
       body {
         padding: 0;
+        padding-bottom: 0;
+        /* Remove bottom padding on mobile, handled by footer */
         background-color: var(--card-bg);
         /* Full screen app feel */
       }
@@ -284,52 +535,368 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+        max-width: 100%;
       }
 
       .w-header {
-        padding: 15px;
+        padding: 12px 15px;
+        flex-wrap: wrap;
+        gap: 10px;
       }
 
       .w-header img {
         max-height: 80px !important;
-        /* Smaller logo on mobile */
+        /* Larger logo on mobile for better branding */
+      }
+
+      .w-header .btn {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+      }
+
+      .w-header .small {
+        font-size: 0.8rem !important;
       }
 
       .step-content {
-        padding: 15px;
+        padding: 20px 15px;
         overflow-y: auto;
-        /* Allow scrolling content */
+        -webkit-overflow-scrolling: touch;
+        /* Smooth scrolling on iOS */
       }
 
       #map-container {
-        height: 50vh;
+        height: 45vh;
         /* Adjust map height for mobile */
       }
 
       .search-lg {
-        font-size: 1rem;
-        padding: 10px 15px;
+        font-size: 1.1rem;
+        padding: 14px 18px;
+        /* Larger touch target */
+      }
+
+      h1 {
+        font-size: 2rem !important;
       }
 
       h2 {
-        font-size: 1.5rem;
+        font-size: 1.5rem !important;
       }
 
       h3 {
-        font-size: 1.3rem;
+        font-size: 1.25rem !important;
       }
 
+      h4 {
+        font-size: 1.1rem !important;
+      }
+
+      h5 {
+        font-size: 1rem !important;
+      }
+
+      /* Improved option cards for touch */
+      .option-card {
+        padding: 25px 15px;
+        min-height: 140px;
+        /* Larger touch target */
+        border-width: 3px;
+        /* More visible */
+      }
+
+      .option-card h5 {
+        font-size: 1.1rem !important;
+        margin-top: 10px !important;
+      }
+
+      .option-card small {
+        font-size: 0.9rem !important;
+      }
+
+      /* Better spacing for option grids */
+      .row.g-3 {
+        gap: 15px !important;
+      }
+
+      /* Larger, more tappable buttons */
       .w-footer {
         padding: 15px;
+        padding-bottom: 25px;
+        padding-right: 90px;
+        /* Extra padding for chat widget on right */
         background: var(--card-bg);
-        /* Match bg */
         position: sticky;
         bottom: 0;
+        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
+        /* Elevation for footer */
+        z-index: 900;
+        /* Below chat widget but above content */
       }
 
       .btn-nav {
-        padding: 10px 20px;
+        padding: 14px 24px;
+        font-size: 1rem;
+        min-height: 50px;
+        /* Better touch target */
+        font-weight: 700;
+        max-width: 48%;
+        /* Ensure buttons don't stretch too much */
+        flex-shrink: 1;
+      }
+
+      /* Summary table improvements */
+      .summary-table td {
+        padding: 8px 0;
         font-size: 0.9rem;
+      }
+
+      .summary-table .price {
+        font-size: 1.05rem;
+      }
+
+      /* Professional quote improvements on mobile */
+      #step6 h3 {
+        font-size: 1.4rem !important;
+      }
+
+      #step6 .total-row {
+        font-size: 1.2rem;
+        padding-top: 15px;
+      }
+
+      /* Quote content box */
+      #quoteContent {
+        padding: 20px 16px !important;
+      }
+
+      /* Input improvements */
+      input[type="number"] {
+        font-size: 1.5rem !important;
+        padding: 18px !important;
+        text-align: center;
+        -webkit-appearance: none;
+        -moz-appearance: textfield;
+      }
+
+      /* Remove spinner from number inputs */
+      input[type="number"]::-webkit-inner-spin-button,
+      input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+      }
+
+      /* Floating area badge on map */
+      #map-container .position-absolute {
+        max-width: 95% !important;
+        margin: 10px !important;
+      }
+
+      /* Images */
+      .img-3d {
+        max-height: 140px !important;
+      }
+
+      #serviceImg {
+        max-height: 120px !important;
+      }
+
+      /* Calendar iframe */
+      #step2B .flex-grow-1 {
+        min-height: 70vh !important;
+      }
+
+      /* Danosa options */
+      #danosaOptions {
+        padding: 20px 15px !important;
+        margin-top: 20px !important;
+      }
+
+      #danosaOptions .btn {
+        padding: 12px 18px !important;
+        font-size: 0.95rem !important;
+        min-height: 48px;
+        /* Touch friendly */
+      }
+
+      /* Layer adjustment buttons */
+      #layersInput .btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+        padding: 0;
+      }
+
+      #layersInput #layerCount {
+        font-size: 1.8rem !important;
+        min-width: 60px;
+      }
+
+      /* Action buttons (Continuar, etc) */
+      .btn-warning {
+        font-size: 1.1rem !important;
+        padding: 15px 30px !important;
+        min-height: 54px;
+      }
+
+      /* PDF Download button */
+      .btn-success {
+        font-size: 1rem !important;
+        padding: 12px 20px !important;
+        min-height: 50px;
+      }
+
+      /* Quote content box */
+      #quoteContent {
+        padding: 20px 15px !important;
+      }
+
+      /* Better text sizing */
+      p {
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+
+      small {
+        font-size: 0.875rem !important;
+      }
+
+      /* Prevent zoom on focus for iOS */
+      select,
+      textarea,
+      input[type="text"],
+      input[type="number"],
+      input[type="email"],
+      input[type="tel"] {
+        font-size: 16px !important;
+        /* Prevents zoom on iOS */
+      }
+    }
+
+    /* Extra small devices (phones in portrait) */
+    @media (max-width: 576px) {
+      .w-header img {
+        max-height: 70px !important;
+      }
+
+      h3 {
+        font-size: 1.15rem !important;
+      }
+
+      .option-card {
+        padding: 20px 12px;
+      }
+
+      .btn-nav {
+        padding: 12px 20px;
+        font-size: 0.95rem;
+      }
+
+      .total-row {
+        font-size: 1.2rem;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 5px;
+      }
+
+      /* Stack footer buttons on very small screens if needed */
+      .w-footer {
+        padding: 12px;
+        padding-right: 85px;
+        /* Space for chat widget */
+      }
+
+      input[type="number"] {
+        font-size: 1.3rem !important;
+        padding: 15px !important;
+      }
+    }
+
+    /* Modal improvements for mobile */
+    @media (max-width: 768px) {
+      .modal-dialog {
+        margin: 10px;
+        max-width: calc(100% - 20px);
+      }
+
+      .modal-content {
+        border-radius: 15px;
+      }
+
+      .modal-body {
+        padding: 20px;
+        font-size: 1rem;
+        line-height: 1.6;
+      }
+
+      .modal-header {
+        padding: 15px 20px;
+      }
+
+      .modal-title {
+        font-size: 1.25rem !important;
+      }
+
+      .btn-close {
+        font-size: 1.2rem;
+        padding: 10px;
+      }
+    }
+
+    /* Landscape mobile optimization */
+    @media (max-width: 896px) and (orientation: landscape) {
+      .wizard-container {
+        max-height: 100vh;
+        overflow-y: auto;
+      }
+
+      .step-content {
+        padding: 15px;
+      }
+
+      .img-3d {
+        max-height: 100px !important;
+      }
+
+      .option-card {
+        padding: 15px 10px;
+        min-height: 100px;
+      }
+
+      h3 {
+        font-size: 1.1rem !important;
+      }
+    }
+
+    /* Chat widget accommodation */
+    /* Ensure chat widget doesn't cover important content */
+    @media (max-width: 768px) {
+      /* Add safe area for chat widget on mobile */
+      .wizard-container {
+        padding-bottom: 80px;
+        /* Space for chat widget bubble */
+      }
+
+      /* Adjust footer to stay above fold with chat widget */
+      .w-footer {
+        margin-bottom: 0;
+        padding-bottom: 20px;
+        padding-right: 90px;
+        /* Critical: Ensure buttons don't overlap with chat */
+      }
+
+      /* Ensure summary content doesn't get hidden */
+      #step6 {
+        padding-bottom: 100px !important;
+      }
+    }
+
+    /* Desktop chat widget spacing */
+    @media (min-width: 769px) {
+      /* Ensure PDF button and actions don't overlap with chat */
+      #step6 .col-md-8 {
+        padding-right: 120px;
+        /* Space for chat widget on right side */
       }
     }
   </style>
@@ -343,11 +910,11 @@
     <div class="w-header">
       <div class="d-flex align-items-center gap-3">
         <img src="assets/logo_white_ps.png" alt="Sella El Techo"
-          style="max-height: 140px; width: auto; object-fit: contain;">
+          style="max-height: 180px; width: auto; object-fit: contain;">
         <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal"
           data-bs-target="#nosotrosModal">Nosotros</button>
       </div>
-      <div class="text-muted small">Paso <span id="stepCount font-monospace">1</span> de 6</div>
+      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 7</div>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -381,11 +948,13 @@
       <div class="text-center my-auto px-5">
         <h3 class="mb-4">Ingresa el tamaño del techo</h3>
         <div class="d-flex justify-content-center align-items-center gap-3">
-          <input type="number" id="inputSqFt" class="search-lg text-center" placeholder="1500" style="width: 200px;">
+          <input type="number" id="inputSqFt" class="search-lg text-center" placeholder="1500" style="width: 200px;" min="100" step="1">
           <span class="fs-4 text-muted">ft²</span>
         </div>
         <p class="text-muted mt-3">Ingresa el área total a sellar.</p>
         <button class="btn btn-warning fw-bold px-5 mt-3" onclick="confirmManualSqFt()">Continuar ➡️</button>
+        <!-- Debug info -->
+        <div id="debugArea" class="mt-3 small text-warning" style="display:none;"></div>
       </div>
     </div>
 
@@ -560,29 +1129,93 @@
       </div>
     </div>
 
-    <!-- STEP 6: Quote Summary -->
+    <!-- STEP 6: Contact Information (NEW) -->
     <div class="step-content" id="step6">
       <div class="row justify-content-center h-100 align-items-center">
+        <div class="col-md-7">
+          <div class="text-center mb-4">
+            <h3 class="mb-2">📋 Información de Contacto</h3>
+            <p class="text-secondary">Para enviarte tu cotización y coordinar el servicio</p>
+          </div>
+
+          <div class="p-4 rounded border border-warning" style="background: linear-gradient(135deg, var(--card-elevated) 0%, var(--card-bg) 100%);">
+            <form id="contactForm" onsubmit="return false;">
+              <div class="mb-3">
+                <label for="contactName" class="form-label text-light">Nombre Completo *</label>
+                <input type="text" class="form-control search-lg" id="contactName" required
+                  placeholder="Juan Pérez" style="background: var(--card-bg); color: white;">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactEmail" class="form-label text-light">Email *</label>
+                <input type="email" class="form-control search-lg" id="contactEmail" required
+                  placeholder="juan@email.com" style="background: var(--card-bg); color: white;">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactPhone" class="form-label text-light">Teléfono *</label>
+                <input type="tel" class="form-control search-lg" id="contactPhone" required
+                  placeholder="(787) 123-4567" style="background: var(--card-bg); color: white;">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactAddress" class="form-label text-light">Dirección de la Propiedad</label>
+                <textarea class="form-control search-lg" id="contactAddress" rows="2"
+                  placeholder="Calle, Ciudad, PR" style="background: var(--card-bg); color: white;"></textarea>
+                <small class="text-muted">Opcional - ayuda para la inspección</small>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="contactConsent" required
+                  style="width: 20px; height: 20px; cursor: pointer;">
+                <label class="form-check-label text-secondary ms-2" for="contactConsent" style="cursor: pointer;">
+                  Acepto recibir información sobre mi cotización y servicios de Sella El Techo
+                </label>
+              </div>
+
+              <button type="button" class="btn btn-warning w-100 py-3 fw-bold" onclick="submitContactAndProceed()">
+                ✅ Confirmar y Ver Cotización
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: Quote Summary (renamed from step6) -->
+    <div class="step-content" id="step7">
+      <div class="row justify-content-center h-100 align-items-center">
         <div class="col-md-8">
-          <div class="p-4 rounded border border-secondary" style="background: rgba(0,0,0,0.2)" id="quoteContent">
-            <h4 class="mb-4 text-center text-warning">Propuesta Estimada</h4>
+          <!-- Debug alert for missing area -->
+          <div id="areaWarning" class="alert alert-danger mb-3" style="display:none;">
+            <strong>⚠️ ERROR:</strong> No se detectó el área del techo.<br>
+            <small>state.area = <span id="debugStateArea">0</span></small><br>
+            <small>window.manualArea = <span id="debugWindowArea">0</span></small><br>
+            <small>DOM input = <span id="debugDomInput">N/A</span></small>
+          </div>
+
+          <div class="p-4 rounded border border-warning" style="background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2))" id="quoteContent">
+            <div class="text-center mb-4">
+              <h3 class="text-warning fw-bold mb-1" style="letter-spacing: 1px;">COTIZACIÓN PROFESIONAL</h3>
+              <p class="text-muted small mb-0">Sella El Techo</p>
+            </div>
 
             <table class="w-100 summary-table">
               <tr>
-                <td>Área Geométrica (3D)</td>
-                <td class="text-end"><span id="sumAreaRaw">0</span> ft²</td>
+                <td class="text-muted">Área Geométrica (3D)</td>
+                <td class="text-end text-light"><span id="sumAreaRaw">0</span> ft²</td>
               </tr>
               <tr class="text-muted small">
-                <td>+ Seguridad (<span id="lblWaste">15</span>%)</td>
+                <td style="padding-left: 20px;">+ Seguridad (<span id="lblWaste">15</span>%)</td>
                 <td class="text-end">+<span id="sumWaste">0</span> ft²</td>
               </tr>
-              <tr class="border-bottom border-secondary">
-                <td class="pb-2">Material Requerido</td>
-                <td class="text-end fw-bold pb-2" id="sumeffectiveArea">0 ft²</td>
+              <tr class="border-bottom border-warning" style="border-width: 2px !important;">
+                <td class="pb-3 pt-2 fw-bold">Material Requerido</td>
+                <td class="text-end fw-bold pb-3 pt-2 text-warning" id="sumeffectiveArea">0 ft²</td>
               </tr>
               <tr>
-                <td class="pt-2">Precio Base</td>
-                <td class="price pt-2" id="sumBase">$0.00</td>
+                <td class="pt-3">Precio Base</td>
+                <td class="price pt-3" id="sumBase">$0.00</td>
               </tr>
               <tr id="rowCistern" style="display:none">
                 <td>Remoción / Manejo de Cisterna</td>
@@ -592,20 +1225,24 @@
                 <td>Remoción / Desmontaje Placas Solares</td>
                 <td class="price text-warning">+$1,000.00</td>
               </tr>
-              <tr>
-                <td class="pt-3 border-top border-secondary">IVU (11.5%)</td>
-                <td class="pt-3 border-top border-secondary price" id="sumTax">$0.00</td>
+              <tr class="border-top border-secondary">
+                <td class="pt-3 text-muted">IVU (11.5%)</td>
+                <td class="pt-3 price text-muted" id="sumTax">$0.00</td>
               </tr>
             </table>
 
-            <div class="total-row">
-              <span>TOTAL</span>
-              <span id="sumTotal">$0.00</span>
+            <div class="mt-4 p-3 rounded" style="background: rgba(255, 153, 0, 0.1); border: 2px solid var(--accent);">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fs-4 fw-bold text-light">TOTAL</span>
+                <span id="sumTotal" class="fs-3 fw-bold text-warning">$0.00</span>
+              </div>
             </div>
 
-            <p class="mt-3 text-center text-muted small fst-italic">
-              *Precio sujeto a inspección física final.
-            </p>
+            <div class="mt-3 p-2 text-center" style="background: rgba(255, 153, 0, 0.05); border-radius: 8px;">
+              <p class="mb-0 text-muted small">
+                <i class="text-warning">*</i> Precio sujeto a inspección física final
+              </p>
+            </div>
           </div>
 
           <div class="text-center mt-4 d-grid gap-2">
@@ -670,7 +1307,7 @@
 
   <script>
     let currentStep = 1;
-    const totalSteps = 6;
+    const totalSteps = 7;
     const state = {
       address: '',
       area: 0,
@@ -680,7 +1317,8 @@
       // New fields
       knowsSqFt: null,
       removal: false,
-      layers: 1
+      layers: 1,
+      manualOverride: false
     };
 
     // --- NEW LOGIC START ---
@@ -720,17 +1358,35 @@
     function confirmManualSqFt() {
       const input = document.getElementById('inputSqFt');
       const val = parseFloat(input.value);
+
+      console.log("confirmManualSqFt() called with input value:", input.value);
+      console.log("Parsed value:", val);
+
       if (!val || val < 100) {
         alert("Por favor ingresa un tamaño válido (min 100 ft).");
         return;
       }
 
-      // STRICT STATE SETTING
+      // STRICT STATE SETTING - Triple redundancy to ensure persistence
       state.area = val;
       state.knowsSqFt = true;
+      state.manualOverride = true; // Flag to prevent map from overwriting
       window.manualArea = val;
 
-      console.log("CONFIRMED MANUAL AREA:", val);
+      console.log("✅ CONFIRMED MANUAL AREA:", val);
+      console.log("State after confirmation:", {
+        area: state.area,
+        knowsSqFt: state.knowsSqFt,
+        manualOverride: state.manualOverride,
+        windowManualArea: window.manualArea
+      });
+
+      // Show debug info
+      const debugDiv = document.getElementById('debugArea');
+      if (debugDiv) {
+        debugDiv.style.display = 'block';
+        debugDiv.innerHTML = `✅ Área capturada: ${val} ft² (state.area: ${state.area}, window.manualArea: ${window.manualArea})`;
+      }
 
       // NAVIGATE TO STEP 3
       currentStep = 3;
@@ -738,64 +1394,267 @@
       updateSteps();
     }
 
+    // Submit contact form and create GoHighLevel contact
+    async function submitContactAndProceed() {
+      console.log("submitContactAndProceed() called");
+
+      // 1. Validate form
+      const name = document.getElementById('contactName').value.trim();
+      const email = document.getElementById('contactEmail').value.trim();
+      const phone = document.getElementById('contactPhone').value.trim();
+      const address = document.getElementById('contactAddress').value.trim();
+      const consent = document.getElementById('contactConsent').checked;
+
+      if (!name || !email || !phone) {
+        alert('⚠️ Por favor completa todos los campos requeridos (Nombre, Email, Teléfono)');
+        return;
+      }
+
+      if (!consent) {
+        alert('⚠️ Debes aceptar recibir información para continuar');
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert('⚠️ Por favor ingresa un email válido');
+        return;
+      }
+
+      // Phone validation (basic)
+      if (phone.length < 10) {
+        alert('⚠️ Por favor ingresa un teléfono válido');
+        return;
+      }
+
+      // 2. Calculate quote total
+      let finalArea = state.area || window.manualArea || 0;
+      if (finalArea === 0) {
+        alert('⚠️ Error: No se detectó el área del techo. Por favor regresa y completa los pasos anteriores.');
+        return;
+      }
+
+      // Calculate rates
+      let baseRate = 4.50; // Silicona
+      let surchargeRate = 0;
+
+      if (state.service === 'Danosa') {
+        baseRate = 3.50;
+        if (state.removal && state.layers >= 2) {
+          surchargeRate = (state.layers - 1) * 1.00;
+        }
+      }
+
+      const totalRate = baseRate + surchargeRate;
+      const materialCost = finalArea * totalRate;
+      const cisternCost = state.cistern ? 150.00 : 0;
+      const solarCost = state.solar ? 1000.00 : 0;
+      const subtotal = materialCost + cisternCost + solarCost;
+      const tax = subtotal * 0.115;
+      const grandTotal = subtotal + tax;
+
+      // 3. Show loading state
+      const submitBtn = document.querySelector('#contactForm button[type="button"]');
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = '⏳ Enviando...';
+      submitBtn.disabled = true;
+
+      try {
+        // 4. Send to GoHighLevel API
+        const ghlToken = 'pit-f3ebb971-2fd1-415b-91f0-f4449c8e5314';
+        const ghlApiUrl = 'https://services.leadconnectorhq.com/contacts/';
+
+        const contactData = {
+          firstName: name.split(' ')[0] || name,
+          lastName: name.split(' ').slice(1).join(' ') || '',
+          email: email,
+          phone: phone,
+          address1: address || '',
+          source: 'Cotizador Satelital',
+          tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
+          customFields: [
+            {
+              key: 'area_pies_cuadrados',
+              value: Math.round(finalArea).toString()
+            },
+            {
+              key: 'valor_cotizacion',
+              value: grandTotal.toFixed(2)
+            },
+            {
+              key: 'tipo_servicio',
+              value: state.service || 'No seleccionado'
+            },
+            {
+              key: 'tiene_cisterna',
+              value: state.cistern ? 'Sí' : 'No'
+            },
+            {
+              key: 'tiene_placas_solares',
+              value: state.solar ? 'Sí' : 'No'
+            },
+            {
+              key: 'direccion_propiedad',
+              value: address || 'No proporcionada'
+            }
+          ]
+        };
+
+        console.log("Sending to GHL:", contactData);
+
+        const response = await fetch(ghlApiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${ghlToken}`,
+            'Content-Type': 'application/json',
+            'Version': '2021-07-28'
+          },
+          body: JSON.stringify(contactData)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('GHL API Error:', errorText);
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Contact created in GHL:', result);
+
+        // 5. Store contact info in state for display
+        state.contactName = name;
+        state.contactEmail = email;
+        state.contactPhone = phone;
+        state.contactAddress = address;
+
+        // 6. Navigate to Step 7 (Quote Summary)
+        currentStep = 7;
+        showStep('step7');
+        updateSteps();
+
+      } catch (error) {
+        console.error('Error creating contact:', error);
+        alert('⚠️ Hubo un problema al enviar tu información. Por favor intenta de nuevo o contáctanos directamente.\n\nError: ' + error.message);
+
+        // Restore button state
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+      }
+    }
+
     // ...
 
     function renderSummary() {
       console.log("--- RENDER SUMMARY (ROBUST REWRITE) ---");
+      console.log("DEBUG: state.area =", state.area);
+      console.log("DEBUG: window.manualArea =", window.manualArea);
+      console.log("DEBUG: state.knowsSqFt =", state.knowsSqFt);
+      console.log("DEBUG: state =", JSON.stringify(state));
+
+      // Update debug display
+      const inputEl = document.getElementById('inputSqFt');
+      const inputValue = inputEl ? inputEl.value : 'N/A';
+
+      document.getElementById('debugStateArea').innerText = state.area || '0 (undefined)';
+      document.getElementById('debugWindowArea').innerText = window.manualArea || '0 (undefined)';
+      document.getElementById('debugDomInput').innerText = inputValue;
 
       // 1. RESOLVE AREA
       // Priority: State -> Window Global -> DOM Input
       let finalArea = state.area;
 
       if (!finalArea || finalArea === 0) {
+        console.log("DEBUG: state.area is 0 or empty, trying window.manualArea");
         if (typeof window.manualArea === 'number' && window.manualArea > 0) {
           finalArea = window.manualArea;
+          console.log("DEBUG: Using window.manualArea =", finalArea);
         }
       }
 
       // Fallback 2: Read DOM Input directly (Crucial for "User entered footage" handling)
       if (!finalArea || finalArea === 0) {
-        const inputEl = document.getElementById('inputSqFt');
+        console.log("DEBUG: Trying to read from DOM input");
         if (inputEl && inputEl.value) {
           const val = parseFloat(inputEl.value);
-          if (val > 0) finalArea = val;
+          if (val > 0) {
+            finalArea = val;
+            console.log("DEBUG: Using DOM input value =", finalArea);
+            // Update state to preserve this value
+            state.area = val;
+            window.manualArea = val;
+          }
         }
       }
 
       // Final Validity Check
       if (!finalArea || finalArea === 0) {
-        console.error("Area could not be resolved. It is 0.");
-        // We do NOT return here, we let it display $0.00 but log error
-        // Actually, let's try to update the UI to warn user
+        console.error("❌ ERROR: Area could not be resolved. It is 0.");
+        console.error("DEBUG: All fallbacks failed!");
+
+        // Show warning alert
+        document.getElementById('areaWarning').style.display = 'block';
+
+        // Display error message
         document.getElementById('sumBase').innerText = "$0.00 (Falta Área)";
+        document.getElementById('sumTax').innerText = "$0.00";
+        document.getElementById('sumTotal').innerText = "$0.00";
+        return; // Stop processing if no area is available
       }
+
+      // Hide warning if area found
+      document.getElementById('areaWarning').style.display = 'none';
+
+      console.log("✅ SUCCESS: finalArea resolved to:", finalArea);
 
       // 2. CALCULATE RATES & SURCHARGES
       let baseRate = 4.50; // Default Silicona
       let surchargeRate = 0;
       let surchargeLabel = "";
 
+      console.log("Service type:", state.service);
+
       if (state.service === 'Danosa') {
         baseRate = 3.50;
+        console.log("✅ Danosa selected - Using $3.50 per ft²");
         // Logic: Removal adds $1.00 starting from 2nd layer
         if (state.removal && state.layers >= 2) {
           const extra = state.layers - 1;
           surchargeRate = extra * 1.00;
           surchargeLabel = ` (Inc. ${extra} capa${extra > 1 ? 's' : ''} removida${extra > 1 ? 's' : ''})`;
+          console.log(`Adding removal surcharge: ${extra} layer(s) × $1.00 = $${surchargeRate}/ft²`);
         }
+      } else {
+        console.log("Silicona selected - Using $4.50 per ft²");
       }
 
       const totalRate = baseRate + surchargeRate;
       const materialCost = finalArea * totalRate;
 
+      console.log("Calculation breakdown:");
+      console.log(`  Base rate: $${baseRate}/ft²`);
+      console.log(`  Surcharge: $${surchargeRate}/ft²`);
+      console.log(`  Total rate: $${totalRate}/ft²`);
+      console.log(`  Area: ${finalArea} ft²`);
+      console.log(`  Material cost: $${materialCost.toFixed(2)}`);
+
       // 3. FIXED COSTS
       const cisternCost = state.cistern ? 150.00 : 0;
       const solarCost = state.solar ? 1000.00 : 0;
+
+      console.log("Add-ons:");
+      console.log(`  Cisterna: ${state.cistern ? 'Yes' : 'No'} - $${cisternCost}`);
+      console.log(`  Placas Solares: ${state.solar ? 'Yes' : 'No'} - $${solarCost}`);
 
       // 4. TOTALS
       const subtotal = materialCost + cisternCost + solarCost;
       const tax = subtotal * 0.115; // 11.5% IVU
       const grandTotal = subtotal + tax;
+
+      console.log("Final totals:");
+      console.log(`  Subtotal: $${subtotal.toFixed(2)}`);
+      console.log(`  Tax (11.5%): $${tax.toFixed(2)}`);
+      console.log(`  Grand Total: $${grandTotal.toFixed(2)}`);
 
       // 5. UPDATE UI SAFEGUARDS
       safeSetText('sumAreaRaw', Math.round(finalArea).toLocaleString());
@@ -889,7 +1748,8 @@
         3: 'step3',
         4: 'step4',
         5: 'step5',
-        6: 'step6'
+        6: 'step6',
+        7: 'step7'
       };
 
       const targetId = stepMap[currentStep];
@@ -909,6 +1769,12 @@
       document.getElementById('progressFill').style.width = pct + '%';
       document.getElementById('stepCount').innerText = currentStep;
 
+      // Hide step counter on final summary page (step 7)
+      const stepCounter = document.getElementById('stepCounter');
+      if (stepCounter) {
+        stepCounter.style.display = (currentStep === 7) ? 'none' : 'block';
+      }
+
       // Buttons
       const prevBtn = document.getElementById('btnPrev');
       // Visual "Disabled" state using opacity (never actually hide or disable attribute to avoid bugs)
@@ -925,8 +1791,13 @@
 
       const nextBtn = document.getElementById('btnNext');
       nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
-      // Show Next button on Step 1 too (User Request)
-      nextBtn.style.display = (currentStep === totalSteps) ? 'none' : 'block';
+      // Hide Next button on Step 2 (manual input has its own Continuar button)
+      // Also hide on Step 6 (contact form - has its own submit button), Step 7 (summary) and Step 99 (calendar)
+      if (currentStep === 2 || currentStep === 6 || currentStep === totalSteps || currentStep === 99) {
+        nextBtn.style.display = 'none';
+      } else {
+        nextBtn.style.display = 'block';
+      }
 
       // Step Specific Logic
       validateStep();
@@ -939,7 +1810,11 @@
         }, 100);
       }
 
-      if (currentStep === 6) renderSummary();
+      if (currentStep === 7) {
+        console.log("📊 Step 7 reached - calling renderSummary()");
+        console.log("Current state before renderSummary:", state);
+        renderSummary();
+      }
 
       // DEBUG: Log all active steps (to catch duplicates)
       const activeSteps = document.querySelectorAll('.step-content.active');
@@ -990,6 +1865,24 @@
             // No specific input to highlight anymore
           }
           return;
+        }
+
+        // CRITICAL: Capture area from input when leaving Step 2A
+        if (currentStep === 2) {
+          const inputEl = document.getElementById('inputSqFt');
+          if (inputEl && inputEl.value) {
+            const val = parseFloat(inputEl.value);
+            if (val > 0 && (!state.area || state.area === 0)) {
+              // User entered value but didn't click Continuar
+              // Capture it now before advancing
+              state.area = val;
+              state.knowsSqFt = true;
+              state.manualOverride = true;
+              window.manualArea = val;
+              console.log("⚠️ CAPTURED AREA FROM INPUT (user used Siguiente instead of Continuar):", val);
+              console.log("State updated:", { area: state.area, manualOverride: state.manualOverride });
+            }
+          }
         }
 
         // Special Handling for Step 1 -> 2 (Address Search) - REMOVED/SKIPPED for now
@@ -1056,13 +1949,19 @@
         // Validation handled by card selection
         valid = state.knowsSqFt !== null;
       } else if (currentStep === 2) {
-        valid = state.area > 0;
+        // For step 2A (manual input), check if area is set
+        // OR check if input has a valid value
+        const inputEl = document.getElementById('inputSqFt');
+        valid = state.area > 0 || (inputEl && parseFloat(inputEl.value) >= 100);
       } else if (currentStep === 3) {
         valid = state.cistern !== null;
       } else if (currentStep === 4) {
         valid = state.solar !== null;
       } else if (currentStep === 5) {
         valid = state.service !== null;
+      } else if (currentStep === 6) {
+        // Contact form validation - handled by submitContactAndProceed()
+        valid = true; // No next button shown, validation happens on submit
       }
 
       if (nextBtn) nextBtn.disabled = !valid;
@@ -1129,7 +2028,7 @@
       }
 
       // If we are on the quote page, re-render
-      if (currentStep === 6) renderSummary();
+      if (currentStep === 7) renderSummary();
 
       validateStep();
     };
@@ -1139,6 +2038,7 @@
     window.validateStep = validateStep;
     window.setOption = setOption;
     window.changeStep = changeStep;
+    window.submitContactAndProceed = submitContactAndProceed;
 
     // Verification Links
 
