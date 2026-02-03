@@ -1122,6 +1122,10 @@
             <small class="text-warning d-block mt-2">*Si hay más de 2 capas, se cobra extra ($1/ft² por capa
               adicional).</small>
           </div>
+
+          <button id="danosaContinueBtn" class="btn btn-warning w-100 mt-3 py-2 fw-bold" style="display:none;" onclick="changeStep(1)">
+            Continuar →
+          </button>
         </div>
 
       </div>
@@ -1803,6 +1807,10 @@
       const layerDiv = document.getElementById('layersInput');
       layerDiv.style.display = isRemoval ? 'block' : 'none';
 
+      // Show continue button after selection
+      const continueBtn = document.getElementById('danosaContinueBtn');
+      if (continueBtn) continueBtn.style.display = 'block';
+
       validateStep();
     }
 
@@ -2033,11 +2041,21 @@
         if (val === 'Danosa') {
           danosaOpts.style.display = 'block';
           if (serviceImg) serviceImg.src = 'assets/danosa_membrane.png?v=' + new Date().getTime() + '_2';
+          // Don't auto-advance - user needs to configure Danosa options
         } else {
           danosaOpts.style.display = 'none';
           state.removal = false; // reset
           if (serviceImg) serviceImg.src = 'assets/service.png?v=2';
+          // Auto-advance for Silicona after short delay
+          setTimeout(() => {
+            changeStep(1);
+          }, 400);
         }
+      } else {
+        // Auto-advance for cistern (step 3) and solar (step 4) selections
+        setTimeout(() => {
+          changeStep(1);
+        }, 400);
       }
 
       validateStep();
