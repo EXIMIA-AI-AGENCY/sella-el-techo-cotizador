@@ -523,9 +523,11 @@
       body {
         padding: 0;
         padding-bottom: 0;
-        /* Remove bottom padding on mobile, handled by footer */
         background-color: var(--card-bg);
-        /* Full screen app feel */
+        overflow: hidden;
+        position: fixed;
+        width: 100%;
+        height: 100%;
       }
 
       .wizard-container {
@@ -533,70 +535,83 @@
         border: none;
         box-shadow: none;
         height: 100vh;
-        min-height: 100vh;
+        height: 100dvh; /* Dynamic viewport height for mobile browsers */
+        max-height: 100vh;
+        max-height: 100dvh;
         display: flex;
         flex-direction: column;
         max-width: 100%;
+        overflow: hidden;
       }
 
       .w-header {
-        padding: 12px 15px;
+        padding: 8px 15px;
         flex-wrap: wrap;
-        gap: 10px;
+        gap: 5px;
+        flex-shrink: 0;
       }
 
       .w-header img {
-        max-height: 280px !important;
+        max-height: 100px !important;
       }
 
       .w-header .small {
-        font-size: 0.8rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      #backButtonContainer {
+        flex-shrink: 0;
+        padding: 5px 15px !important;
       }
 
       .step-content {
-        padding: 20px 15px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        /* Smooth scrolling on iOS */
+        padding: 10px 15px;
+        overflow: hidden;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      .step-content > div {
+        max-height: 100%;
       }
 
       #map-container {
-        height: 45vh;
-        /* Adjust map height for mobile */
+        height: 35vh;
       }
 
       .search-lg {
-        font-size: 1.1rem;
-        padding: 14px 18px;
-        /* Larger touch target */
+        font-size: 1rem;
+        padding: 10px 14px;
       }
 
       h1 {
-        font-size: 2rem !important;
-      }
-
-      h2 {
         font-size: 1.5rem !important;
       }
 
-      h3 {
-        font-size: 1.25rem !important;
+      h2 {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.5rem !important;
       }
 
-      h4 {
+      h3 {
         font-size: 1.1rem !important;
       }
 
-      h5 {
+      h4 {
         font-size: 1rem !important;
+      }
+
+      h5 {
+        font-size: 0.9rem !important;
       }
 
       /* Improved option cards for touch */
       .option-card {
-        padding: 25px 15px;
-        min-height: 140px;
-        /* Larger touch target */
-        border-width: 3px;
+        padding: 15px 10px;
+        min-height: auto;
+        border-width: 2px;
         /* More visible */
       }
 
@@ -771,39 +786,75 @@
     /* Extra small devices (phones in portrait) */
     @media (max-width: 576px) {
       .w-header img {
-        max-height: 200px !important;
+        max-height: 80px !important;
+      }
+
+      .w-header {
+        padding: 5px 10px !important;
+      }
+
+      h2 {
+        font-size: 1.1rem !important;
       }
 
       h3 {
-        font-size: 1.15rem !important;
+        font-size: 1rem !important;
       }
 
       .option-card {
-        padding: 20px 12px;
+        padding: 12px 10px;
       }
 
-      .btn-nav {
-        padding: 12px 20px;
-        font-size: 0.95rem;
+      .option-card h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 0 !important;
+      }
+
+      .option-card h3 {
+        font-size: 0.95rem !important;
+        margin-top: 0.3rem !important;
+      }
+
+      .option-card small {
+        font-size: 0.75rem !important;
       }
 
       .total-row {
-        font-size: 1.2rem;
+        font-size: 1rem;
         flex-direction: column;
         align-items: flex-end;
-        gap: 5px;
+        gap: 3px;
       }
 
-      /* Stack footer buttons on very small screens if needed */
-      .w-footer {
-        padding: 12px;
-        padding-right: 85px;
-        /* Space for chat widget */
+      .row.g-4 {
+        --bs-gutter-y: 0.5rem;
+        --bs-gutter-x: 0.5rem;
+      }
+
+      .mb-4 {
+        margin-bottom: 0.5rem !important;
+      }
+
+      .mt-4 {
+        margin-top: 0.5rem !important;
+      }
+
+      .py-3 {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
       }
 
       input[type="number"] {
-        font-size: 1.3rem !important;
-        padding: 15px !important;
+        font-size: 1.1rem !important;
+        padding: 10px !important;
+      }
+
+      #quoteContent {
+        padding: 10px !important;
+      }
+
+      #quoteContent table {
+        font-size: 0.85rem;
       }
     }
 
