@@ -1485,7 +1485,58 @@
         const result = await response.json();
         console.log('✅ Contact created in GHL:', result);
 
-        // 5. Store contact info in state for display
+        // 5. Send quote data to webhook
+        const webhookUrl = 'https://services.leadconnectorhq.com/hooks/LVwbqYFEmGiKJ7AgtSIf/webhook-trigger/b275a7d9-e59e-4a55-9380-bc2a2bd33248';
+
+        const quoteData = {
+          // Contact Information
+          contactId: result.contact?.id || null,
+          nombre: name,
+          email: email,
+          telefono: phone,
+          direccion: address || '',
+
+          // Quote Details
+          area_pies_cuadrados: Math.round(finalArea),
+          tipo_servicio: state.service || 'No seleccionado',
+
+          // Pricing Breakdown
+          precio_por_pie: totalRate,
+          costo_material: materialCost.toFixed(2),
+          costo_cisterna: cisternCost.toFixed(2),
+          costo_solar: solarCost.toFixed(2),
+          subtotal: subtotal.toFixed(2),
+          ivu: tax.toFixed(2),
+          total: grandTotal.toFixed(2),
+
+          // Additional Options
+          tiene_cisterna: state.cistern ? true : false,
+          tiene_placas_solares: state.solar ? true : false,
+          requiere_remocion: state.removal ? true : false,
+          capas_remocion: state.layers || 1,
+
+          // Metadata
+          fuente: 'Cotizador Satelital',
+          fecha_cotizacion: new Date().toISOString(),
+          url_origen: window.location.href
+        };
+
+        console.log("Sending quote to webhook:", quoteData);
+
+        // Send to webhook (fire and forget - don't block on errors)
+        fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(quoteData)
+        }).then(webhookResponse => {
+          console.log('✅ Quote sent to webhook:', webhookResponse.status);
+        }).catch(webhookError => {
+          console.error('⚠️ Webhook error (non-blocking):', webhookError);
+        });
+
+        // 6. Store contact info in state for display
         state.contactName = name;
         state.contactEmail = email;
         state.contactPhone = phone;
