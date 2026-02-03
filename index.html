@@ -1908,6 +1908,9 @@
       // Step Specific Logic
       validateStep();
 
+      // Restore visual selection state when navigating back to a step
+      restoreSelectionState();
+
       // Map Resize Hack
       if (currentStep === 2 && window.map) {
         setTimeout(() => {
@@ -2001,6 +2004,63 @@
       console.log("New step:", currentStep);
       updateSteps();
     }
+    // Restore visual selection state when navigating back to a step
+    function restoreSelectionState() {
+      // Step 3: Cistern selection
+      if (currentStep === 3 && state.cistern !== null) {
+        const cards = document.querySelectorAll('#step3 .option-card');
+        cards.forEach(card => {
+          card.classList.remove('selected');
+          const onclick = card.getAttribute('onclick');
+          if (state.cistern === true && onclick && onclick.includes('true')) {
+            card.classList.add('selected');
+          } else if (state.cistern === false && onclick && onclick.includes('false')) {
+            card.classList.add('selected');
+          }
+        });
+      }
+
+      // Step 4: Solar selection
+      if (currentStep === 4 && state.solar !== null) {
+        const cards = document.querySelectorAll('#step4 .option-card');
+        cards.forEach(card => {
+          card.classList.remove('selected');
+          const onclick = card.getAttribute('onclick');
+          if (state.solar === true && onclick && onclick.includes('true')) {
+            card.classList.add('selected');
+          } else if (state.solar === false && onclick && onclick.includes('false')) {
+            card.classList.add('selected');
+          }
+        });
+      }
+
+      // Step 5: Service selection
+      if (currentStep === 5 && state.service !== null) {
+        const cards = document.querySelectorAll('#step5 .option-card');
+        cards.forEach(card => {
+          card.classList.remove('selected');
+          const onclick = card.getAttribute('onclick');
+          if (onclick && onclick.includes(`'${state.service}'`)) {
+            card.classList.add('selected');
+          }
+        });
+
+        // Also restore Danosa options visibility if Danosa was selected
+        const danosaOpts = document.getElementById('danosaOptions');
+        const continueBtn = document.getElementById('danosaContinueBtn');
+        if (state.service === 'Danosa') {
+          if (danosaOpts) danosaOpts.style.display = 'block';
+          // If removal option was already selected, show continue button
+          if (state.removal !== undefined && continueBtn) {
+            continueBtn.style.display = 'block';
+          }
+        } else {
+          if (danosaOpts) danosaOpts.style.display = 'none';
+          if (continueBtn) continueBtn.style.display = 'none';
+        }
+      }
+    }
+
     function validateStep(shake = false) {
       let valid = false;
 
