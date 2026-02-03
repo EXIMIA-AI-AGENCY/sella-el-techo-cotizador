@@ -1549,13 +1549,98 @@
           }
         }
 
-        // 6. Store contact info in state for display
+        // 6. Create Invoice in Draft status
+        const contactId = result.contact?.id;
+        if (contactId) {
+          try {
+            const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
+
+            // Build line items for the invoice
+            const invoiceItems = [];
+
+            // Main service item
+            invoiceItems.push({
+              name: `Sellado de Techo - ${state.service || 'Profesional'}`,
+              description: `Área: ${Math.round(finalArea).toLocaleString()} ft² × $${totalRate.toFixed(2)}/ft²`,
+              price: materialCost,
+              qty: 1
+            });
+
+            // Cistern if applicable
+            if (state.cistern) {
+              invoiceItems.push({
+                name: 'Remoción / Manejo de Cisterna',
+                description: 'Servicio adicional de manejo de cisterna',
+                price: 150.00,
+                qty: 1
+              });
+            }
+
+            // Solar panels if applicable
+            if (state.solar) {
+              invoiceItems.push({
+                name: 'Remoción / Desmontaje Placas Solares',
+                description: 'Servicio adicional de desmontaje de placas solares',
+                price: 1000.00,
+                qty: 1
+              });
+            }
+
+            // Calculate due date (30 days from now)
+            const dueDate = new Date();
+            dueDate.setDate(dueDate.getDate() + 30);
+
+            const invoiceData = {
+              contactId: contactId,
+              name: `Cotización Sellado - ${name}`,
+              title: 'Cotización de Sellado de Techo',
+              dueDate: dueDate.toISOString().split('T')[0],
+              status: 'draft',
+              currency: 'USD',
+              items: invoiceItems,
+              amountDue: grandTotal,
+              businessDetails: {
+                name: 'Sella El Techo',
+                address: 'Puerto Rico',
+                phone: '(787) 123-4567',
+                email: 'info@sellaeltecho.com'
+              },
+              invoiceNote: `Cotización generada automáticamente desde el Cotizador Satelital.\n\nDetalles:\n- Área: ${Math.round(finalArea).toLocaleString()} ft²\n- Servicio: ${state.service || 'No especificado'}\n- IVU (11.5%): $${tax.toFixed(2)}\n\n* Precio sujeto a inspección física final`,
+              terms: 'Precio válido por 30 días. Sujeto a inspección física final.'
+            };
+
+            console.log("Creating invoice in GHL:", invoiceData);
+
+            const invoiceResponse = await fetch(invoiceApiUrl, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${ghlToken}`,
+                'Content-Type': 'application/json',
+                'Version': '2021-07-28'
+              },
+              body: JSON.stringify(invoiceData)
+            });
+
+            if (invoiceResponse.ok) {
+              const invoiceResult = await invoiceResponse.json();
+              console.log('✅ Invoice created in draft:', invoiceResult);
+              state.invoiceId = invoiceResult.invoice?.id || invoiceResult.id;
+            } else {
+              const invoiceError = await invoiceResponse.text();
+              console.warn('⚠️ Invoice creation failed (non-blocking):', invoiceError);
+            }
+          } catch (invoiceError) {
+            console.error('⚠️ Invoice creation error (non-blocking):', invoiceError);
+          }
+        }
+
+        // 7. Store contact info in state for display
         state.contactName = name;
         state.contactEmail = email;
         state.contactPhone = phone;
         state.contactAddress = address;
 
-        // 6. Navigate to Step 7 (Quote Summary)
+        // 8. Navigate to Step 7 (Quote Summary)
         currentStep = 7;
         showStep('step7');
         updateSteps();
