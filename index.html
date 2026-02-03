@@ -123,6 +123,7 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
+      position: relative;
       background: linear-gradient(180deg, rgba(10, 25, 47, 0.95) 0%, rgba(17, 34, 64, 0.95) 100%);
       backdrop-filter: blur(10px);
     }
@@ -134,6 +135,28 @@
 
     .w-header img:hover {
       transform: scale(1.02);
+    }
+
+    .btn-back {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border-radius: var(--radius-lg);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      z-index: 1;
+    }
+
+    .btn-back:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-light);
     }
 
     .progress-track {
@@ -355,18 +378,6 @@
       }
     }
 
-    /* Footer Navigation */
-    .w-footer {
-      padding: 20px 30px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      background: var(--bg-color);
-      position: relative;
-      z-index: 10000;
-      /* FORCE TOP LAYER */
-    }
-
     /* Professional Button System */
     .btn {
       font-weight: 600;
@@ -393,61 +404,6 @@
     .btn:active::before {
       width: 300px;
       height: 300px;
-    }
-
-    .btn-nav {
-      padding: 14px 32px;
-      border-radius: var(--radius-lg);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      font-size: 0.875rem;
-      transition: all var(--transition-base);
-      user-select: none;
-      box-shadow: var(--shadow-md);
-    }
-
-    .btn-next {
-      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
-      color: #000;
-      border: none;
-      font-weight: 700;
-    }
-
-    .btn-next:hover {
-      background: linear-gradient(135deg, var(--accent-hover) 0%, var(--accent) 100%);
-      box-shadow: var(--shadow-lg), var(--shadow-glow);
-      transform: translateY(-2px);
-    }
-
-    .btn-next:active {
-      transform: translateY(0);
-    }
-
-    .btn-next:disabled {
-      background: var(--border);
-      cursor: not-allowed;
-      transform: none;
-      opacity: 0.5;
-      box-shadow: none;
-    }
-
-    .btn-prev {
-      background: transparent;
-      border: 2px solid var(--border);
-      color: var(--text-secondary);
-      font-weight: 600;
-    }
-
-    .btn-prev:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-      background: var(--accent-light);
-      transform: translateY(-2px);
-    }
-
-    .btn-prev:active {
-      transform: translateY(0);
     }
 
     /* Warning Button (Continuar, etc) */
@@ -612,32 +568,6 @@
       /* Better spacing for option grids */
       .row.g-3 {
         gap: 15px !important;
-      }
-
-      /* Larger, more tappable buttons */
-      .w-footer {
-        padding: 15px;
-        padding-bottom: 25px;
-        padding-right: 90px;
-        /* Extra padding for chat widget on right */
-        background: var(--card-bg);
-        position: sticky;
-        bottom: 0;
-        box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.3);
-        /* Elevation for footer */
-        z-index: 900;
-        /* Below chat widget but above content */
-      }
-
-      .btn-nav {
-        padding: 14px 24px;
-        font-size: 1rem;
-        min-height: 50px;
-        /* Better touch target */
-        font-weight: 700;
-        max-width: 48%;
-        /* Ensure buttons don't stretch too much */
-        flex-shrink: 1;
       }
 
       /* Summary table improvements */
@@ -903,6 +833,7 @@
 
     <!-- Header -->
     <div class="w-header">
+      <button class="btn btn-back" id="btnPrev" type="button" onclick="changeStep(-1)">&#8592; Atrás</button>
       <img src="assets/logo_white_ps.png" alt="Sella El Techo"
         style="max-height: 360px; width: auto; object-fit: contain;">
       <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 7</div>
@@ -1246,12 +1177,6 @@
       </div>
     </div>
 
-    <!-- Footer -->
-    <div class="w-footer">
-      <button class="btn btn-nav btn-prev" id="btnPrev" type="button" onclick="changeStep(-1)">Atrás</button>
-      <button class="btn btn-nav btn-next" id="btnNext" type="button" onclick="changeStep(1)"
-        disabled>Siguiente</button>
-    </div>
 
   </div>
 
@@ -1752,16 +1677,6 @@
         prevBtn.style.visibility = 'visible';
       }
 
-      const nextBtn = document.getElementById('btnNext');
-      nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
-      // Hide Next button on Step 2 (manual input has its own Continuar button)
-      // Also hide on Step 6 (contact form - has its own submit button), Step 7 (summary) and Step 99 (calendar)
-      if (currentStep === 2 || currentStep === 6 || currentStep === totalSteps || currentStep === 99) {
-        nextBtn.style.display = 'none';
-      } else {
-        nextBtn.style.display = 'block';
-      }
-
       // Step Specific Logic
       validateStep();
 
@@ -1905,7 +1820,6 @@
       updateSteps();
     }
     function validateStep(shake = false) {
-      const nextBtn = document.getElementById('btnNext');
       let valid = false;
 
       if (currentStep === 1) {
@@ -1927,7 +1841,6 @@
         valid = true; // No next button shown, validation happens on submit
       }
 
-      if (nextBtn) nextBtn.disabled = !valid;
       return valid;
     }
 
