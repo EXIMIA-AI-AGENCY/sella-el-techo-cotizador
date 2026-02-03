@@ -123,7 +123,6 @@
       flex-direction: column;
       align-items: center;
       gap: 8px;
-      position: relative;
       background: linear-gradient(180deg, rgba(10, 25, 47, 0.95) 0%, rgba(17, 34, 64, 0.95) 100%);
       backdrop-filter: blur(10px);
     }
@@ -138,9 +137,7 @@
     }
 
     .btn-back {
-      position: absolute;
-      top: 16px;
-      left: 20px;
+      margin: 12px 0 0 20px;
       background: transparent;
       border: 1px solid var(--border);
       color: var(--text-secondary);
@@ -150,7 +147,6 @@
       font-weight: 600;
       cursor: pointer;
       transition: all var(--transition-base);
-      z-index: 1;
     }
 
     .btn-back:hover {
@@ -833,7 +829,6 @@
 
     <!-- Header -->
     <div class="w-header">
-      <button class="btn btn-back" id="btnPrev" type="button" onclick="changeStep(-1)">&#8592; Atrás</button>
       <img src="assets/logo_white_ps.png" alt="Sella El Techo"
         style="max-height: 360px; width: auto; object-fit: contain;">
       <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 7</div>
@@ -841,6 +836,7 @@
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
     </div>
+    <button class="btn btn-back" id="btnPrev" type="button" onclick="changeStep(-1)">&#8592; Atrás</button>
 
     <!-- STEP 1: Qualification -->
     <div class="step-content active" id="step1">
