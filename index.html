@@ -309,17 +309,26 @@
     /* Summary Specific */
     .summary-table td {
       color: var(--text-muted);
-      padding: 8px 0;
+      padding: 10px 0;
+      font-size: 0.95rem;
     }
 
     .summary-table .price {
       color: white;
       text-align: right;
-      font-family: monospace;
-      font-size: 1.1rem;
+      font-family: 'Inter', monospace;
+      font-size: 1.15rem;
+      font-weight: 600;
     }
 
-    .total-row {
+    /* Professional quote header on step 6 */
+    #step6 h3 {
+      text-transform: uppercase;
+      font-weight: 800;
+    }
+
+    /* Improved total box */
+    #step6 .total-row {
       border-top: 1px solid var(--border);
       margin-top: 10px;
       padding-top: 10px;
@@ -460,17 +469,27 @@
 
       /* Summary table improvements */
       .summary-table td {
-        padding: 10px 0;
-        font-size: 0.95rem;
+        padding: 8px 0;
+        font-size: 0.9rem;
       }
 
       .summary-table .price {
-        font-size: 1rem;
+        font-size: 1.05rem;
       }
 
-      .total-row {
-        font-size: 1.3rem;
+      /* Professional quote improvements on mobile */
+      #step6 h3 {
+        font-size: 1.4rem !important;
+      }
+
+      #step6 .total-row {
+        font-size: 1.2rem;
         padding-top: 15px;
+      }
+
+      /* Quote content box */
+      #quoteContent {
+        padding: 20px 16px !important;
       }
 
       /* Input improvements */
@@ -717,7 +736,7 @@
         <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal"
           data-bs-target="#nosotrosModal">Nosotros</button>
       </div>
-      <div class="text-muted small">Paso <span id="stepCount" class="font-monospace">1</span> de 6</div>
+      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 6</div>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -944,25 +963,28 @@
             <small>DOM input = <span id="debugDomInput">N/A</span></small>
           </div>
 
-          <div class="p-4 rounded border border-secondary" style="background: rgba(0,0,0,0.2)" id="quoteContent">
-            <h4 class="mb-4 text-center text-warning">Propuesta Estimada</h4>
+          <div class="p-4 rounded border border-warning" style="background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2))" id="quoteContent">
+            <div class="text-center mb-4">
+              <h3 class="text-warning fw-bold mb-1" style="letter-spacing: 1px;">COTIZACIÓN PROFESIONAL</h3>
+              <p class="text-muted small mb-0">Sella El Techo</p>
+            </div>
 
             <table class="w-100 summary-table">
               <tr>
-                <td>Área Geométrica (3D)</td>
-                <td class="text-end"><span id="sumAreaRaw">0</span> ft²</td>
+                <td class="text-muted">Área Geométrica (3D)</td>
+                <td class="text-end text-light"><span id="sumAreaRaw">0</span> ft²</td>
               </tr>
               <tr class="text-muted small">
-                <td>+ Seguridad (<span id="lblWaste">15</span>%)</td>
+                <td style="padding-left: 20px;">+ Seguridad (<span id="lblWaste">15</span>%)</td>
                 <td class="text-end">+<span id="sumWaste">0</span> ft²</td>
               </tr>
-              <tr class="border-bottom border-secondary">
-                <td class="pb-2">Material Requerido</td>
-                <td class="text-end fw-bold pb-2" id="sumeffectiveArea">0 ft²</td>
+              <tr class="border-bottom border-warning" style="border-width: 2px !important;">
+                <td class="pb-3 pt-2 fw-bold">Material Requerido</td>
+                <td class="text-end fw-bold pb-3 pt-2 text-warning" id="sumeffectiveArea">0 ft²</td>
               </tr>
               <tr>
-                <td class="pt-2">Precio Base</td>
-                <td class="price pt-2" id="sumBase">$0.00</td>
+                <td class="pt-3">Precio Base</td>
+                <td class="price pt-3" id="sumBase">$0.00</td>
               </tr>
               <tr id="rowCistern" style="display:none">
                 <td>Remoción / Manejo de Cisterna</td>
@@ -972,20 +994,24 @@
                 <td>Remoción / Desmontaje Placas Solares</td>
                 <td class="price text-warning">+$1,000.00</td>
               </tr>
-              <tr>
-                <td class="pt-3 border-top border-secondary">IVU (11.5%)</td>
-                <td class="pt-3 border-top border-secondary price" id="sumTax">$0.00</td>
+              <tr class="border-top border-secondary">
+                <td class="pt-3 text-muted">IVU (11.5%)</td>
+                <td class="pt-3 price text-muted" id="sumTax">$0.00</td>
               </tr>
             </table>
 
-            <div class="total-row">
-              <span>TOTAL</span>
-              <span id="sumTotal">$0.00</span>
+            <div class="mt-4 p-3 rounded" style="background: rgba(255, 153, 0, 0.1); border: 2px solid var(--accent);">
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="fs-4 fw-bold text-light">TOTAL</span>
+                <span id="sumTotal" class="fs-3 fw-bold text-warning">$0.00</span>
+              </div>
             </div>
 
-            <p class="mt-3 text-center text-muted small fst-italic">
-              *Precio sujeto a inspección física final.
-            </p>
+            <div class="mt-3 p-2 text-center" style="background: rgba(255, 153, 0, 0.05); border-radius: 8px;">
+              <p class="mb-0 text-muted small">
+                <i class="text-warning">*</i> Precio sujeto a inspección física final
+              </p>
+            </div>
           </div>
 
           <div class="text-center mt-4 d-grid gap-2">
@@ -1361,6 +1387,12 @@
       const pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
       document.getElementById('progressFill').style.width = pct + '%';
       document.getElementById('stepCount').innerText = currentStep;
+
+      // Hide step counter on final summary page (step 6)
+      const stepCounter = document.getElementById('stepCounter');
+      if (stepCounter) {
+        stepCounter.style.display = (currentStep === 6) ? 'none' : 'block';
+      }
 
       // Buttons
       const prevBtn = document.getElementById('btnPrev');
