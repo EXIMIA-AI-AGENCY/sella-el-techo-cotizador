@@ -1041,6 +1041,7 @@
             </div>
             <small class="text-warning d-block mt-2">*Si hay más de 2 capas, se cobra extra ($1/ft² por capa
               adicional).</small>
+            <button class="btn btn-warning fw-bold px-5 mt-3" onclick="changeStep(1)">Continuar ➡️</button>
           </div>
         </div>
 
@@ -1577,6 +1578,7 @@
       layerDiv.style.display = isRemoval ? 'block' : 'none';
 
       validateStep();
+      if (!isRemoval) setTimeout(() => changeStep(1), 300);
     }
 
     function adjLayers(delta) {
@@ -1855,6 +1857,7 @@
         if (val === 'Danosa') {
           danosaOpts.style.display = 'block';
           if (serviceImg) serviceImg.src = 'assets/danosa_membrane.png?v=' + new Date().getTime() + '_2';
+          return; // sub-opciones pendientes, no avanzar
         } else {
           danosaOpts.style.display = 'none';
           state.removal = false; // reset
@@ -1863,6 +1866,7 @@
       }
 
       validateStep();
+      setTimeout(() => changeStep(1), 300);
     }
 
     // Old renderSummary deleted to avoid shadowing. 
