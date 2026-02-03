@@ -521,13 +521,17 @@
     /* Mobile Responsiveness - Enhanced */
     @media (max-width: 768px) {
       body {
-        padding: 0;
-        padding-bottom: 0;
+        padding: 0 !important;
+        margin: 0 !important;
         background-color: var(--card-bg);
         overflow: hidden;
         position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
+        justify-content: flex-start !important;
+        align-items: stretch !important;
       }
 
       .wizard-container {
@@ -535,13 +539,17 @@
         border: none;
         box-shadow: none;
         height: 100vh;
-        height: 100dvh; /* Dynamic viewport height for mobile browsers */
+        height: 100dvh;
+        min-height: 100vh;
+        min-height: 100dvh;
         max-height: 100vh;
         max-height: 100dvh;
         display: flex;
         flex-direction: column;
         max-width: 100%;
+        width: 100%;
         overflow: hidden;
+        margin: 0 !important;
       }
 
       .w-header {
