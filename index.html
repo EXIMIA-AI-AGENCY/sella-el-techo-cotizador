@@ -1523,18 +1523,31 @@
 
         console.log("Sending quote to webhook:", quoteData);
 
-        // Send to webhook (fire and forget - don't block on errors)
-        fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(quoteData)
-        }).then(webhookResponse => {
-          console.log('✅ Quote sent to webhook:', webhookResponse.status);
-        }).catch(webhookError => {
-          console.error('⚠️ Webhook error (non-blocking):', webhookError);
-        });
+        // Send to webhook - await to ensure it completes
+        try {
+          const webhookResponse = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            body: JSON.stringify(quoteData)
+          });
+          console.log('✅ Quote sent to webhook, status:', webhookResponse.status);
+        } catch (webhookError) {
+          // If CORS fails, try with no-cors (won't get response but data is sent)
+          console.warn('⚠️ Webhook CORS error, retrying with no-cors:', webhookError.message);
+          try {
+            await fetch(webhookUrl, {
+              method: 'POST',
+              body: JSON.stringify(quoteData),
+              mode: 'no-cors'
+            });
+            console.log('✅ Quote sent to webhook (no-cors fallback)');
+          } catch (fallbackError) {
+            console.error('⚠️ Webhook fallback also failed:', fallbackError);
+          }
+        }
 
         // 6. Store contact info in state for display
         state.contactName = name;
@@ -2025,7 +2038,7 @@
       }).replace(/\//g, '-');
 
       // Get customer name if available
-      const customerName = document.getElementById('inputNombre')?.value || 'Cliente';
+      const customerName = document.getElementById('contactName')?.value || state.contactName || 'Cliente';
       const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
 
       // Create PDF container
@@ -2053,10 +2066,14 @@
       // Get service type
       const serviceType = state.service || 'Sellado Profesional';
 
+      // Get base URL for assets
+      const baseUrl = window.location.origin;
+      const logoUrl = `${baseUrl}/assets/logo_white_ps.png`;
+
       // Build PDF HTML content
       pdfContainer.innerHTML = `
         <div style="text-align: center; margin-bottom: 30px;">
-          <img src="assets/logo_white_ps.png" style="max-width: 350px; height: auto;" crossorigin="anonymous" />
+          <img src="${logoUrl}" style="max-width: 350px; height: auto;" crossorigin="anonymous" />
         </div>
 
         <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ff9900;">
