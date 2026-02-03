@@ -914,7 +914,7 @@
         <button class="btn btn-outline-light btn-sm" data-bs-toggle="modal"
           data-bs-target="#nosotrosModal">Nosotros</button>
       </div>
-      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 6</div>
+      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 7</div>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -1129,8 +1129,61 @@
       </div>
     </div>
 
-    <!-- STEP 6: Quote Summary -->
+    <!-- STEP 6: Contact Information (NEW) -->
     <div class="step-content" id="step6">
+      <div class="row justify-content-center h-100 align-items-center">
+        <div class="col-md-7">
+          <div class="text-center mb-4">
+            <h3 class="mb-2">📋 Información de Contacto</h3>
+            <p class="text-secondary">Para enviarte tu cotización y coordinar el servicio</p>
+          </div>
+
+          <div class="p-4 rounded border border-warning" style="background: linear-gradient(135deg, var(--card-elevated) 0%, var(--card-bg) 100%);">
+            <form id="contactForm" onsubmit="return false;">
+              <div class="mb-3">
+                <label for="contactName" class="form-label text-light">Nombre Completo *</label>
+                <input type="text" class="form-control search-lg" id="contactName" required
+                  placeholder="Juan Pérez" style="background: var(--card-bg); color: white;">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactEmail" class="form-label text-light">Email *</label>
+                <input type="email" class="form-control search-lg" id="contactEmail" required
+                  placeholder="juan@email.com" style="background: var(--card-bg); color: white;">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactPhone" class="form-label text-light">Teléfono *</label>
+                <input type="tel" class="form-control search-lg" id="contactPhone" required
+                  placeholder="(787) 123-4567" style="background: var(--card-bg); color: white;">
+              </div>
+
+              <div class="mb-3">
+                <label for="contactAddress" class="form-label text-light">Dirección de la Propiedad</label>
+                <textarea class="form-control search-lg" id="contactAddress" rows="2"
+                  placeholder="Calle, Ciudad, PR" style="background: var(--card-bg); color: white;"></textarea>
+                <small class="text-muted">Opcional - ayuda para la inspección</small>
+              </div>
+
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="contactConsent" required
+                  style="width: 20px; height: 20px; cursor: pointer;">
+                <label class="form-check-label text-secondary ms-2" for="contactConsent" style="cursor: pointer;">
+                  Acepto recibir información sobre mi cotización y servicios de Sella El Techo
+                </label>
+              </div>
+
+              <button type="button" class="btn btn-warning w-100 py-3 fw-bold" onclick="submitContactAndProceed()">
+                ✅ Confirmar y Ver Cotización
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 7: Quote Summary (renamed from step6) -->
+    <div class="step-content" id="step7">
       <div class="row justify-content-center h-100 align-items-center">
         <div class="col-md-8">
           <!-- Debug alert for missing area -->
@@ -1254,7 +1307,7 @@
 
   <script>
     let currentStep = 1;
-    const totalSteps = 6;
+    const totalSteps = 7;
     const state = {
       address: '',
       area: 0,
@@ -1339,6 +1392,155 @@
       currentStep = 3;
       showStep('step3'); // Explicit ID
       updateSteps();
+    }
+
+    // Submit contact form and create GoHighLevel contact
+    async function submitContactAndProceed() {
+      console.log("submitContactAndProceed() called");
+
+      // 1. Validate form
+      const name = document.getElementById('contactName').value.trim();
+      const email = document.getElementById('contactEmail').value.trim();
+      const phone = document.getElementById('contactPhone').value.trim();
+      const address = document.getElementById('contactAddress').value.trim();
+      const consent = document.getElementById('contactConsent').checked;
+
+      if (!name || !email || !phone) {
+        alert('⚠️ Por favor completa todos los campos requeridos (Nombre, Email, Teléfono)');
+        return;
+      }
+
+      if (!consent) {
+        alert('⚠️ Debes aceptar recibir información para continuar');
+        return;
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        alert('⚠️ Por favor ingresa un email válido');
+        return;
+      }
+
+      // Phone validation (basic)
+      if (phone.length < 10) {
+        alert('⚠️ Por favor ingresa un teléfono válido');
+        return;
+      }
+
+      // 2. Calculate quote total
+      let finalArea = state.area || window.manualArea || 0;
+      if (finalArea === 0) {
+        alert('⚠️ Error: No se detectó el área del techo. Por favor regresa y completa los pasos anteriores.');
+        return;
+      }
+
+      // Calculate rates
+      let baseRate = 4.50; // Silicona
+      let surchargeRate = 0;
+
+      if (state.service === 'Danosa') {
+        baseRate = 3.50;
+        if (state.removal && state.layers >= 2) {
+          surchargeRate = (state.layers - 1) * 1.00;
+        }
+      }
+
+      const totalRate = baseRate + surchargeRate;
+      const materialCost = finalArea * totalRate;
+      const cisternCost = state.cistern ? 150.00 : 0;
+      const solarCost = state.solar ? 1000.00 : 0;
+      const subtotal = materialCost + cisternCost + solarCost;
+      const tax = subtotal * 0.115;
+      const grandTotal = subtotal + tax;
+
+      // 3. Show loading state
+      const submitBtn = document.querySelector('#contactForm button[type="button"]');
+      const originalText = submitBtn.innerText;
+      submitBtn.innerText = '⏳ Enviando...';
+      submitBtn.disabled = true;
+
+      try {
+        // 4. Send to GoHighLevel API
+        const ghlToken = 'pit-f3ebb971-2fd1-415b-91f0-f4449c8e5314';
+        const ghlApiUrl = 'https://services.leadconnectorhq.com/contacts/';
+
+        const contactData = {
+          firstName: name.split(' ')[0] || name,
+          lastName: name.split(' ').slice(1).join(' ') || '',
+          email: email,
+          phone: phone,
+          address1: address || '',
+          source: 'Cotizador Satelital',
+          tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
+          customFields: [
+            {
+              key: 'area_pies_cuadrados',
+              value: Math.round(finalArea).toString()
+            },
+            {
+              key: 'valor_cotizacion',
+              value: grandTotal.toFixed(2)
+            },
+            {
+              key: 'tipo_servicio',
+              value: state.service || 'No seleccionado'
+            },
+            {
+              key: 'tiene_cisterna',
+              value: state.cistern ? 'Sí' : 'No'
+            },
+            {
+              key: 'tiene_placas_solares',
+              value: state.solar ? 'Sí' : 'No'
+            },
+            {
+              key: 'direccion_propiedad',
+              value: address || 'No proporcionada'
+            }
+          ]
+        };
+
+        console.log("Sending to GHL:", contactData);
+
+        const response = await fetch(ghlApiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${ghlToken}`,
+            'Content-Type': 'application/json',
+            'Version': '2021-07-28'
+          },
+          body: JSON.stringify(contactData)
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('GHL API Error:', errorText);
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Contact created in GHL:', result);
+
+        // 5. Store contact info in state for display
+        state.contactName = name;
+        state.contactEmail = email;
+        state.contactPhone = phone;
+        state.contactAddress = address;
+
+        // 6. Navigate to Step 7 (Quote Summary)
+        currentStep = 7;
+        showStep('step7');
+        updateSteps();
+
+      } catch (error) {
+        console.error('Error creating contact:', error);
+        alert('⚠️ Hubo un problema al enviar tu información. Por favor intenta de nuevo o contáctanos directamente.\n\nError: ' + error.message);
+
+        // Restore button state
+        submitBtn.innerText = originalText;
+        submitBtn.disabled = false;
+      }
     }
 
     // ...
@@ -1546,7 +1748,8 @@
         3: 'step3',
         4: 'step4',
         5: 'step5',
-        6: 'step6'
+        6: 'step6',
+        7: 'step7'
       };
 
       const targetId = stepMap[currentStep];
@@ -1566,10 +1769,10 @@
       document.getElementById('progressFill').style.width = pct + '%';
       document.getElementById('stepCount').innerText = currentStep;
 
-      // Hide step counter on final summary page (step 6)
+      // Hide step counter on final summary page (step 7)
       const stepCounter = document.getElementById('stepCounter');
       if (stepCounter) {
-        stepCounter.style.display = (currentStep === 6) ? 'none' : 'block';
+        stepCounter.style.display = (currentStep === 7) ? 'none' : 'block';
       }
 
       // Buttons
@@ -1589,8 +1792,8 @@
       const nextBtn = document.getElementById('btnNext');
       nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
       // Hide Next button on Step 2 (manual input has its own Continuar button)
-      // Also hide on Step 6 (summary) and Step 99 (calendar)
-      if (currentStep === 2 || currentStep === totalSteps || currentStep === 99) {
+      // Also hide on Step 6 (contact form - has its own submit button), Step 7 (summary) and Step 99 (calendar)
+      if (currentStep === 2 || currentStep === 6 || currentStep === totalSteps || currentStep === 99) {
         nextBtn.style.display = 'none';
       } else {
         nextBtn.style.display = 'block';
@@ -1607,8 +1810,8 @@
         }, 100);
       }
 
-      if (currentStep === 6) {
-        console.log("📊 Step 6 reached - calling renderSummary()");
+      if (currentStep === 7) {
+        console.log("📊 Step 7 reached - calling renderSummary()");
         console.log("Current state before renderSummary:", state);
         renderSummary();
       }
@@ -1756,6 +1959,9 @@
         valid = state.solar !== null;
       } else if (currentStep === 5) {
         valid = state.service !== null;
+      } else if (currentStep === 6) {
+        // Contact form validation - handled by submitContactAndProceed()
+        valid = true; // No next button shown, validation happens on submit
       }
 
       if (nextBtn) nextBtn.disabled = !valid;
@@ -1822,7 +2028,7 @@
       }
 
       // If we are on the quote page, re-render
-      if (currentStep === 6) renderSummary();
+      if (currentStep === 7) renderSummary();
 
       validateStep();
     };
@@ -1832,6 +2038,7 @@
     window.validateStep = validateStep;
     window.setOption = setOption;
     window.changeStep = changeStep;
+    window.submitContactAndProceed = submitContactAndProceed;
 
     // Verification Links
 
