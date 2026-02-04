@@ -1557,7 +1557,16 @@
           phone: phone,
           address1: address || '',
           source: 'Cotizador Online',
-          tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio']
+          tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
+          customFields: [
+            { id: 'JVE4U8McHgJfAV20nSNH', value: Math.round(finalArea) },
+            { id: 'KNWSmZs63hL2jMXNZvpM', value: grandTotal },
+            { id: 'qDVGDd879hOARK6M6Uax', value: state.cistern ? 'Si' : 'No' },
+            { id: 'D1yRe3BskNRgAtGbK7gJ', value: state.solar ? 'Si' : 'No' },
+            { id: 'usGrA7qJvXwrjZiU7kZh', value: state.service === 'Danosa' ? 'Danosa' : 'Silicone' },
+            { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal ? 'Si' : 'No' },
+            { id: 'j4FfurcAXnA7O8rCjv4z', value: state.layers || 1 }
+          ]
         };
 
         console.log("Sending to GHL:", contactData);
