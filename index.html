@@ -2183,24 +2183,54 @@ Sujeto a inspección física final
             };
 
             console.log("Creating invoice in GHL:", invoiceData);
+            console.log("ContactId for invoice:", contactId);
 
-            const invoiceResponse = await fetch(invoiceApiUrl, {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${ghlToken}`,
-                'Content-Type': 'application/json',
-                'Version': '2021-07-28'
-              },
-              body: JSON.stringify(invoiceData)
-            });
+            // Try to create invoice with retry
+            let invoiceCreated = false;
+            for (let attempt = 1; attempt <= 3 && !invoiceCreated; attempt++) {
+              try {
+                console.log(`📄 Invoice creation attempt ${attempt}/3...`);
 
-            if (invoiceResponse.ok) {
-              const invoiceResult = await invoiceResponse.json();
-              console.log('✅ Invoice created in draft:', invoiceResult);
-              state.invoiceId = invoiceResult.invoice?.id || invoiceResult.id;
-            } else {
-              const invoiceError = await invoiceResponse.text();
-              console.warn('⚠️ Invoice creation failed (non-blocking):', invoiceError);
+                const invoiceResponse = await fetch(invoiceApiUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${ghlToken}`,
+                    'Content-Type': 'application/json',
+                    'Version': '2021-07-28'
+                  },
+                  body: JSON.stringify(invoiceData)
+                });
+
+                if (invoiceResponse.ok) {
+                  const invoiceResult = await invoiceResponse.json();
+                  console.log('✅ Invoice created in draft:', invoiceResult);
+                  state.invoiceId = invoiceResult.invoice?.id || invoiceResult.id;
+                  invoiceCreated = true;
+                } else {
+                  const invoiceError = await invoiceResponse.text();
+                  console.warn(`⚠️ Invoice attempt ${attempt} failed:`, invoiceResponse.status, invoiceError);
+
+                  // If it's a client error (4xx), don't retry
+                  if (invoiceResponse.status >= 400 && invoiceResponse.status < 500) {
+                    console.error('Client error, not retrying. Error:', invoiceError);
+                    break;
+                  }
+
+                  // Wait before retry (exponential backoff)
+                  if (attempt < 3) {
+                    await new Promise(r => setTimeout(r, 1000 * attempt));
+                  }
+                }
+              } catch (fetchError) {
+                console.warn(`⚠️ Invoice fetch error attempt ${attempt}:`, fetchError.message);
+                if (attempt < 3) {
+                  await new Promise(r => setTimeout(r, 1000 * attempt));
+                }
+              }
+            }
+
+            if (!invoiceCreated) {
+              console.error('❌ Invoice creation failed after all retries');
             }
           } catch (invoiceError) {
             console.error('⚠️ Invoice creation error (non-blocking):', invoiceError);
