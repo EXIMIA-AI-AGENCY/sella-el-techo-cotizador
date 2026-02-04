@@ -1564,8 +1564,45 @@
 
         <button type="button" class="btn btn-warning w-100 py-2 fw-bold" id="locationContinueBtnCal"
           onclick="confirmLocationForCalendar()" style="display:none;">
-          Continuar a Agendar Cita →
+          Continuar →
         </button>
+      </div>
+    </div>
+
+    <!-- STEP 1C: Contact Info before Calendar -->
+    <div class="step-content" id="step1C">
+      <div class="text-center">
+        <h3 class="mb-2">📋 Tu Información</h3>
+        <p class="text-muted small mb-3">Para guardar tu ubicación y agendar la inspección</p>
+
+        <div class="mx-auto" style="max-width: 400px;">
+          <div class="mb-3">
+            <input type="text" id="calContactName" class="form-control search-lg"
+              placeholder="Nombre completo"
+              style="background: var(--card-bg); color: white; border-color: var(--accent);">
+          </div>
+
+          <div class="mb-3">
+            <input type="email" id="calContactEmail" class="form-control search-lg"
+              placeholder="Email"
+              style="background: var(--card-bg); color: white; border-color: var(--accent);">
+          </div>
+
+          <div class="mb-3">
+            <input type="tel" id="calContactPhone" class="form-control search-lg"
+              placeholder="Teléfono (787) 123-4567"
+              style="background: var(--card-bg); color: white; border-color: var(--accent);">
+          </div>
+
+          <p id="calContactStatus" class="small text-warning mb-3" style="display: none;"></p>
+
+          <button type="button" class="btn btn-warning w-100 py-2 fw-bold" onclick="createContactAndShowCalendar()">
+            <span id="calContactBtnText">Continuar a Agendar Cita →</span>
+            <span id="calContactSpinner" style="display:none;">
+              <span class="spinner-border spinner-border-sm me-2"></span>Guardando...
+            </span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1577,28 +1614,14 @@
 
         <!-- CALENDAR EMBED -->
         <div class="flex-grow-1 border border-secondary rounded"
-          style="background: #fff; min-height: 600px; -webkit-overflow-scrolling: touch;">
+          style="background: #fff; min-height: 700px; -webkit-overflow-scrolling: touch;">
           <iframe src="https://api.leadconnectorhq.com/widget/booking/hSO8bJXNuwvua7DybRJ7"
-            style="width: 100%; height: 600px; min-height: 600px; border:none; touch-action: pan-y;"
+            style="width: 100%; height: 700px; min-height: 700px; border:none; touch-action: pan-y;"
             scrolling="yes"
             allow="geolocation"
             id="hSO8bJXNuwvua7DybRJ7_1769897386462">
           </iframe>
           <script src="https://link.msgsndr.com/js/form_embed.js" type="text/javascript"></script>
-        </div>
-
-        <!-- Confirm Booking Section -->
-        <div id="confirmBookingSection" class="mt-3 p-3 rounded" style="background: rgba(255, 153, 0, 0.1); border: 1px solid var(--accent); display: none;">
-          <p class="text-warning mb-2"><strong>¿Ya agendaste tu cita?</strong></p>
-          <p class="text-muted small mb-2">Ingresa tu email para guardar tu ubicación:</p>
-          <div class="d-flex gap-2">
-            <input type="email" id="bookingEmailConfirm" class="form-control"
-              placeholder="tu@email.com" style="background: var(--card-bg); color: white; border-color: var(--accent);">
-            <button class="btn btn-warning fw-bold" onclick="confirmBookingWithLocation()">
-              Confirmar
-            </button>
-          </div>
-          <p id="bookingConfirmStatus" class="small mt-2 mb-0" style="display: none;"></p>
         </div>
       </div>
     </div>
@@ -2008,16 +2031,6 @@
       showStep('step2B');
       currentStep = 99; // Calendar Mode
       updateSteps();
-
-      // Show confirm booking section if coming from location step
-      const confirmSection = document.getElementById('confirmBookingSection');
-      if (confirmSection) {
-        if (originStep === 98 && localStorage.getItem('pendingPinLocation')) {
-          confirmSection.style.display = 'block';
-        } else {
-          confirmSection.style.display = 'none';
-        }
-      }
     }
 
     function setKnowsSqFt(knows, el) {
@@ -2904,10 +2917,11 @@ Sujeto a inspección física final
       // Progress Bar Update based on numeric currentStep
       // If 99 (Calendar), full bar
       let pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      if (currentStep === 97) pct = 30; // Contact info before calendar
       if (currentStep === 98) pct = 15; // Location before calendar
       if (currentStep === 99) pct = 100;
       document.getElementById('progressFill').style.width = pct + '%';
-      document.querySelector('.w-header .small span').innerText = (currentStep > 6 && currentStep < 98) ? '-' : (currentStep >= 98 ? '📍' : currentStep);
+      document.querySelector('.w-header .small span').innerText = (currentStep > 6 && currentStep < 97) ? '-' : (currentStep >= 97 && currentStep <= 99 ? '📍' : currentStep);
     }
 
     // --- NEW LOGIC END ---
@@ -2977,8 +2991,8 @@ Sujeto a inspección física final
         // Hide on step 1 (nothing to go back to) and step 7 (quote summary has its own buttons)
         if (currentStep === 1 || currentStep === 7 || currentStep === 99) {
           backBtnContainer.style.display = 'none';
-        } else if (currentStep === 98) {
-          // Show back button for location step in calendar flow
+        } else if (currentStep === 97 || currentStep === 98) {
+          // Show back button for calendar flow steps
           backBtnContainer.style.display = 'block';
         } else {
           backBtnContainer.style.display = 'block';
@@ -3053,6 +3067,12 @@ Sujeto a inspección física final
             if (previousStepForCalendar === 6) renderSummary();
             // Force update via standard logic if numeric match
           }
+        }
+        else if (currentStep === 97) {
+          // Return from Contact Info to Location (calendar flow)
+          currentStep = 98;
+          showStep('step1B');
+          initLocationMapForCalendar(); // Re-init map if needed
         }
         else if (currentStep === 98) {
           // Return from Location (calendar flow) to Step 1
@@ -3553,10 +3573,158 @@ Sujeto a inspección física final
     function confirmLocationForCalendar() {
       if (state.pinLocationCal) {
         console.log('✅ Location confirmed for calendar:', state.pinLocationCal);
-        // Store location data for after booking
-        localStorage.setItem('pendingPinLocation', JSON.stringify(state.pinLocationCal));
-        // Go to calendar
-        goToCalendar(98);
+        // Go to contact info step (step 97)
+        showStep('step1C');
+        currentStep = 97;
+        updateSteps();
+      }
+    }
+
+    // Create contact with pin location, then show calendar
+    async function createContactAndShowCalendar() {
+      const name = document.getElementById('calContactName').value.trim();
+      const email = document.getElementById('calContactEmail').value.trim();
+      const phone = document.getElementById('calContactPhone').value.trim();
+      const statusEl = document.getElementById('calContactStatus');
+
+      // Validate
+      if (!name || !email || !phone) {
+        statusEl.textContent = '⚠️ Por favor completa todos los campos';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff6b6b';
+        return;
+      }
+
+      if (!email.includes('@')) {
+        statusEl.textContent = '⚠️ Por favor ingresa un email válido';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff6b6b';
+        return;
+      }
+
+      if (phone.replace(/\D/g, '').length < 10) {
+        statusEl.textContent = '⚠️ Por favor ingresa un teléfono válido';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff6b6b';
+        return;
+      }
+
+      // Show loading
+      document.getElementById('calContactBtnText').style.display = 'none';
+      document.getElementById('calContactSpinner').style.display = 'inline';
+      statusEl.textContent = '⏳ Guardando tu información...';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#ffc107';
+
+      try {
+        const ghlToken = 'pit-f3ebb971-2fd1-415b-91f0-f4449c8e5314';
+        const ghlLocationId = 'LVwbqYFEmGiKJ7AgtSIf';
+        const ghlApiUrl = 'https://services.leadconnectorhq.com/contacts/';
+
+        // Format phone
+        const digits = phone.replace(/\D/g, '');
+        const formattedPhone = digits.startsWith('1') ? `+${digits}` : `+1${digits}`;
+
+        // Parse name
+        const nameParts = name.split(/\s+/);
+        const firstName = nameParts[0];
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+        // Get pin location
+        const pinData = state.pinLocationCal || {};
+
+        const contactData = {
+          locationId: ghlLocationId,
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          phone: formattedPhone,
+          address1: pinData.address || '',
+          source: 'Cotizador Online - Inspección',
+          tags: ['cotizador-online', 'inspeccion-pendiente'],
+          customFields: [
+            { id: 'X8GLbec6WrfimB9lR4XV', value: pinData.mapsUrl || '' }  // Pin Location
+          ]
+        };
+
+        console.log('📤 Creating contact with pin location:', contactData);
+
+        const response = await fetch(ghlApiUrl, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${ghlToken}`,
+            'Content-Type': 'application/json',
+            'Version': '2021-07-28'
+          },
+          body: JSON.stringify(contactData)
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ Contact created with pin location:', result);
+          statusEl.textContent = '✅ ¡Información guardada!';
+          statusEl.style.color = '#51cf66';
+
+          // Clear pending location
+          localStorage.removeItem('pendingPinLocation');
+
+          // Go to calendar after short delay
+          setTimeout(() => {
+            goToCalendar(97);
+          }, 500);
+
+        } else if (response.status === 400) {
+          // Contact might already exist, try to update
+          const errorData = await response.json();
+          console.log('Contact may exist:', errorData);
+
+          if (errorData.meta?.contactId) {
+            // Update existing contact
+            const updateResponse = await fetch(`${ghlApiUrl}${errorData.meta.contactId}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${ghlToken}`,
+                'Content-Type': 'application/json',
+                'Version': '2021-07-28'
+              },
+              body: JSON.stringify({
+                firstName: firstName,
+                lastName: lastName,
+                phone: formattedPhone,
+                address1: pinData.address || '',
+                customFields: [
+                  { id: 'X8GLbec6WrfimB9lR4XV', value: pinData.mapsUrl || '' }
+                ]
+              })
+            });
+
+            if (updateResponse.ok) {
+              console.log('✅ Existing contact updated with pin location');
+              statusEl.textContent = '✅ ¡Información actualizada!';
+              statusEl.style.color = '#51cf66';
+              localStorage.removeItem('pendingPinLocation');
+
+              setTimeout(() => {
+                goToCalendar(97);
+              }, 500);
+            } else {
+              throw new Error('Failed to update contact');
+            }
+          } else {
+            throw new Error('Contact creation failed');
+          }
+        } else {
+          throw new Error(`Server error: ${response.status}`);
+        }
+
+      } catch (error) {
+        console.error('Error creating contact:', error);
+        statusEl.textContent = '⚠️ Error al guardar. Intenta de nuevo.';
+        statusEl.style.color = '#ff6b6b';
+
+        // Reset button
+        document.getElementById('calContactBtnText').style.display = 'inline';
+        document.getElementById('calContactSpinner').style.display = 'none';
       }
     }
 
