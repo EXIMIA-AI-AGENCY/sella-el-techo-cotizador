@@ -1935,6 +1935,10 @@
             if (updateResponse.ok) {
               result = await updateResponse.json();
               console.log('✅ Contact updated in GHL:', result);
+              // Also try to get contactId from update response
+              if (!contactId && result.contact?.id) {
+                contactId = result.contact.id;
+              }
             } else {
               console.error('Update failed:', await updateResponse.text());
               throw new Error(`Error del servidor: ${updateResponse.status}`);
@@ -1944,9 +1948,38 @@
           }
         } else {
           result = await response.json();
-          contactId = result.contact?.id;
+          // Try multiple paths to get contactId
+          contactId = result.contact?.id || result.id || result.contactId;
           console.log('✅ Contact created in GHL:', result);
+          console.log('📋 Extracted contactId:', contactId);
         }
+
+        // FALLBACK: If we still don't have contactId, search by email
+        if (!contactId && email) {
+          console.log('🔍 ContactId not found, searching by email...');
+          try {
+            const searchResponse = await fetch(
+              `https://services.leadconnectorhq.com/contacts/?locationId=${ghlLocationId}&query=${encodeURIComponent(email)}&limit=1`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${ghlToken}`,
+                  'Version': '2021-07-28'
+                }
+              }
+            );
+            if (searchResponse.ok) {
+              const searchResult = await searchResponse.json();
+              if (searchResult.contacts && searchResult.contacts.length > 0) {
+                contactId = searchResult.contacts[0].id;
+                console.log('✅ Found contact by email search:', contactId);
+              }
+            }
+          } catch (searchError) {
+            console.warn('⚠️ Contact search failed:', searchError.message);
+          }
+        }
+
+        console.log('📌 Final contactId for invoice:', contactId);
 
         // 4b. Add note to contact with quote details
         if (contactId) {
