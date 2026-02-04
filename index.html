@@ -1384,11 +1384,11 @@
       }
 
       // Calculate rates
-      let baseRate = 4.50; // Silicona
+      let baseRate = 3.50; // Silicona - $3.50/ft²
       let surchargeRate = 0;
 
       if (state.service === 'Danosa') {
-        baseRate = 3.50;
+        baseRate = 3.50; // Danosa - $3.50/ft²
         if (state.removal && state.layers >= 2) {
           surchargeRate = (state.layers - 1) * 1.00;
         }
@@ -1841,7 +1841,7 @@ Sujeto a inspección física final
       console.log("✅ SUCCESS: finalArea resolved to:", finalArea);
 
       // 2. CALCULATE RATES & SURCHARGES
-      let baseRate = 4.50; // Default Silicona
+      let baseRate = 3.50; // Default - $3.50/ft² for both Silicona and Danosa
       let surchargeRate = 0;
       let surchargeLabel = "";
 
@@ -1858,7 +1858,7 @@ Sujeto a inspección física final
           console.log(`Adding removal surcharge: ${extra} layer(s) × $1.00 = $${surchargeRate}/ft²`);
         }
       } else {
-        console.log("Silicona selected - Using $4.50 per ft²");
+        console.log("✅ Silicona selected - Using $3.50 per ft²");
       }
 
       const totalRate = baseRate + surchargeRate;
