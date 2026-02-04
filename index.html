@@ -629,6 +629,15 @@
         max-height: 60px !important;
       }
 
+      /* Large images at top of steps 3, 4, 5 - make smaller */
+      #step3 > div > .img-3d,
+      #step4 > div > .img-3d,
+      #step5 > div > .img-3d {
+        max-height: 100px !important;
+        max-width: 120px !important;
+        margin-bottom: 10px !important;
+      }
+
       /* Grid spacing */
       .row.g-3, .row.g-4 {
         --bs-gutter-y: 10px;
@@ -646,13 +655,21 @@
       }
 
       #step1 .col-md-5,
-      #step1 .col-md-6,
-      #step3 .col-md-6,
-      #step4 .col-md-6,
-      #step5 .col-md-6 {
+      #step3 .col-md-5,
+      #step4 .col-md-5,
+      #step5 .col-md-5 {
         flex: 0 0 50% !important;
         max-width: 50% !important;
         padding: 5px !important;
+      }
+
+      /* Cards in steps 3, 4, 5 - smaller height since no image inside */
+      #step3 .option-card,
+      #step4 .option-card,
+      #step5 .option-card {
+        height: 80px !important;
+        min-height: auto !important;
+        padding: 10px 8px !important;
       }
 
       /* Step 2A specific */
@@ -842,6 +859,22 @@
       .option-card .img-3d,
       .option-card img {
         max-height: 45px !important;
+      }
+
+      /* Large images at top of steps 3, 4, 5 - even smaller */
+      #step3 > div > .img-3d,
+      #step4 > div > .img-3d,
+      #step5 > div > .img-3d {
+        max-height: 80px !important;
+        max-width: 100px !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* Cards in steps 3, 4, 5 - smaller */
+      #step3 .option-card,
+      #step4 .option-card,
+      #step5 .option-card {
+        height: 70px !important;
       }
 
       .total-row {
