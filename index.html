@@ -2485,27 +2485,37 @@ ${state.pinLocation.mapsUrl}` : ''}
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
 
+            // Sanitize string to ASCII only (removes accents and special chars)
+            const sanitize = (str) => {
+              return String(str || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')  // Remove accents
+                .replace(/[^\x20-\x7E]/g, '')     // Keep only printable ASCII
+                .trim()
+                .substring(0, 100);
+            };
+
+            // Ensure number is a valid integer
+            const safeInt = (num) => {
+              const n = Number(num);
+              return isNaN(n) ? 0 : Math.round(Math.abs(n));
+            };
+
             // Build single line item with total - simplest format for GHL API
             const invoiceItems = [{
-              name: 'Sellado de Techo Profesional',
-              amount: Math.round(grandTotal),
+              name: sanitize('Sellado de Techo Profesional'),
+              amount: safeInt(grandTotal),
               qty: 1,
               currency: 'USD',
               taxes: []
             }];
 
-            // Calculate dates
-            const today = new Date();
-            const issueDate = today.toISOString().split('T')[0];
-            const dueDate = new Date();
-            dueDate.setDate(dueDate.getDate() + 30);
-
-            // Main invoice data - minimal required fields
+            // Main invoice data - minimal required fields, all sanitized
             const invoiceData = {
-              altId: ghlLocationId,
+              altId: String(ghlLocationId),
               altType: 'location',
-              contactId: contactId,
-              name: 'Cotizacion Sellado de Techo',
+              contactId: String(contactId),
+              name: sanitize('Cotizacion Sellado de Techo'),
               status: 'draft',
               currency: 'USD',
               invoiceItems: invoiceItems
@@ -2514,27 +2524,39 @@ ${state.pinLocation.mapsUrl}` : ''}
             console.log("Creating invoice in GHL:", JSON.stringify(invoiceData, null, 2));
             console.log("ContactId for invoice:", contactId);
 
-            // Helper function to create invoice
+            // Helper function to create invoice with better error handling
             const tryCreateInvoice = async (data, label) => {
               console.log(`📄 Trying invoice creation (${label})...`);
-              const response = await fetch(invoiceApiUrl, {
-                method: 'POST',
-                headers: {
-                  'Authorization': `Bearer ${ghlToken}`,
-                  'Content-Type': 'application/json',
-                  'Version': '2021-07-28'
-                },
-                body: JSON.stringify(data)
-              });
+              console.log('Request data:', JSON.stringify(data));
 
-              if (response.ok) {
-                const result = await response.json();
-                console.log(`✅ Invoice created (${label}):`, result);
-                return result;
-              } else {
-                const errorText = await response.text();
-                console.warn(`❌ Invoice failed (${label}):`, response.status, errorText);
-                throw new Error(`${response.status}: ${errorText}`);
+              try {
+                const response = await fetch(invoiceApiUrl, {
+                  method: 'POST',
+                  headers: {
+                    'Authorization': `Bearer ${ghlToken}`,
+                    'Content-Type': 'application/json; charset=utf-8',
+                    'Version': '2021-07-28',
+                    'Accept': 'application/json'
+                  },
+                  body: JSON.stringify(data),
+                  mode: 'cors'
+                });
+
+                if (response.ok) {
+                  const result = await response.json();
+                  console.log(`✅ Invoice created (${label}):`, result);
+                  return result;
+                } else {
+                  const errorText = await response.text();
+                  console.error(`❌ Invoice failed (${label}):`, response.status, errorText);
+                  // Store full error for debugging
+                  state.lastInvoiceError = { status: response.status, body: errorText, label };
+                  throw new Error(`${response.status}: ${errorText.substring(0, 200)}`);
+                }
+              } catch (fetchErr) {
+                console.error(`❌ Fetch error (${label}):`, fetchErr);
+                state.lastInvoiceError = { fetchError: fetchErr.message, label };
+                throw fetchErr;
               }
             };
 
@@ -2554,15 +2576,15 @@ ${state.pinLocation.mapsUrl}` : ''}
               try {
                 await new Promise(r => setTimeout(r, 500));
                 const itemsInvoice = {
-                  altId: ghlLocationId,
+                  altId: String(ghlLocationId),
                   altType: 'location',
-                  contactId: contactId,
+                  contactId: String(contactId),
                   name: 'Cotizacion Sellado',
                   status: 'draft',
                   currency: 'USD',
                   items: [{
                     name: 'Sellado de Techo',
-                    amount: Math.round(grandTotal),
+                    amount: safeInt(grandTotal),
                     qty: 1,
                     currency: 'USD',
                     taxes: []
@@ -2578,15 +2600,15 @@ ${state.pinLocation.mapsUrl}` : ''}
                 try {
                   await new Promise(r => setTimeout(r, 500));
                   const lineItemsInvoice = {
-                    altId: ghlLocationId,
+                    altId: String(ghlLocationId),
                     altType: 'location',
-                    contactId: contactId,
+                    contactId: String(contactId),
                     name: 'Cotizacion',
                     status: 'draft',
                     currency: 'USD',
                     lineItems: [{
                       name: 'Servicio',
-                      amount: Math.round(grandTotal),
+                      amount: safeInt(grandTotal),
                       qty: 1
                     }]
                   };
