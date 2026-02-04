@@ -1596,6 +1596,15 @@
             <small>DOM input = <span id="debugDomInput">N/A</span></small>
           </div>
 
+          <!-- Invoice status notification -->
+          <div id="invoiceWarning" class="alert alert-warning mb-3" style="display:none;">
+            <strong>⚠️ Nota:</strong> No se pudo crear el invoice automáticamente.
+            Tu cotización fue guardada y te contactaremos pronto.
+          </div>
+          <div id="invoiceSuccess" class="alert alert-success mb-3" style="display:none;">
+            <strong>✅</strong> Invoice creado exitosamente en el sistema.
+          </div>
+
           <div class="p-4 rounded border border-warning" style="background: linear-gradient(135deg, rgba(0,0,0,0.4), rgba(0,0,0,0.2))" id="quoteContent">
             <div class="text-center mb-4">
               <h3 class="text-warning fw-bold mb-1" style="letter-spacing: 1px;">COTIZACIÓN PROFESIONAL</h3>
@@ -2314,11 +2323,25 @@ Sujeto a inspección física final
 
             if (!invoiceCreated) {
               console.error('❌ Invoice creation failed after all retries');
+              // Show user notification about failed invoice
+              state.invoiceError = true;
+            } else {
+              state.invoiceError = false;
             }
           } catch (invoiceError) {
             console.error('⚠️ Invoice creation error (non-blocking):', invoiceError);
+            state.invoiceError = true;
           }
+        } else {
+          console.error('❌ Cannot create invoice - no contactId available');
+          state.invoiceError = true;
         }
+
+        // Log final state for debugging
+        console.log('=== FINAL SUBMISSION STATE ===');
+        console.log('contactId:', contactId);
+        console.log('invoiceId:', state.invoiceId);
+        console.log('invoiceError:', state.invoiceError);
 
         // 7. Store contact info in state for display
         state.contactName = name;
@@ -2330,6 +2353,17 @@ Sujeto a inspección física final
         currentStep = 8;
         showStep('step7');
         updateSteps();
+
+        // Show invoice status to user
+        const invoiceWarning = document.getElementById('invoiceWarning');
+        const invoiceSuccess = document.getElementById('invoiceSuccess');
+        if (state.invoiceError) {
+          if (invoiceWarning) invoiceWarning.style.display = 'block';
+          if (invoiceSuccess) invoiceSuccess.style.display = 'none';
+        } else if (state.invoiceId) {
+          if (invoiceWarning) invoiceWarning.style.display = 'none';
+          if (invoiceSuccess) invoiceSuccess.style.display = 'block';
+        }
 
       } catch (error) {
         console.error('Error creating contact:', error);
