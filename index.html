@@ -1511,41 +1511,65 @@
         const ghlLocationId = 'LVwbqYFEmGiKJ7AgtSIf';
         const ghlApiUrl = 'https://services.leadconnectorhq.com/contacts/';
 
+        // Parse name - handle multiple spaces and edge cases
+        const nameParts = name.trim().split(/\s+/);
+        const firstName = nameParts[0] || name;
+        const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+
+        // Create notes with all quote information
+        const quoteNotes = `
+📋 COTIZACIÓN GENERADA
+═══════════════════════════════════
+📍 Dirección: ${address || 'No proporcionada'}
+📐 Área: ${Math.round(finalArea)} pies cuadrados
+🔧 Servicio: ${state.service || 'No seleccionado'}
+
+💰 DESGLOSE DE PRECIOS:
+─────────────────────────────────────
+• Precio por pie: $${totalRate.toFixed(2)}
+• Costo Material: $${materialCost.toFixed(2)}
+• Cisterna: $${cisternCost.toFixed(2)}
+• Placas Solares: $${solarCost.toFixed(2)}
+• Subtotal: $${subtotal.toFixed(2)}
+• IVU (11.5%): $${tax.toFixed(2)}
+• TOTAL: $${grandTotal.toFixed(2)}
+
+🏠 DETALLES ADICIONALES:
+─────────────────────────────────────
+• Tiene Cisterna: ${state.cistern ? 'Sí' : 'No'}
+• Tiene Placas Solares: ${state.solar ? 'Sí' : 'No'}
+• Requiere Remoción: ${state.removal ? 'Sí' : 'No'}
+• Capas de Remoción: ${state.layers || 1}
+
+📅 Fecha: ${new Date().toLocaleString('es-PR')}
+═══════════════════════════════════
+        `.trim();
+
         const contactData = {
           locationId: ghlLocationId,
-          firstName: name.split(' ')[0] || name,
-          lastName: name.split(' ').slice(1).join(' ') || '',
+          firstName: firstName,
+          lastName: lastName,
+          name: name, // Full name as fallback
           email: email,
           phone: phone,
           address1: address || '',
           source: 'Cotizador Online',
-          tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
-          customFields: [
-            {
-              key: 'area_pies_cuadrados',
-              value: Math.round(finalArea).toString()
-            },
-            {
-              key: 'valor_cotizacion',
-              value: grandTotal.toFixed(2)
-            },
-            {
-              key: 'tipo_servicio',
-              value: state.service || 'No seleccionado'
-            },
-            {
-              key: 'tiene_cisterna',
-              value: state.cistern ? 'Sí' : 'No'
-            },
-            {
-              key: 'tiene_placas_solares',
-              value: state.solar ? 'Sí' : 'No'
-            },
-            {
-              key: 'direccion_propiedad',
-              value: address || 'No proporcionada'
-            }
-          ]
+          tags: [
+            'cotizador-online',
+            state.service ? state.service.toLowerCase().replace(/\s+/g, '-') : 'sin-servicio',
+            `area-${Math.round(finalArea)}sqft`,
+            `total-${Math.round(grandTotal)}`
+          ],
+          customFields: {
+            pies_cuadrados: Math.round(finalArea).toString(),
+            valor_cotizacion: grandTotal.toFixed(2),
+            tipo_servicio: state.service || 'No seleccionado',
+            cisterna: state.cistern ? 'Sí' : 'No',
+            placas_solares: state.solar ? 'Sí' : 'No',
+            direccion_propiedad: address || 'No proporcionada',
+            remocion: state.removal ? 'Sí' : 'No',
+            capas_remocion: (state.layers || 1).toString()
+          }
         };
 
         console.log("Sending to GHL:", contactData);
@@ -1568,6 +1592,31 @@
 
         const result = await response.json();
         console.log('✅ Contact created in GHL:', result);
+
+        // 4b. Add note to contact with quote details
+        const contactId = result.contact?.id;
+        if (contactId) {
+          try {
+            const noteResponse = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/notes`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${ghlToken}`,
+                'Content-Type': 'application/json',
+                'Version': '2021-07-28'
+              },
+              body: JSON.stringify({
+                body: quoteNotes
+              })
+            });
+            if (noteResponse.ok) {
+              console.log('✅ Note added to contact');
+            } else {
+              console.warn('⚠️ Could not add note:', await noteResponse.text());
+            }
+          } catch (noteError) {
+            console.warn('⚠️ Note creation failed:', noteError.message);
+          }
+        }
 
         // 5. Send quote data to webhook
         const webhookUrl = 'https://services.leadconnectorhq.com/hooks/LVwbqYFEmGiKJ7AgtSIf/webhook-trigger/b275a7d9-e59e-4a55-9380-bc2a2bd33248';
