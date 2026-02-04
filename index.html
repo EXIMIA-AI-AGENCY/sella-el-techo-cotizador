@@ -276,6 +276,8 @@
       position: relative;
       overflow: hidden;
       box-shadow: var(--shadow-md);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: rgba(255, 153, 0, 0.3);
     }
 
     .option-card::before {
@@ -590,6 +592,8 @@
       }
 
       /* Steps that need scrolling on mobile */
+      #step1.active,
+      #step2A.active,
       #step2B.active,
       #step3.active,
       #step4.active,
