@@ -2289,6 +2289,15 @@ Sujeto a inspección física final
 
     // PDF Download Function
     function downloadPDF() {
+      console.log('📥 downloadPDF() called');
+
+      // Check if html2pdf is available
+      if (typeof html2pdf === 'undefined') {
+        console.error('❌ html2pdf library not loaded');
+        alert('Error: La librería de PDF no está cargada. Recarga la página e intenta de nuevo.');
+        return;
+      }
+
       // Get current date for filename
       const today = new Date();
       const dateStr = today.toLocaleDateString('es-PR', {
@@ -2442,14 +2451,37 @@ Sujeto a inspección física final
       };
 
       // Generate and download PDF
+      console.log('📥 Starting PDF generation...');
+
+      // Show loading state on button
+      const pdfBtn = document.querySelector('button[onclick="downloadPDF()"]');
+      const originalBtnText = pdfBtn ? pdfBtn.innerHTML : '';
+      if (pdfBtn) {
+        pdfBtn.innerHTML = '⏳ Generando PDF...';
+        pdfBtn.disabled = true;
+      }
+
       html2pdf().set(opt).from(pdfContainer).save().then(() => {
         // Clean up: remove temporary container
         document.body.removeChild(pdfContainer);
-        console.log('PDF downloaded successfully');
+        console.log('✅ PDF downloaded successfully');
+
+        // Restore button
+        if (pdfBtn) {
+          pdfBtn.innerHTML = originalBtnText;
+          pdfBtn.disabled = false;
+        }
       }).catch(err => {
-        console.error('Error generating PDF:', err);
+        console.error('❌ Error generating PDF:', err);
         document.body.removeChild(pdfContainer);
-        alert('Error al generar el PDF. Por favor intente de nuevo.');
+
+        // Restore button
+        if (pdfBtn) {
+          pdfBtn.innerHTML = originalBtnText;
+          pdfBtn.disabled = false;
+        }
+
+        alert('Error al generar el PDF: ' + err.message);
       });
     }
 
