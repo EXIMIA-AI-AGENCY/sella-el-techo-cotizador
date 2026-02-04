@@ -1577,14 +1577,28 @@
 
         <!-- CALENDAR EMBED -->
         <div class="flex-grow-1 border border-secondary rounded"
-          style="background: #fff; min-height: 800px; -webkit-overflow-scrolling: touch;">
+          style="background: #fff; min-height: 600px; -webkit-overflow-scrolling: touch;">
           <iframe src="https://api.leadconnectorhq.com/widget/booking/hSO8bJXNuwvua7DybRJ7"
-            style="width: 100%; height: 800px; min-height: 800px; border:none; touch-action: pan-y;"
+            style="width: 100%; height: 600px; min-height: 600px; border:none; touch-action: pan-y;"
             scrolling="yes"
             allow="geolocation"
             id="hSO8bJXNuwvua7DybRJ7_1769897386462">
           </iframe>
           <script src="https://link.msgsndr.com/js/form_embed.js" type="text/javascript"></script>
+        </div>
+
+        <!-- Confirm Booking Section -->
+        <div id="confirmBookingSection" class="mt-3 p-3 rounded" style="background: rgba(255, 153, 0, 0.1); border: 1px solid var(--accent); display: none;">
+          <p class="text-warning mb-2"><strong>¿Ya agendaste tu cita?</strong></p>
+          <p class="text-muted small mb-2">Ingresa tu email para guardar tu ubicación:</p>
+          <div class="d-flex gap-2">
+            <input type="email" id="bookingEmailConfirm" class="form-control"
+              placeholder="tu@email.com" style="background: var(--card-bg); color: white; border-color: var(--accent);">
+            <button class="btn btn-warning fw-bold" onclick="confirmBookingWithLocation()">
+              Confirmar
+            </button>
+          </div>
+          <p id="bookingConfirmStatus" class="small mt-2 mb-0" style="display: none;"></p>
         </div>
       </div>
     </div>
@@ -1994,6 +2008,16 @@
       showStep('step2B');
       currentStep = 99; // Calendar Mode
       updateSteps();
+
+      // Show confirm booking section if coming from location step
+      const confirmSection = document.getElementById('confirmBookingSection');
+      if (confirmSection) {
+        if (originStep === 98 && localStorage.getItem('pendingPinLocation')) {
+          confirmSection.style.display = 'block';
+        } else {
+          confirmSection.style.display = 'none';
+        }
+      }
     }
 
     function setKnowsSqFt(knows, el) {
@@ -3678,6 +3702,105 @@ Sujeto a inspección física final
         }
       } catch (error) {
         console.error('Error updating contact with pin location:', error);
+      }
+    }
+
+    // Function to confirm booking and update contact with pin location
+    async function confirmBookingWithLocation() {
+      const emailInput = document.getElementById('bookingEmailConfirm');
+      const statusEl = document.getElementById('bookingConfirmStatus');
+      const email = emailInput?.value?.trim();
+
+      if (!email || !email.includes('@')) {
+        statusEl.textContent = '⚠️ Por favor ingresa un email válido';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff6b6b';
+        return;
+      }
+
+      const pendingLocation = localStorage.getItem('pendingPinLocation');
+      if (!pendingLocation) {
+        statusEl.textContent = '⚠️ No hay ubicación pendiente';
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#ff6b6b';
+        return;
+      }
+
+      const pinData = JSON.parse(pendingLocation);
+
+      statusEl.textContent = '⏳ Buscando tu cita...';
+      statusEl.style.display = 'block';
+      statusEl.style.color = '#ffc107';
+
+      try {
+        const ghlToken = 'pit-f3ebb971-2fd1-415b-91f0-f4449c8e5314';
+        const ghlLocationId = 'LVwbqYFEmGiKJ7AgtSIf';
+
+        // Search for contact by email
+        const searchResponse = await fetch(
+          `https://services.leadconnectorhq.com/contacts/?locationId=${ghlLocationId}&query=${encodeURIComponent(email)}&limit=1`,
+          {
+            headers: {
+              'Authorization': `Bearer ${ghlToken}`,
+              'Version': '2021-07-28',
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (searchResponse.ok) {
+          const searchResult = await searchResponse.json();
+          if (searchResult.contacts && searchResult.contacts.length > 0) {
+            const contactId = searchResult.contacts[0].id;
+            console.log('📍 Found contact:', contactId);
+
+            // Update contact with pin location
+            const updateResponse = await fetch(
+              `https://services.leadconnectorhq.com/contacts/${contactId}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${ghlToken}`,
+                  'Content-Type': 'application/json',
+                  'Version': '2021-07-28'
+                },
+                body: JSON.stringify({
+                  address1: pinData.address,
+                  customFields: [
+                    { id: 'X8GLbec6WrfimB9lR4XV', value: pinData.mapsUrl }
+                  ]
+                })
+              }
+            );
+
+            if (updateResponse.ok) {
+              console.log('✅ Contact updated with pin location');
+              localStorage.removeItem('pendingPinLocation');
+              statusEl.innerHTML = '✅ <strong>¡Ubicación guardada!</strong> Te contactaremos pronto.';
+              statusEl.style.color = '#51cf66';
+
+              // Hide the confirm section after success
+              setTimeout(() => {
+                document.getElementById('confirmBookingSection').style.display = 'none';
+              }, 3000);
+            } else {
+              const errorText = await updateResponse.text();
+              console.error('Failed to update contact:', errorText);
+              statusEl.textContent = '⚠️ Error al guardar ubicación. Intenta de nuevo.';
+              statusEl.style.color = '#ff6b6b';
+            }
+          } else {
+            statusEl.textContent = '⚠️ No encontramos tu cita. Verifica el email o agenda primero.';
+            statusEl.style.color = '#ff6b6b';
+          }
+        } else {
+          statusEl.textContent = '⚠️ Error al buscar. Intenta de nuevo.';
+          statusEl.style.color = '#ff6b6b';
+        }
+      } catch (error) {
+        console.error('Error confirming booking:', error);
+        statusEl.textContent = '⚠️ Error de conexión. Intenta de nuevo.';
+        statusEl.style.color = '#ff6b6b';
       }
     }
 
