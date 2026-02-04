@@ -1041,6 +1041,64 @@
       #step6 {
         padding-bottom: 100px !important;
       }
+
+      /* Step 5C - Location step (all mobile devices) */
+      #step5C {
+        padding: 8px 12px !important;
+        overflow: visible !important;
+      }
+
+      #step5C .location-container {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+      }
+
+      #step5C .location-icon {
+        font-size: 1.2rem;
+      }
+
+      #step5C h3 {
+        font-size: 1rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step5C p.text-muted {
+        font-size: 0.7rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #step5C #autoLocationBtn {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step5C #locationSearch {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+      }
+
+      #step5C #locationMapContainer {
+        height: 35vh !important;
+        max-height: 200px !important;
+        min-height: 140px !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step5C #selectedAddress {
+        font-size: 0.7rem !important;
+        margin-bottom: 8px !important;
+        padding: 8px 10px;
+        background: rgba(255, 153, 0, 0.1);
+        border-radius: 8px;
+        line-height: 1.3;
+      }
+
+      #step5C #locationContinueBtn {
+        padding: 14px 16px !important;
+        font-size: 1rem !important;
+      }
     }
 
     /* Desktop chat widget spacing */
@@ -1166,40 +1224,48 @@
         font-size: 0.55rem !important;
       }
 
-      /* Step 5C - Location step */
-      #step5C h1 {
-        font-size: 1.5rem !important;
+      /* Step 5C - Location step (medium-small height) */
+      #step5C h3 {
+        font-size: 0.9rem !important;
         margin-bottom: 4px !important;
       }
 
-      #step5C h3 {
-        font-size: 0.85rem !important;
-        margin-bottom: 4px !important;
+      #step5C .location-icon {
+        font-size: 1rem !important;
       }
 
       #step5C p.text-muted {
-        font-size: 0.7rem !important;
-        margin-bottom: 6px !important;
+        font-size: 0.65rem !important;
+        margin-bottom: 3px !important;
+      }
+
+      #step5C #autoLocationBtn {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+        margin-bottom: 4px !important;
       }
 
       #step5C #locationSearch {
-        padding: 10px 12px !important;
-        font-size: 0.85rem !important;
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
       }
 
       #step5C #locationMapContainer {
-        height: 180px !important;
-        margin-bottom: 8px !important;
+        height: 28vh !important;
+        max-height: 150px !important;
+        min-height: 100px !important;
+        margin-bottom: 6px !important;
       }
 
       #step5C #selectedAddress {
-        font-size: 0.7rem !important;
-        margin-bottom: 8px !important;
+        font-size: 0.65rem !important;
+        margin-bottom: 6px !important;
+        padding: 5px 8px !important;
       }
 
-      #step5C .btn {
-        padding: 8px 12px !important;
-        font-size: 0.8rem !important;
+      #step5C #locationContinueBtn {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
       }
 
       /* Row spacing */
@@ -1301,41 +1367,47 @@
       }
 
       /* Step 5C - Location step (very small screens) */
-      #step5C h1 {
-        font-size: 1.2rem !important;
-        margin-bottom: 2px !important;
-      }
-
       #step5C h3 {
         font-size: 0.8rem !important;
         margin-bottom: 2px !important;
       }
 
+      #step5C .location-icon {
+        font-size: 0.9rem !important;
+      }
+
       #step5C p.text-muted {
-        font-size: 0.65rem !important;
-        margin-bottom: 4px !important;
+        font-size: 0.6rem !important;
+        margin-bottom: 2px !important;
+      }
+
+      #step5C #autoLocationBtn {
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
+        margin-bottom: 3px !important;
       }
 
       #step5C #locationSearch {
-        padding: 8px 10px !important;
-        font-size: 0.8rem !important;
-        margin-bottom: 6px !important;
+        padding: 6px 8px !important;
+        font-size: 0.75rem !important;
       }
 
       #step5C #locationMapContainer {
-        height: 140px !important;
-        margin-bottom: 6px !important;
+        height: 22vh !important;
+        max-height: 120px !important;
+        min-height: 80px !important;
+        margin-bottom: 4px !important;
       }
 
       #step5C #selectedAddress {
-        font-size: 0.65rem !important;
-        margin-bottom: 6px !important;
+        font-size: 0.6rem !important;
+        margin-bottom: 4px !important;
+        padding: 4px 6px !important;
       }
 
-      #step5C .btn {
-        padding: 6px 10px !important;
-        font-size: 0.75rem !important;
-        margin-top: 4px !important;
+      #step5C #locationContinueBtn {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
       }
 
       /* Row spacing */
@@ -1607,34 +1679,32 @@
 
     <!-- STEP 5C: Location / Pin -->
     <div class="step-content" id="step5C">
-      <div class="text-center my-auto">
-        <h1 class="mb-2">📍</h1>
-        <h3 class="mb-3">¿Dónde está la propiedad?</h3>
-        <p class="text-muted small mb-3">Usa tu ubicación actual o escribe la dirección</p>
+      <div class="text-center location-container">
+        <h3 class="mb-1"><span class="location-icon">📍</span> ¿Dónde está la propiedad?</h3>
 
         <!-- Auto-location button -->
-        <button type="button" class="btn btn-outline-warning w-100 py-2 mb-3" id="autoLocationBtn" onclick="autoLocate()">
+        <button type="button" class="btn btn-outline-warning w-100 py-2 mb-2" id="autoLocationBtn" onclick="autoLocate()">
           <span id="autoLocateBtnText">📍 Usar mi ubicación actual</span>
           <span id="autoLocateSpinner" style="display:none;">
             <span class="spinner-border spinner-border-sm me-2"></span>Localizando...
           </span>
         </button>
 
-        <p class="text-muted small mb-2">— o escribe la dirección —</p>
+        <p class="text-muted small mb-1">— o escribe la dirección —</p>
 
-        <div class="mb-3">
+        <div class="mb-2">
           <input type="text" id="locationSearch" class="form-control search-lg"
             placeholder="Escribe la dirección..."
             style="background: var(--card-bg); color: white; border-color: var(--accent);">
         </div>
 
-        <div id="locationMapContainer" class="mb-3"
-          style="height: 250px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent);">
+        <div id="locationMapContainer" class="mb-2"
+          style="height: 200px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent);">
           <div id="locationMap" style="width: 100%; height: 100%;"></div>
         </div>
 
-        <p id="selectedAddress" class="text-warning small mb-3" style="display:none;">
-          <strong>📍 Ubicación seleccionada:</strong> <span id="addressText"></span>
+        <p id="selectedAddress" class="text-warning small mb-2" style="display:none;">
+          <strong>📍</strong> <span id="addressText"></span>
         </p>
 
         <button type="button" class="btn btn-warning w-100 py-2 fw-bold" id="locationContinueBtn"
