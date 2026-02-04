@@ -2485,48 +2485,44 @@ ${state.pinLocation.mapsUrl}` : ''}
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
 
-            // Build line items for the invoice
+            // Build line items for the invoice - using correct GHL API format
             const invoiceItems = [];
 
-            // Main service item
+            // Main service item - use price (number), not amount
             invoiceItems.push({
               name: `Sellado de Techo - ${state.service || 'Profesional'}`,
-              description: `Área: ${Math.round(finalArea).toLocaleString()} ft² × $${totalRate.toFixed(2)}/ft²`,
-              amount: materialCost,
-              currency: 'USD',
-              qty: 1
+              description: `Area: ${Math.round(finalArea)} ft2 x $${totalRate.toFixed(2)}/ft2`,
+              price: Math.round(materialCost * 100) / 100,
+              quantity: 1
             });
 
             // Cistern if applicable
             if (state.cistern) {
               invoiceItems.push({
-                name: 'Remoción / Manejo de Cisterna',
+                name: 'Remocion / Manejo de Cisterna',
                 description: 'Servicio adicional de manejo de cisterna',
-                amount: 150.00,
-                currency: 'USD',
-                qty: 1
+                price: 150.00,
+                quantity: 1
               });
             }
 
             // Solar panels if applicable
             if (state.solar) {
               invoiceItems.push({
-                name: 'Remoción / Desmontaje Placas Solares',
+                name: 'Remocion / Desmontaje Placas Solares',
                 description: 'Servicio adicional de desmontaje de placas solares',
-                amount: 1000.00,
-                currency: 'USD',
-                qty: 1
+                price: 1000.00,
+                quantity: 1
               });
             }
 
             // Air conditioning if applicable
             if (state.ac) {
               invoiceItems.push({
-                name: 'Protección Aire Acondicionado',
-                description: 'Servicio adicional de protección de unidad de A/C',
-                amount: 200.00,
-                currency: 'USD',
-                qty: 1
+                name: 'Proteccion Aire Acondicionado',
+                description: 'Servicio adicional de proteccion de unidad de A/C',
+                price: 200.00,
+                quantity: 1
               });
             }
 
@@ -2535,11 +2531,10 @@ ${state.pinLocation.mapsUrl}` : ''}
               const extraLayers = state.layers - 1;
               const removalCost = extraLayers * 1.00 * finalArea;
               invoiceItems.push({
-                name: `Remoción de Membranas (${extraLayers} capa${extraLayers > 1 ? 's' : ''})`,
-                description: `${extraLayers} capa${extraLayers > 1 ? 's' : ''} adicional${extraLayers > 1 ? 'es' : ''} × $1.00/ft² × ${Math.round(finalArea).toLocaleString()} ft²`,
-                amount: removalCost,
-                currency: 'USD',
-                qty: 1
+                name: `Remocion de Membranas (${extraLayers} capa${extraLayers > 1 ? 's' : ''})`,
+                description: `${extraLayers} capa${extraLayers > 1 ? 's' : ''} adicional${extraLayers > 1 ? 'es' : ''} x $1.00/ft2 x ${Math.round(finalArea)} ft2`,
+                price: Math.round(removalCost * 100) / 100,
+                quantity: 1
               });
             }
 
@@ -2547,9 +2542,8 @@ ${state.pinLocation.mapsUrl}` : ''}
             invoiceItems.push({
               name: 'IVU (11.5%)',
               description: 'Impuesto sobre Ventas y Uso',
-              amount: tax,
-              currency: 'USD',
-              qty: 1
+              price: Math.round(tax * 100) / 100,
+              quantity: 1
             });
 
             // Calculate dates
@@ -2558,124 +2552,114 @@ ${state.pinLocation.mapsUrl}` : ''}
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
 
-            // Format phone for E.164
-            const formatPhone = (p) => {
-              const digits = p.replace(/\D/g, '');
-              return digits.startsWith('1') ? `+${digits}` : `+1${digits}`;
-            };
+            // Build simple invoice description - ASCII only to avoid encoding issues
+            const invoiceDescription = `Cotizacion Sellado de Techo - ${name} - Area: ${Math.round(finalArea)} ft2 - Total: $${grandTotal.toFixed(2)} - Servicio: ${state.service || 'Profesional'}`;
 
-            // Build invoice description with all quote details
-            const invoiceDescription = `
-COTIZACIÓN DE SELLADO DE TECHO
-================================
-
-CLIENTE:
-• Nombre: ${name}
-• Email: ${email}
-• Teléfono: ${phone}
-• Dirección: ${address || 'No proporcionada'}
-
-DETALLES DEL PROYECTO:
-• Área del techo: ${Math.round(finalArea).toLocaleString()} ft²
-• Tipo de servicio: ${state.service || 'No especificado'}
-• Precio por pie²: $${totalRate.toFixed(2)}
-
-OPCIONES ADICIONALES:
-• Cisterna: ${state.cistern ? 'Sí (+$150)' : 'No'}
-• Placas Solares: ${state.solar ? 'Sí (+$1,000)' : 'No'}
-• Remoción requerida: ${state.removal ? 'Sí' : 'No'}
-${state.removal ? `• Capas a remover: ${state.layers || 1}` : ''}
-
-DESGLOSE DE PRECIOS:
-• Material/Servicio: $${materialCost.toFixed(2)}
-${state.cistern ? '• Cisterna: $150.00' : ''}
-${state.solar ? '• Placas Solares: $1,000.00' : ''}
-• Subtotal: $${subtotal.toFixed(2)}
-• IVU (11.5%): $${tax.toFixed(2)}
-• TOTAL: $${grandTotal.toFixed(2)}
-
-================================
-Cotización generada automáticamente
-Precio válido por 30 días
-Sujeto a inspección física final
-            `.trim();
-
+            // Simplified invoice data - minimal fields for maximum compatibility
             const invoiceData = {
               altId: ghlLocationId,
               altType: 'location',
               contactId: contactId,
-              name: `Cotización - ${name}`,
+              name: `Cotizacion - ${name.substring(0, 50)}`,
               issueDate: issueDate,
               dueDate: dueDate.toISOString().split('T')[0],
               status: 'draft',
               currency: 'USD',
               items: invoiceItems,
-              businessDetails: {
-                name: 'Sella El Techo',
-                phone: '+17879876543',
-                email: 'info@sellaeltecho.com'
-              },
-              contactDetails: {
-                id: contactId,
-                name: name,
-                email: email,
-                phone: formatPhone(phone)
-              },
-              description: invoiceDescription,
-              termsNotes: 'Precio válido por 30 días. Sujeto a inspección física final. Garantía incluida.'
+              termsNotes: invoiceDescription
             };
 
-            console.log("Creating invoice in GHL:", invoiceData);
+            console.log("Creating invoice in GHL:", JSON.stringify(invoiceData, null, 2));
             console.log("ContactId for invoice:", contactId);
 
-            // Try to create invoice with retry
+            // Helper function to create invoice
+            const tryCreateInvoice = async (data, label) => {
+              console.log(`📄 Trying invoice creation (${label})...`);
+              const response = await fetch(invoiceApiUrl, {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${ghlToken}`,
+                  'Content-Type': 'application/json',
+                  'Version': '2021-07-28'
+                },
+                body: JSON.stringify(data)
+              });
+
+              if (response.ok) {
+                const result = await response.json();
+                console.log(`✅ Invoice created (${label}):`, result);
+                return result;
+              } else {
+                const errorText = await response.text();
+                console.warn(`❌ Invoice failed (${label}):`, response.status, errorText);
+                throw new Error(`${response.status}: ${errorText}`);
+              }
+            };
+
+            // Try multiple strategies to create invoice
             let invoiceCreated = false;
-            for (let attempt = 1; attempt <= 3 && !invoiceCreated; attempt++) {
+
+            // Strategy 1: Full invoice with all items
+            try {
+              const result = await tryCreateInvoice(invoiceData, 'full');
+              state.invoiceId = result.invoice?.id || result.id;
+              invoiceCreated = true;
+            } catch (e1) {
+              console.warn('Strategy 1 failed:', e1.message);
+
+              // Strategy 2: Simplified - single line item with total
               try {
-                console.log(`📄 Invoice creation attempt ${attempt}/3...`);
+                await new Promise(r => setTimeout(r, 500));
+                const simpleInvoice = {
+                  altId: ghlLocationId,
+                  altType: 'location',
+                  contactId: contactId,
+                  name: `Cotizacion Sella El Techo`,
+                  issueDate: issueDate,
+                  dueDate: dueDate.toISOString().split('T')[0],
+                  status: 'draft',
+                  currency: 'USD',
+                  items: [{
+                    name: 'Sellado de Techo Profesional',
+                    description: `Area ${Math.round(finalArea)} ft2 - Incluye materiales, mano de obra e IVU`,
+                    price: Math.round(grandTotal * 100) / 100,
+                    quantity: 1
+                  }]
+                };
+                const result = await tryCreateInvoice(simpleInvoice, 'simple');
+                state.invoiceId = result.invoice?.id || result.id;
+                invoiceCreated = true;
+              } catch (e2) {
+                console.warn('Strategy 2 failed:', e2.message);
 
-                const invoiceResponse = await fetch(invoiceApiUrl, {
-                  method: 'POST',
-                  headers: {
-                    'Authorization': `Bearer ${ghlToken}`,
-                    'Content-Type': 'application/json',
-                    'Version': '2021-07-28'
-                  },
-                  body: JSON.stringify(invoiceData)
-                });
-
-                if (invoiceResponse.ok) {
-                  const invoiceResult = await invoiceResponse.json();
-                  console.log('✅ Invoice created in draft:', invoiceResult);
-                  state.invoiceId = invoiceResult.invoice?.id || invoiceResult.id;
+                // Strategy 3: Minimal - just required fields
+                try {
+                  await new Promise(r => setTimeout(r, 500));
+                  const minimalInvoice = {
+                    altId: ghlLocationId,
+                    altType: 'location',
+                    contactId: contactId,
+                    name: 'Cotizacion',
+                    status: 'draft',
+                    currency: 'USD',
+                    items: [{
+                      name: 'Servicio de Sellado',
+                      price: Math.round(grandTotal),
+                      quantity: 1
+                    }]
+                  };
+                  const result = await tryCreateInvoice(minimalInvoice, 'minimal');
+                  state.invoiceId = result.invoice?.id || result.id;
                   invoiceCreated = true;
-                } else {
-                  const invoiceErrorText = await invoiceResponse.text();
-                  console.warn(`⚠️ Invoice attempt ${attempt} failed:`, invoiceResponse.status, invoiceErrorText);
-                  state.invoiceErrorMsg = `Status ${invoiceResponse.status}: ${invoiceErrorText.substring(0, 100)}`;
-
-                  // If it's a client error (4xx), don't retry
-                  if (invoiceResponse.status >= 400 && invoiceResponse.status < 500) {
-                    console.error('Client error, not retrying. Error:', invoiceErrorText);
-                    break;
-                  }
-
-                  // Wait before retry (exponential backoff)
-                  if (attempt < 3) {
-                    await new Promise(r => setTimeout(r, 1000 * attempt));
-                  }
-                }
-              } catch (fetchError) {
-                console.warn(`⚠️ Invoice fetch error attempt ${attempt}:`, fetchError.message);
-                state.invoiceErrorMsg = `Fetch error: ${fetchError.message}`;
-                if (attempt < 3) {
-                  await new Promise(r => setTimeout(r, 1000 * attempt));
+                } catch (e3) {
+                  console.error('All invoice strategies failed');
+                  state.invoiceErrorMsg = e3.message;
                 }
               }
             }
 
             if (!invoiceCreated) {
-              console.error('❌ Invoice creation failed after all retries');
+              console.error('❌ Invoice creation failed after all strategies');
               state.invoiceError = true;
             } else {
               state.invoiceError = false;
