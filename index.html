@@ -2226,29 +2226,29 @@ ${state.pinLocation.mapsUrl}` : ''}
           source: 'Cotizador Online',
           tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
           customFields: [
-            { id: 'JVE4U8McHgJfAV20nSNH', value: Math.round(finalArea) },
-            { id: 'KNWSmZs63hL2jMXNZvpM', value: grandTotal },
-            { id: 'qDVGDd879hOARK6M6Uax', value: state.cistern ? 'Si' : 'No' },
-            { id: 'D1yRe3BskNRgAtGbK7gJ', value: state.solar ? 'Si' : 'No' },
-            { id: '6wqy3fR4Osdt6xk55udZ', value: state.ac ? 'Si' : 'No' },  // Aire Acondicionado
+            { id: 'JVE4U8McHgJfAV20nSNH', value: String(Math.round(finalArea)) },
+            { id: 'KNWSmZs63hL2jMXNZvpM', value: String(grandTotal.toFixed(2)) },
+            { id: 'qDVGDd879hOARK6M6Uax', value: state.cistern === true ? 'Si' : 'No' },
+            { id: 'D1yRe3BskNRgAtGbK7gJ', value: state.solar === true ? 'Si' : 'No' },
+            { id: '6wqy3fR4Osdt6xk55udZ', value: state.ac === true ? 'Si' : 'No' },
             { id: 'usGrA7qJvXwrjZiU7kZh', value: state.service === 'Danosa' ? 'Danosa' : 'Silicone' },
-            { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal ? 'Si' : 'No' },
-            { id: 'j4FfurcAXnA7O8rCjv4z', value: state.layers || 1 },
-            { id: 'X8GLbec6WrfimB9lR4XV', value: state.pinLocation?.mapsUrl || '' }  // Pin Location (Google Maps URL)
+            { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal === true ? 'Si' : 'No' },
+            { id: 'j4FfurcAXnA7O8rCjv4z', value: String(state.layers || 1) },
+            { id: 'X8GLbec6WrfimB9lR4XV', value: state.pinLocation?.mapsUrl || '' }
           ]
         };
 
         console.log("📤 Sending to GHL:", contactData);
         console.log("📋 Custom Fields being sent:");
-        console.log("  - Pies Cuadrados:", Math.round(finalArea));
-        console.log("  - Valor Cotizacion:", grandTotal);
-        console.log("  - Cisterna:", state.cistern ? 'Si' : 'No');
-        console.log("  - Placas Solares:", state.solar ? 'Si' : 'No');
-        console.log("  - Aire Acondicionado:", state.ac ? 'Si' : 'No');
-        console.log("  - Material:", state.service === 'Danosa' ? 'Danosa' : 'Silicone');
-        console.log("  - Remocion:", state.removal ? 'Si' : 'No');
-        console.log("  - Capas:", state.layers || 1);
-        console.log("  - Pin Location:", state.pinLocation?.mapsUrl || '(vacío)');
+        console.log("  - Pies Cuadrados (JVE4U8McHgJfAV20nSNH):", String(Math.round(finalArea)));
+        console.log("  - Valor Cotizacion (KNWSmZs63hL2jMXNZvpM):", String(grandTotal.toFixed(2)));
+        console.log("  - Cisterna (qDVGDd879hOARK6M6Uax):", state.cistern === true ? 'Si' : 'No');
+        console.log("  - Placas Solares (D1yRe3BskNRgAtGbK7gJ):", state.solar === true ? 'Si' : 'No');
+        console.log("  - Aire Acondicionado (6wqy3fR4Osdt6xk55udZ):", state.ac === true ? 'Si' : 'No');
+        console.log("  - Material (usGrA7qJvXwrjZiU7kZh):", state.service === 'Danosa' ? 'Danosa' : 'Silicone');
+        console.log("  - Remocion (VA7E6Ir1bk0zBqpbQ4Mb):", state.removal === true ? 'Si' : 'No', '| state.removal =', state.removal);
+        console.log("  - Capas (j4FfurcAXnA7O8rCjv4z):", String(state.layers || 1));
+        console.log("  - Pin Location (X8GLbec6WrfimB9lR4XV):", state.pinLocation?.mapsUrl || '(vacío)');
 
         const response = await fetch(ghlApiUrl, {
           method: 'POST',
