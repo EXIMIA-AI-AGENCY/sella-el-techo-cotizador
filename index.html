@@ -2501,14 +2501,78 @@ ${state.pinLocation.mapsUrl}` : ''}
               return isNaN(n) ? 0 : Math.round(Math.abs(n));
             };
 
-            // Build single line item with total - simplest format for GHL API
-            const invoiceItems = [{
-              name: sanitize('Sellado de Techo Profesional'),
-              amount: safeInt(grandTotal),
+            // Build detailed line items for the invoice
+            const invoiceItems = [];
+
+            // Main service item
+            invoiceItems.push({
+              name: sanitize(`Sellado de Techo - ${state.service || 'Profesional'}`),
+              description: sanitize(`Area: ${Math.round(finalArea)} ft2 x $${totalRate.toFixed(2)}/ft2`),
+              amount: safeInt(materialCost),
               qty: 1,
               currency: 'USD',
               taxes: []
-            }];
+            });
+
+            // Cistern if applicable
+            if (state.cistern) {
+              invoiceItems.push({
+                name: sanitize('Remocion / Manejo de Cisterna'),
+                description: sanitize('Servicio adicional'),
+                amount: 150,
+                qty: 1,
+                currency: 'USD',
+                taxes: []
+              });
+            }
+
+            // Solar panels if applicable
+            if (state.solar) {
+              invoiceItems.push({
+                name: sanitize('Desmontaje Placas Solares'),
+                description: sanitize('Remocion de placas solares'),
+                amount: 1000,
+                qty: 1,
+                currency: 'USD',
+                taxes: []
+              });
+            }
+
+            // Air conditioning if applicable
+            if (state.ac) {
+              invoiceItems.push({
+                name: sanitize('Proteccion Aire Acondicionado'),
+                description: sanitize('Proteccion de unidad AC'),
+                amount: 200,
+                qty: 1,
+                currency: 'USD',
+                taxes: []
+              });
+            }
+
+            // Membrane removal surcharge if applicable
+            if (state.service === 'Danosa' && state.removal && state.layers >= 2) {
+              const extraLayers = state.layers - 1;
+              const removalCost = extraLayers * 1.00 * finalArea;
+              invoiceItems.push({
+                name: sanitize(`Remocion de ${extraLayers} Membranas`),
+                description: sanitize(`${extraLayers} capas adicionales x $1.00/ft2`),
+                amount: safeInt(removalCost),
+                qty: 1,
+                currency: 'USD',
+                taxes: []
+              });
+            }
+
+            // IVU Tax item
+            invoiceItems.push({
+              name: sanitize('IVU 11.5%'),
+              description: sanitize('Impuesto sobre Ventas y Uso'),
+              amount: safeInt(tax),
+              qty: 1,
+              currency: 'USD',
+              taxes: []
+            });
 
             // Main invoice data - minimal required fields, all sanitized
             const invoiceData = {
@@ -2572,23 +2636,17 @@ ${state.pinLocation.mapsUrl}` : ''}
             } catch (e1) {
               console.warn('Strategy 1 (invoiceItems) failed:', e1.message);
 
-              // Strategy 2: Try with 'items' field name instead
+              // Strategy 2: Try with 'items' field name instead (same detailed items)
               try {
                 await new Promise(r => setTimeout(r, 500));
                 const itemsInvoice = {
                   altId: String(ghlLocationId),
                   altType: 'location',
                   contactId: String(contactId),
-                  name: 'Cotizacion Sellado',
+                  name: sanitize('Cotizacion Sellado de Techo'),
                   status: 'draft',
                   currency: 'USD',
-                  items: [{
-                    name: 'Sellado de Techo',
-                    amount: safeInt(grandTotal),
-                    qty: 1,
-                    currency: 'USD',
-                    taxes: []
-                  }]
+                  items: invoiceItems  // Use same detailed items
                 };
                 const result = await tryCreateInvoice(itemsInvoice, 'items');
                 state.invoiceId = result.invoice?.id || result.id;
@@ -2596,21 +2654,17 @@ ${state.pinLocation.mapsUrl}` : ''}
               } catch (e2) {
                 console.warn('Strategy 2 (items) failed:', e2.message);
 
-                // Strategy 3: Try with lineItems
+                // Strategy 3: Try with lineItems field name (same detailed items)
                 try {
                   await new Promise(r => setTimeout(r, 500));
                   const lineItemsInvoice = {
                     altId: String(ghlLocationId),
                     altType: 'location',
                     contactId: String(contactId),
-                    name: 'Cotizacion',
+                    name: sanitize('Cotizacion Sellado de Techo'),
                     status: 'draft',
                     currency: 'USD',
-                    lineItems: [{
-                      name: 'Servicio',
-                      amount: safeInt(grandTotal),
-                      qty: 1
-                    }]
+                    lineItems: invoiceItems  // Use same detailed items
                   };
                   const result = await tryCreateInvoice(lineItemsInvoice, 'lineItems');
                   state.invoiceId = result.invoice?.id || result.id;
