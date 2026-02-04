@@ -2209,7 +2209,8 @@
       const materialCost = finalArea * totalRate;
       const cisternCost = state.cistern ? 150.00 : 0;
       const solarCost = state.solar ? 1000.00 : 0;
-      const subtotal = materialCost + cisternCost + solarCost;
+      const acCost = state.ac ? 200.00 : 0;
+      const subtotal = materialCost + cisternCost + solarCost + acCost;
       const tax = subtotal * 0.115;
       const grandTotal = subtotal + tax;
 
@@ -2684,6 +2685,7 @@ ${state.pinLocation.mapsUrl}` : ''}
             console.log('📄 Creating invoice with payload:', JSON.stringify(baseInvoice, null, 2));
 
             // Try up to 3 times with retry
+            let lastError = '';
             for (let attempt = 1; attempt <= 3 && !invoiceCreated; attempt++) {
               try {
                 console.log(`📄 Invoice attempt ${attempt}/3...`);
@@ -2707,15 +2709,18 @@ ${state.pinLocation.mapsUrl}` : ''}
                   invoiceCreated = true;
                 } else {
                   const errText = await response.text();
-                  console.warn(`Attempt ${attempt} failed (${response.status}):`, errText);
+                  lastError = `Status ${response.status}: ${errText}`;
+                  console.warn(`Attempt ${attempt} failed:`, lastError);
 
                   // If 4xx error, don't retry (bad request)
                   if (response.status >= 400 && response.status < 500) {
-                    console.error('Client error, stopping retries');
+                    console.error('Client error, stopping retries. Error:', lastError);
+                    state.invoiceErrorMsg = lastError;
                     break;
                   }
                 }
               } catch (err) {
+                lastError = `Network error: ${err.message}`;
                 console.warn(`Attempt ${attempt} network error:`, err.message);
               }
 
@@ -2725,26 +2730,25 @@ ${state.pinLocation.mapsUrl}` : ''}
               }
             }
 
-            // Don't show error to user - contact data is already saved
-            state.invoiceError = false;
-            state.invoiceErrorMsg = null;
-
+            // Track invoice creation status
             if (invoiceCreated) {
               console.log('✅ Invoice created successfully!');
+              state.invoiceError = false;
+              state.invoiceErrorMsg = null;
             } else {
-              console.warn('⚠️ Invoice not created, but contact data is saved');
+              console.warn('⚠️ Invoice not created after 3 attempts. Last error:', lastError);
+              state.invoiceError = true;
+              state.invoiceErrorMsg = lastError || 'No se pudo crear el invoice después de 3 intentos';
             }
           } catch (invoiceError) {
-            console.error('⚠️ Invoice creation error (non-blocking):', invoiceError);
-            // Don't show error to user - contact data is already saved
-            state.invoiceError = false;
-            state.invoiceErrorMsg = null;
+            console.error('⚠️ Invoice creation error:', invoiceError);
+            state.invoiceError = true;
+            state.invoiceErrorMsg = invoiceError.message || 'Error desconocido';
           }
         } else {
           console.error('❌ Cannot create invoice - no contactId available');
-          // Don't show error to user
-          state.invoiceError = false;
-          state.invoiceErrorMsg = null;
+          state.invoiceError = true;
+          state.invoiceErrorMsg = 'No se encontró el contactId';
         }
 
         // Log final state for debugging
