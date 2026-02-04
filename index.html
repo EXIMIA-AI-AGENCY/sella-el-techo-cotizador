@@ -521,20 +521,19 @@
       .step-content {
         padding: 8px 12px;
         overflow: hidden !important;
-        flex: 1;
-        display: flex;
-        flex-direction: column;
+        display: none !important;
       }
 
       .step-content.active {
-        display: flex;
+        display: flex !important;
+        flex: 1;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         padding-top: 5px;
       }
 
-      .step-content > div {
+      .step-content.active > div {
         max-height: 100%;
         width: 100%;
       }
