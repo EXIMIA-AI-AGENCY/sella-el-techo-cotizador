@@ -1600,6 +1600,7 @@
           <div id="invoiceWarning" class="alert alert-warning mb-3" style="display:none;">
             <strong>⚠️ Nota:</strong> No se pudo crear el invoice automáticamente.
             Tu cotización fue guardada y te contactaremos pronto.
+            <br><small id="invoiceErrorDetail" class="text-muted"></small>
           </div>
           <div id="invoiceSuccess" class="alert alert-success mb-3" style="display:none;">
             <strong>✅</strong> Invoice creado exitosamente en el sistema.
@@ -2299,12 +2300,13 @@ Sujeto a inspección física final
                   state.invoiceId = invoiceResult.invoice?.id || invoiceResult.id;
                   invoiceCreated = true;
                 } else {
-                  const invoiceError = await invoiceResponse.text();
-                  console.warn(`⚠️ Invoice attempt ${attempt} failed:`, invoiceResponse.status, invoiceError);
+                  const invoiceErrorText = await invoiceResponse.text();
+                  console.warn(`⚠️ Invoice attempt ${attempt} failed:`, invoiceResponse.status, invoiceErrorText);
+                  state.invoiceErrorMsg = `Status ${invoiceResponse.status}: ${invoiceErrorText.substring(0, 100)}`;
 
                   // If it's a client error (4xx), don't retry
                   if (invoiceResponse.status >= 400 && invoiceResponse.status < 500) {
-                    console.error('Client error, not retrying. Error:', invoiceError);
+                    console.error('Client error, not retrying. Error:', invoiceErrorText);
                     break;
                   }
 
@@ -2315,6 +2317,7 @@ Sujeto a inspección física final
                 }
               } catch (fetchError) {
                 console.warn(`⚠️ Invoice fetch error attempt ${attempt}:`, fetchError.message);
+                state.invoiceErrorMsg = `Fetch error: ${fetchError.message}`;
                 if (attempt < 3) {
                   await new Promise(r => setTimeout(r, 1000 * attempt));
                 }
@@ -2323,18 +2326,20 @@ Sujeto a inspección física final
 
             if (!invoiceCreated) {
               console.error('❌ Invoice creation failed after all retries');
-              // Show user notification about failed invoice
               state.invoiceError = true;
             } else {
               state.invoiceError = false;
+              state.invoiceErrorMsg = null;
             }
           } catch (invoiceError) {
             console.error('⚠️ Invoice creation error (non-blocking):', invoiceError);
             state.invoiceError = true;
+            state.invoiceErrorMsg = `Exception: ${invoiceError.message}`;
           }
         } else {
           console.error('❌ Cannot create invoice - no contactId available');
           state.invoiceError = true;
+          state.invoiceErrorMsg = 'No contactId available';
         }
 
         // Log final state for debugging
@@ -2357,9 +2362,13 @@ Sujeto a inspección física final
         // Show invoice status to user
         const invoiceWarning = document.getElementById('invoiceWarning');
         const invoiceSuccess = document.getElementById('invoiceSuccess');
+        const invoiceErrorDetail = document.getElementById('invoiceErrorDetail');
         if (state.invoiceError) {
           if (invoiceWarning) invoiceWarning.style.display = 'block';
           if (invoiceSuccess) invoiceSuccess.style.display = 'none';
+          if (invoiceErrorDetail && state.invoiceErrorMsg) {
+            invoiceErrorDetail.textContent = `Debug: ${state.invoiceErrorMsg}`;
+          }
         } else if (state.invoiceId) {
           if (invoiceWarning) invoiceWarning.style.display = 'none';
           if (invoiceSuccess) invoiceSuccess.style.display = 'block';
