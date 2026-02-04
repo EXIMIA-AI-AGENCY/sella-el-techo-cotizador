@@ -2485,34 +2485,37 @@ ${state.pinLocation.mapsUrl}` : ''}
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
 
-            // Build line items for the invoice - using correct GHL API format
+            // Build line items for the invoice - GHL API uses: name, amount, qty, currency
             const invoiceItems = [];
 
-            // Main service item - use price (number), not amount
+            // Main service item
             invoiceItems.push({
               name: `Sellado de Techo - ${state.service || 'Profesional'}`,
-              description: `Area: ${Math.round(finalArea)} ft2 x $${totalRate.toFixed(2)}/ft2`,
-              price: Math.round(materialCost * 100) / 100,
-              quantity: 1
+              description: `Area: ${Math.round(finalArea)} ft2`,
+              amount: Math.round(materialCost * 100) / 100,
+              qty: 1,
+              currency: 'USD'
             });
 
             // Cistern if applicable
             if (state.cistern) {
               invoiceItems.push({
-                name: 'Remocion / Manejo de Cisterna',
-                description: 'Servicio adicional de manejo de cisterna',
-                price: 150.00,
-                quantity: 1
+                name: 'Remocion Cisterna',
+                description: 'Manejo de cisterna',
+                amount: 150.00,
+                qty: 1,
+                currency: 'USD'
               });
             }
 
             // Solar panels if applicable
             if (state.solar) {
               invoiceItems.push({
-                name: 'Remocion / Desmontaje Placas Solares',
-                description: 'Servicio adicional de desmontaje de placas solares',
-                price: 1000.00,
-                quantity: 1
+                name: 'Desmontaje Placas Solares',
+                description: 'Remocion de placas solares',
+                amount: 1000.00,
+                qty: 1,
+                currency: 'USD'
               });
             }
 
@@ -2520,9 +2523,10 @@ ${state.pinLocation.mapsUrl}` : ''}
             if (state.ac) {
               invoiceItems.push({
                 name: 'Proteccion Aire Acondicionado',
-                description: 'Servicio adicional de proteccion de unidad de A/C',
-                price: 200.00,
-                quantity: 1
+                description: 'Proteccion de unidad de AC',
+                amount: 200.00,
+                qty: 1,
+                currency: 'USD'
               });
             }
 
@@ -2531,19 +2535,21 @@ ${state.pinLocation.mapsUrl}` : ''}
               const extraLayers = state.layers - 1;
               const removalCost = extraLayers * 1.00 * finalArea;
               invoiceItems.push({
-                name: `Remocion de Membranas (${extraLayers} capa${extraLayers > 1 ? 's' : ''})`,
-                description: `${extraLayers} capa${extraLayers > 1 ? 's' : ''} adicional${extraLayers > 1 ? 'es' : ''} x $1.00/ft2 x ${Math.round(finalArea)} ft2`,
-                price: Math.round(removalCost * 100) / 100,
-                quantity: 1
+                name: `Remocion de ${extraLayers} Membranas`,
+                description: `${extraLayers} capas adicionales`,
+                amount: Math.round(removalCost * 100) / 100,
+                qty: 1,
+                currency: 'USD'
               });
             }
 
             // IVU Tax item
             invoiceItems.push({
-              name: 'IVU (11.5%)',
-              description: 'Impuesto sobre Ventas y Uso',
-              price: Math.round(tax * 100) / 100,
-              quantity: 1
+              name: 'IVU 11.5%',
+              description: 'Impuesto',
+              amount: Math.round(tax * 100) / 100,
+              qty: 1,
+              currency: 'USD'
             });
 
             // Calculate dates
@@ -2552,21 +2558,17 @@ ${state.pinLocation.mapsUrl}` : ''}
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
 
-            // Build simple invoice description - ASCII only to avoid encoding issues
-            const invoiceDescription = `Cotizacion Sellado de Techo - ${name} - Area: ${Math.round(finalArea)} ft2 - Total: $${grandTotal.toFixed(2)} - Servicio: ${state.service || 'Profesional'}`;
-
-            // Simplified invoice data - minimal fields for maximum compatibility
+            // Main invoice data - using correct GHL API fields
             const invoiceData = {
               altId: ghlLocationId,
               altType: 'location',
               contactId: contactId,
-              name: `Cotizacion - ${name.substring(0, 50)}`,
+              name: `Cotizacion - ${name.substring(0, 30)}`,
               issueDate: issueDate,
               dueDate: dueDate.toISOString().split('T')[0],
               status: 'draft',
               currency: 'USD',
-              items: invoiceItems,
-              termsNotes: invoiceDescription
+              items: invoiceItems
             };
 
             console.log("Creating invoice in GHL:", JSON.stringify(invoiceData, null, 2));
@@ -2614,16 +2616,17 @@ ${state.pinLocation.mapsUrl}` : ''}
                   altId: ghlLocationId,
                   altType: 'location',
                   contactId: contactId,
-                  name: `Cotizacion Sella El Techo`,
+                  name: 'Cotizacion Sella El Techo',
                   issueDate: issueDate,
                   dueDate: dueDate.toISOString().split('T')[0],
                   status: 'draft',
                   currency: 'USD',
                   items: [{
                     name: 'Sellado de Techo Profesional',
-                    description: `Area ${Math.round(finalArea)} ft2 - Incluye materiales, mano de obra e IVU`,
-                    price: Math.round(grandTotal * 100) / 100,
-                    quantity: 1
+                    description: 'Incluye materiales mano de obra e IVU',
+                    amount: Math.round(grandTotal * 100) / 100,
+                    qty: 1,
+                    currency: 'USD'
                   }]
                 };
                 const result = await tryCreateInvoice(simpleInvoice, 'simple');
@@ -2644,8 +2647,9 @@ ${state.pinLocation.mapsUrl}` : ''}
                     currency: 'USD',
                     items: [{
                       name: 'Servicio de Sellado',
-                      price: Math.round(grandTotal),
-                      quantity: 1
+                      amount: Math.round(grandTotal),
+                      qty: 1,
+                      currency: 'USD'
                     }]
                   };
                   const result = await tryCreateInvoice(minimalInvoice, 'minimal');
