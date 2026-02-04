@@ -1166,6 +1166,42 @@
         font-size: 0.55rem !important;
       }
 
+      /* Step 5C - Location step */
+      #step5C h1 {
+        font-size: 1.5rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #step5C h3 {
+        font-size: 0.85rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #step5C p.text-muted {
+        font-size: 0.7rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      #step5C #locationSearch {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+      }
+
+      #step5C #locationMapContainer {
+        height: 180px !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step5C #selectedAddress {
+        font-size: 0.7rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step5C .btn {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+      }
+
       /* Row spacing */
       .row.g-3, .row.g-4 {
         --bs-gutter-y: 6px !important;
@@ -1264,6 +1300,44 @@
         min-width: 30px !important;
       }
 
+      /* Step 5C - Location step (very small screens) */
+      #step5C h1 {
+        font-size: 1.2rem !important;
+        margin-bottom: 2px !important;
+      }
+
+      #step5C h3 {
+        font-size: 0.8rem !important;
+        margin-bottom: 2px !important;
+      }
+
+      #step5C p.text-muted {
+        font-size: 0.65rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #step5C #locationSearch {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      #step5C #locationMapContainer {
+        height: 140px !important;
+        margin-bottom: 6px !important;
+      }
+
+      #step5C #selectedAddress {
+        font-size: 0.65rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      #step5C .btn {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        margin-top: 4px !important;
+      }
+
       /* Row spacing */
       .row.g-3, .row.g-4 {
         --bs-gutter-y: 4px !important;
@@ -1281,7 +1355,7 @@
     <div class="w-header">
       <img src="assets/logo_white_ps.png" alt="Sella El Techo"
         style="max-height: 100px; width: auto; object-fit: contain;">
-      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 8</div>
+      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 9</div>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -1531,6 +1605,39 @@
       </div>
     </div>
 
+    <!-- STEP 5C: Location / Pin -->
+    <div class="step-content" id="step5C">
+      <div class="text-center my-auto">
+        <h1 class="mb-2">📍</h1>
+        <h3 class="mb-3">¿Dónde está la propiedad?</h3>
+        <p class="text-muted small mb-3">Busca tu dirección y confirma el pin en el mapa</p>
+
+        <div class="mb-3">
+          <input type="text" id="locationSearch" class="form-control search-lg"
+            placeholder="Escribe la dirección..."
+            style="background: var(--card-bg); color: white; border-color: var(--accent);">
+        </div>
+
+        <div id="locationMapContainer" class="mb-3"
+          style="height: 250px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent);">
+          <div id="locationMap" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <p id="selectedAddress" class="text-warning small mb-3" style="display:none;">
+          <strong>📍 Ubicación seleccionada:</strong> <span id="addressText"></span>
+        </p>
+
+        <button type="button" class="btn btn-warning w-100 py-2 fw-bold" id="locationContinueBtn"
+          onclick="confirmLocation()" style="display:none;">
+          Confirmar Ubicación →
+        </button>
+
+        <button type="button" class="btn btn-outline-secondary w-100 py-2 mt-2" onclick="skipLocation()">
+          Saltar este paso
+        </button>
+      </div>
+    </div>
+
     <!-- STEP 6: Contact Information (NEW) -->
     <div class="step-content" id="step6">
       <div class="row justify-content-center h-100 align-items-center">
@@ -1692,7 +1799,7 @@
 
   <script>
     let currentStep = 1;
-    const totalSteps = 8;
+    const totalSteps = 9;
     const state = {
       address: '',
       area: 0,
@@ -1704,6 +1811,10 @@
       knowsSqFt: null,
       removal: false,
       layers: 1,
+      // Location fields
+      pinLocation: null,  // { lat, lng, address, mapsUrl }
+      locationMap: null,
+      locationMarker: null,
       manualOverride: false
     };
 
@@ -1902,7 +2013,8 @@
             { id: '6wqy3fR4Osdt6xk55udZ', value: state.ac ? 'Si' : 'No' },  // Aire Acondicionado
             { id: 'usGrA7qJvXwrjZiU7kZh', value: state.service === 'Danosa' ? 'Danosa' : 'Silicone' },
             { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal ? 'Si' : 'No' },
-            { id: 'j4FfurcAXnA7O8rCjv4z', value: state.layers || 1 }
+            { id: 'j4FfurcAXnA7O8rCjv4z', value: state.layers || 1 },
+            { id: 'X8GLbec6WrfimB9lR4XV', value: state.pinLocation?.mapsUrl || '' }  // Pin Location (Google Maps URL)
           ]
         };
 
@@ -2354,8 +2466,8 @@ Sujeto a inspección física final
         state.contactPhone = phone;
         state.contactAddress = address;
 
-        // 8. Navigate to Step 8 (Final Quote Summary)
-        currentStep = 8;
+        // 9. Navigate to Step 9 (Final Quote Summary)
+        currentStep = 9;
         showStep('step7');
         updateSteps();
 
@@ -2611,9 +2723,10 @@ Sujeto a inspección física final
         3: 'step3',
         4: 'step4',
         5: 'step4B',  // AC step
-        6: 'step5',
-        7: 'step6',
-        8: 'step7'
+        6: 'step5',   // Service type
+        7: 'step5C',  // Location/Pin
+        8: 'step6',   // Contact form
+        9: 'step7'    // Quote summary
       };
 
       const targetId = stepMap[currentStep];
@@ -2664,8 +2777,21 @@ Sujeto a inspección física final
         }, 100);
       }
 
+      // Initialize location map when entering step 7 (location step)
       if (currentStep === 7) {
-        console.log("📊 Step 7 reached - calling renderSummary()");
+        console.log("📍 Step 7 reached - initializing location map");
+        setTimeout(() => {
+          if (!locationMap) {
+            initLocationMap();
+          } else {
+            google.maps.event.trigger(locationMap, 'resize');
+          }
+        }, 200);
+      }
+
+      // Render summary when reaching final step
+      if (currentStep === 9) {
+        console.log("📊 Step 9 reached - calling renderSummary()");
         console.log("Current state before renderSummary:", state);
         renderSummary();
       }
@@ -2839,10 +2965,13 @@ Sujeto a inspección física final
         // Step 5 is now AC step (step4B)
         valid = state.ac !== null;
       } else if (currentStep === 6) {
-        // Step 6 is now Service step (step5)
+        // Step 6 is Service step (step5)
         valid = state.service !== null;
       } else if (currentStep === 7) {
-        // Contact form validation - OBLIGATORIO llenar todos los campos
+        // Step 7 is Location step (step5C) - always valid (can skip)
+        valid = true;
+      } else if (currentStep === 8) {
+        // Step 8 is Contact form (step6)
         const name = document.getElementById('contactName')?.value?.trim();
         const email = document.getElementById('contactEmail')?.value?.trim();
         const phone = document.getElementById('contactPhone')?.value?.trim();
@@ -2855,13 +2984,149 @@ Sujeto a inspección física final
         if (shake && !valid) {
           alert('⚠️ Por favor completa todos los campos requeridos correctamente');
         }
-      } else if (currentStep === 8) {
+      } else if (currentStep === 9) {
         // Final step - always valid
         valid = true;
       }
 
       return valid;
     }
+
+    // ========== LOCATION STEP FUNCTIONS ==========
+    let locationMap = null;
+    let locationMarker = null;
+    let locationAutocomplete = null;
+
+    function initLocationMap() {
+      console.log('📍 Initializing location map...');
+
+      const mapContainer = document.getElementById('locationMap');
+      if (!mapContainer) {
+        console.error('Location map container not found');
+        return;
+      }
+
+      // Default to Puerto Rico center
+      const defaultLocation = { lat: 18.2208, lng: -66.5901 };
+
+      locationMap = new google.maps.Map(mapContainer, {
+        center: defaultLocation,
+        zoom: 9,
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+          { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+        ],
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false
+      });
+
+      // Add click listener to map for manual pin placement
+      locationMap.addListener('click', function(event) {
+        placeMarker(event.latLng);
+        reverseGeocode(event.latLng);
+      });
+
+      // Initialize autocomplete
+      const input = document.getElementById('locationSearch');
+      if (input && google.maps.places) {
+        locationAutocomplete = new google.maps.places.Autocomplete(input, {
+          componentRestrictions: { country: 'pr' },
+          fields: ['formatted_address', 'geometry', 'name']
+        });
+
+        locationAutocomplete.addListener('place_changed', function() {
+          const place = locationAutocomplete.getPlace();
+          if (place.geometry && place.geometry.location) {
+            const location = place.geometry.location;
+            locationMap.setCenter(location);
+            locationMap.setZoom(17);
+            placeMarker(location);
+
+            const address = place.formatted_address || place.name;
+            updateLocationState(location.lat(), location.lng(), address);
+          }
+        });
+      }
+
+      console.log('✅ Location map initialized');
+    }
+
+    function placeMarker(location) {
+      if (locationMarker) {
+        locationMarker.setMap(null);
+      }
+
+      locationMarker = new google.maps.Marker({
+        position: location,
+        map: locationMap,
+        draggable: true,
+        animation: google.maps.Animation.DROP,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#ff9900">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          `),
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 40)
+        }
+      });
+
+      // Allow dragging the marker
+      locationMarker.addListener('dragend', function() {
+        const pos = locationMarker.getPosition();
+        reverseGeocode(pos);
+      });
+    }
+
+    function reverseGeocode(location) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: location }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+          const address = results[0].formatted_address;
+          updateLocationState(location.lat(), location.lng(), address);
+        } else {
+          updateLocationState(location.lat(), location.lng(), `${location.lat().toFixed(6)}, ${location.lng().toFixed(6)}`);
+        }
+      });
+    }
+
+    function updateLocationState(lat, lng, address) {
+      const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      state.pinLocation = {
+        lat: lat,
+        lng: lng,
+        address: address,
+        mapsUrl: mapsUrl
+      };
+
+      // Update UI
+      document.getElementById('addressText').textContent = address;
+      document.getElementById('selectedAddress').style.display = 'block';
+      document.getElementById('locationContinueBtn').style.display = 'block';
+
+      console.log('📍 Location updated:', state.pinLocation);
+    }
+
+    function confirmLocation() {
+      if (state.pinLocation) {
+        console.log('✅ Location confirmed:', state.pinLocation);
+        changeStep(1);
+      }
+    }
+
+    function skipLocation() {
+      state.pinLocation = null;
+      console.log('⏭️ Location skipped');
+      changeStep(1);
+    }
+
+    // ========== END LOCATION FUNCTIONS ==========
 
     function setOption(key, val, card) {
       state[key] = val;
