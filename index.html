@@ -2070,8 +2070,58 @@
         }
 
         // 6. Create Invoice in Draft status
-        // contactId already defined above from contact creation
+        // IMPORTANT: Only proceed if we have a valid contactId
+        if (!contactId) {
+          console.error('❌ No contactId available - cannot create invoice');
+          console.log('Attempting one more search by email...');
+
+          // Last attempt to find contact
+          try {
+            const finalSearchResponse = await fetch(
+              `https://services.leadconnectorhq.com/contacts/?locationId=${ghlLocationId}&query=${encodeURIComponent(email)}&limit=1`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${ghlToken}`,
+                  'Version': '2021-07-28'
+                }
+              }
+            );
+            if (finalSearchResponse.ok) {
+              const finalSearchResult = await finalSearchResponse.json();
+              if (finalSearchResult.contacts && finalSearchResult.contacts.length > 0) {
+                contactId = finalSearchResult.contacts[0].id;
+                console.log('✅ Found contact in final search:', contactId);
+              }
+            }
+          } catch (e) {
+            console.error('Final search failed:', e);
+          }
+        }
+
         if (contactId) {
+          // Wait a moment for GHL to fully process the contact
+          console.log('⏳ Waiting for GHL to process contact...');
+          await new Promise(resolve => setTimeout(resolve, 1500));
+
+          // Verify contact exists before creating invoice
+          try {
+            const verifyResponse = await fetch(
+              `https://services.leadconnectorhq.com/contacts/${contactId}`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${ghlToken}`,
+                  'Version': '2021-07-28'
+                }
+              }
+            );
+            if (verifyResponse.ok) {
+              console.log('✅ Contact verified, proceeding with invoice creation');
+            } else {
+              console.warn('⚠️ Contact verification failed, but proceeding anyway');
+            }
+          } catch (verifyError) {
+            console.warn('⚠️ Could not verify contact:', verifyError.message);
+          }
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
 
