@@ -453,7 +453,7 @@
       justify-content: space-between;
     }
 
-    /* Mobile Responsiveness - No Scroll Design */
+    /* Mobile Responsiveness - Better Design */
     @media (max-width: 768px) {
       body {
         padding: 0 !important;
@@ -489,14 +489,14 @@
 
       /* Compact header for mobile */
       .w-header {
-        padding: 5px 10px;
+        padding: 8px 15px;
         flex-wrap: nowrap;
         gap: 0;
         flex-shrink: 0;
       }
 
       .w-header img {
-        max-height: 60px !important;
+        max-height: 50px !important;
       }
 
       .w-header .small {
@@ -509,17 +509,17 @@
 
       #backButtonContainer {
         flex-shrink: 0;
-        padding: 3px 10px !important;
+        padding: 5px 15px !important;
       }
 
       #backButtonContainer .btn {
-        padding: 4px 10px !important;
-        font-size: 0.8rem !important;
+        padding: 6px 12px !important;
+        font-size: 0.85rem !important;
       }
 
       /* Step content - NO SCROLL by default */
       .step-content {
-        padding: 8px 12px;
+        padding: 15px;
         overflow: hidden !important;
         display: none !important;
       }
@@ -530,15 +530,14 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding-top: 5px;
+        padding: 20px 15px;
       }
 
       .step-content.active > div {
-        max-height: 100%;
         width: 100%;
       }
 
-      /* ONLY contact form and quote need scrolling */
+      /* ONLY contact form, calendar, and quote need scrolling */
       #step6.active,
       #step7.active,
       #step2B.active {
@@ -547,134 +546,95 @@
         justify-content: flex-start !important;
       }
 
-      /* Compact typography */
-      h1 {
-        font-size: 1.2rem !important;
-        margin-bottom: 0.3rem !important;
-      }
-
+      /* Typography */
       h2 {
-        font-size: 1rem !important;
-        margin-bottom: 0.3rem !important;
+        font-size: 1.15rem !important;
+        margin-bottom: 0.75rem !important;
       }
 
       h3 {
-        font-size: 0.95rem !important;
-        margin-bottom: 0.2rem !important;
-      }
-
-      h4 {
-        font-size: 0.9rem !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
       }
 
       h5 {
-        font-size: 0.85rem !important;
+        font-size: 1rem !important;
       }
 
       p.text-muted {
-        font-size: 0.8rem !important;
-        margin-bottom: 0.3rem !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.5rem !important;
       }
 
-      /* Compact option cards - fit 2 in view */
+      /* Option cards - better visibility */
       .option-card {
-        padding: 10px 8px;
-        min-height: auto;
+        padding: 20px 15px;
+        min-height: 180px;
         border-width: 2px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
       }
 
       .option-card h5 {
-        font-size: 0.9rem !important;
-        margin-top: 5px !important;
-        margin-bottom: 2px !important;
+        font-size: 1rem !important;
+        margin-top: 12px !important;
+        margin-bottom: 5px !important;
       }
 
       .option-card small {
-        font-size: 0.7rem !important;
-        line-height: 1.2;
+        font-size: 0.8rem !important;
+        line-height: 1.3;
+        text-align: center;
       }
 
-      /* Compact images in cards */
+      /* Images in cards - visible */
       .option-card .img-3d,
       .option-card img {
-        max-height: 70px !important;
+        max-height: 80px !important;
+        margin-bottom: 10px !important;
+      }
+
+      .option-card h1 {
+        font-size: 2.5rem !important;
         margin-bottom: 5px !important;
       }
 
       #serviceImg {
-        max-height: 60px !important;
+        max-height: 100px !important;
       }
 
       /* Grid spacing */
-      .row.g-3 {
-        --bs-gutter-y: 8px;
-        --bs-gutter-x: 8px;
+      .row.g-3, .row.g-4 {
+        --bs-gutter-y: 12px;
+        --bs-gutter-x: 12px;
       }
 
-      .row.g-4 {
-        --bs-gutter-y: 8px;
-        --bs-gutter-x: 8px;
-      }
-
-      /* Step 1 specific - 2 cards side by side */
-      #step1 .row {
-        flex-wrap: nowrap !important;
-      }
-
-      #step1 .col-md-6 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding: 4px !important;
-      }
-
-      /* Step 2A specific - compact */
-      #step2A .text-center {
-        padding: 0 !important;
-      }
-
-      #step2A h3 {
-        margin-bottom: 0.3rem !important;
-      }
-
-      #step2A p.text-muted {
-        margin-bottom: 0.5rem !important;
-      }
-
-      #step2A .row {
-        margin-top: 0.5rem !important;
-      }
-
-      /* Step 3 specific - 2 cards side by side */
-      #step3 .row {
-        flex-wrap: nowrap !important;
-      }
-
-      #step3 .col-md-6 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding: 4px !important;
-      }
-
-      /* Step 4 specific - 2 cards side by side */
-      #step4 .row {
-        flex-wrap: nowrap !important;
-      }
-
-      #step4 .col-md-6 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding: 4px !important;
-      }
-
-      /* Step 5 specific - 2 cards side by side */
+      /* Step 1, 3, 4, 5 - 2 cards side by side */
+      #step1 .row,
+      #step3 .row,
+      #step4 .row,
       #step5 .row {
         flex-wrap: nowrap !important;
       }
 
+      #step1 .col-md-6,
+      #step3 .col-md-6,
+      #step4 .col-md-6,
       #step5 .col-md-6 {
         flex: 0 0 50%;
         max-width: 50%;
-        padding: 4px !important;
+        padding: 6px !important;
+      }
+
+      /* Step 2A specific */
+      #step2A h3 {
+        margin-bottom: 0.5rem !important;
+      }
+
+      #step2A p.text-muted {
+        margin-bottom: 1rem !important;
       }
 
       #map-container {
@@ -682,39 +642,39 @@
       }
 
       .search-lg {
-        font-size: 0.9rem;
-        padding: 8px 12px;
+        font-size: 1rem;
+        padding: 12px 15px;
       }
 
       /* Summary table improvements */
       .summary-table td {
-        padding: 6px 0;
-        font-size: 0.85rem;
+        padding: 8px 0;
+        font-size: 0.9rem;
       }
 
       .summary-table .price {
-        font-size: 0.95rem;
+        font-size: 1rem;
       }
 
-      /* Contact form step - allow scroll */
+      /* Contact form step */
       #step6 h3 {
-        font-size: 1.1rem !important;
+        font-size: 1.2rem !important;
       }
 
       #step6 .total-row {
-        font-size: 1rem;
-        padding-top: 10px;
+        font-size: 1.1rem;
+        padding-top: 12px;
       }
 
       /* Quote content box */
       #quoteContent {
-        padding: 12px !important;
+        padding: 15px !important;
       }
 
       /* Input improvements */
       input[type="number"] {
-        font-size: 1.2rem !important;
-        padding: 12px !important;
+        font-size: 1.3rem !important;
+        padding: 15px !important;
         text-align: center;
         -webkit-appearance: none;
         -moz-appearance: textfield;
@@ -730,7 +690,7 @@
       /* Floating area badge on map */
       #map-container .position-absolute {
         max-width: 95% !important;
-        margin: 8px !important;
+        margin: 10px !important;
       }
 
       /* Calendar iframe */
@@ -738,76 +698,58 @@
         min-height: 70vh !important;
       }
 
-      /* Danosa options - compact */
+      /* Danosa options */
       #danosaOptions {
-        padding: 10px !important;
-        margin-top: 10px !important;
+        padding: 15px !important;
+        margin-top: 15px !important;
       }
 
       #danosaOptions h5 {
-        font-size: 0.85rem !important;
-        margin-bottom: 8px !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 10px !important;
       }
 
       #danosaOptions .btn {
-        padding: 8px 12px !important;
-        font-size: 0.8rem !important;
-        min-height: 40px;
+        padding: 10px 15px !important;
+        font-size: 0.85rem !important;
+        min-height: 44px;
       }
 
       /* Layer adjustment buttons */
       #layersInput .btn {
-        width: 36px;
-        height: 36px;
-        font-size: 1rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
         padding: 0;
       }
 
       #layersInput #layerCount {
-        font-size: 1.4rem !important;
-        min-width: 50px;
+        font-size: 1.5rem !important;
+        min-width: 55px;
       }
 
-      /* Action buttons - more compact */
+      /* Action buttons */
       .btn-warning {
-        font-size: 0.95rem !important;
-        padding: 10px 20px !important;
-        min-height: 44px;
+        font-size: 1rem !important;
+        padding: 12px 25px !important;
+        min-height: 48px;
       }
 
       /* PDF Download button */
       .btn-success {
-        font-size: 0.9rem !important;
-        padding: 10px 16px !important;
-        min-height: 44px;
+        font-size: 0.95rem !important;
+        padding: 12px 20px !important;
+        min-height: 46px;
       }
 
       /* Better text sizing */
       p {
-        font-size: 0.9rem;
-        line-height: 1.4;
+        font-size: 0.95rem;
+        line-height: 1.5;
       }
 
       small {
-        font-size: 0.75rem !important;
-      }
-
-      /* Margins and paddings - compact */
-      .mb-4 {
-        margin-bottom: 0.4rem !important;
-      }
-
-      .mt-4 {
-        margin-top: 0.4rem !important;
-      }
-
-      .mb-3 {
-        margin-bottom: 0.3rem !important;
-      }
-
-      .py-3 {
-        padding-top: 0.4rem !important;
-        padding-bottom: 0.4rem !important;
+        font-size: 0.8rem !important;
       }
 
       /* Prevent zoom on focus for iOS */
@@ -824,102 +766,103 @@
     /* Extra small devices (phones in portrait) */
     @media (max-width: 576px) {
       .w-header img {
-        max-height: 50px !important;
+        max-height: 45px !important;
       }
 
       .w-header {
-        padding: 4px 8px !important;
+        padding: 6px 10px !important;
       }
 
       h2 {
-        font-size: 0.95rem !important;
+        font-size: 1.05rem !important;
       }
 
       h3 {
-        font-size: 0.9rem !important;
+        font-size: 1rem !important;
       }
 
       .option-card {
-        padding: 8px 6px;
+        padding: 15px 10px;
+        min-height: 160px;
       }
 
       .option-card h1 {
-        font-size: 1.2rem !important;
-        margin-bottom: 0 !important;
+        font-size: 2rem !important;
+        margin-bottom: 3px !important;
       }
 
       .option-card h3,
       .option-card h5 {
-        font-size: 0.8rem !important;
-        margin-top: 3px !important;
+        font-size: 0.9rem !important;
+        margin-top: 8px !important;
       }
 
       .option-card small {
-        font-size: 0.65rem !important;
+        font-size: 0.75rem !important;
         display: block;
-        line-height: 1.1;
+        line-height: 1.2;
       }
 
       .option-card .img-3d,
       .option-card img {
-        max-height: 55px !important;
+        max-height: 65px !important;
       }
 
       .total-row {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         flex-direction: column;
         align-items: flex-end;
-        gap: 2px;
+        gap: 3px;
       }
 
       input[type="number"] {
-        font-size: 1rem !important;
-        padding: 8px !important;
+        font-size: 1.2rem !important;
+        padding: 12px !important;
       }
 
       #quoteContent {
-        padding: 8px !important;
+        padding: 12px !important;
       }
 
       #quoteContent table {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
       }
 
-      /* Even more compact buttons */
+      /* Buttons */
       .btn-warning {
-        font-size: 0.9rem !important;
-        padding: 8px 16px !important;
-        min-height: 40px;
+        font-size: 0.95rem !important;
+        padding: 10px 20px !important;
+        min-height: 44px;
       }
 
       #danosaOptions {
-        padding: 8px !important;
-        margin-top: 8px !important;
+        padding: 12px !important;
+        margin-top: 12px !important;
       }
 
       #danosaOptions .d-flex {
-        gap: 5px !important;
+        gap: 8px !important;
       }
 
       #danosaOptions .btn {
-        padding: 6px 10px !important;
-        font-size: 0.75rem !important;
-        min-height: 36px;
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        min-height: 40px;
       }
 
       #layersInput {
-        margin-top: 8px !important;
+        margin-top: 10px !important;
       }
 
       #layersInput .btn {
-        width: 32px;
-        height: 32px;
-        font-size: 0.9rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
       }
 
       #layersInput #layerCount {
-        font-size: 1.2rem !important;
-        min-width: 40px;
+        font-size: 1.3rem !important;
+        min-width: 45px;
       }
     }
 
