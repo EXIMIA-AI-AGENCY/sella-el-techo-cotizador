@@ -1669,6 +1669,42 @@
               return digits.startsWith('1') ? `+${digits}` : `+1${digits}`;
             };
 
+            // Build invoice description with all quote details
+            const invoiceDescription = `
+COTIZACIÓN DE SELLADO DE TECHO
+================================
+
+CLIENTE:
+• Nombre: ${name}
+• Email: ${email}
+• Teléfono: ${phone}
+• Dirección: ${address || 'No proporcionada'}
+
+DETALLES DEL PROYECTO:
+• Área del techo: ${Math.round(finalArea).toLocaleString()} ft²
+• Tipo de servicio: ${state.service || 'No especificado'}
+• Precio por pie²: $${totalRate.toFixed(2)}
+
+OPCIONES ADICIONALES:
+• Cisterna: ${state.cistern ? 'Sí (+$150)' : 'No'}
+• Placas Solares: ${state.solar ? 'Sí (+$1,000)' : 'No'}
+• Remoción requerida: ${state.removal ? 'Sí' : 'No'}
+${state.removal ? `• Capas a remover: ${state.layers || 1}` : ''}
+
+DESGLOSE DE PRECIOS:
+• Material/Servicio: $${materialCost.toFixed(2)}
+${state.cistern ? '• Cisterna: $150.00' : ''}
+${state.solar ? '• Placas Solares: $1,000.00' : ''}
+• Subtotal: $${subtotal.toFixed(2)}
+• IVU (11.5%): $${tax.toFixed(2)}
+• TOTAL: $${grandTotal.toFixed(2)}
+
+================================
+Cotización generada automáticamente
+Precio válido por 30 días
+Sujeto a inspección física final
+            `.trim();
+
             const invoiceData = {
               altId: ghlLocationId,
               altType: 'location',
@@ -1689,7 +1725,9 @@
                 name: name,
                 email: email,
                 phoneNo: formatPhone(phone)
-              }
+              },
+              description: invoiceDescription,
+              termsNotes: 'Precio válido por 30 días. Sujeto a inspección física final. Garantía incluida.'
             };
 
             console.log("Creating invoice in GHL:", invoiceData);
