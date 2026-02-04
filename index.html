@@ -1985,13 +1985,12 @@
 
           <div class="text-center mt-4 d-grid gap-2">
             <button class="btn btn-warning py-3 fw-bold" onclick="downloadPDF()">📥 Descargar PDF</button>
-            <button onclick="location.reload()" class="btn btn-link text-muted small text-decoration-none mt-2">Empezar
-              de nuevo</button>
+            <button id="btnShowCalendar" class="btn btn-primary py-3 fw-bold" onclick="showWorkCalendar()">📅 Agendar Día del Trabajo</button>
           </div>
 
-          <!-- Calendar for scheduling -->
-          <div class="mt-4">
-            <h4 class="text-center text-warning mb-3">📅 Agenda tu Inspección</h4>
+          <!-- Calendar for scheduling (hidden initially) -->
+          <div id="workCalendarSection" class="mt-4" style="display: none;">
+            <h4 class="text-center text-warning mb-3">📅 Selecciona el Día del Trabajo</h4>
             <div class="border border-warning rounded" style="background: #fff; overflow: hidden;">
               <iframe src="https://api.leadconnectorhq.com/widget/booking/B8VjJhdSMKQ1SoAE1RN5"
                 style="width: 100%; height: 600px; border:none;"
@@ -4319,6 +4318,19 @@ ${state.pinLocation.mapsUrl}` : ''}
       validateStep();
     };
 
+    // Show work calendar in step7
+    function showWorkCalendar() {
+      const calendarSection = document.getElementById('workCalendarSection');
+      const btn = document.getElementById('btnShowCalendar');
+      if (calendarSection) {
+        calendarSection.style.display = 'block';
+        calendarSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        if (btn) {
+          btn.style.display = 'none';
+        }
+      }
+    }
+
     // Make functions globally available
     window.updateSteps = updateSteps;
     window.validateStep = validateStep;
@@ -4326,6 +4338,7 @@ ${state.pinLocation.mapsUrl}` : ''}
     window.changeStep = changeStep;
     window.submitContactAndProceed = submitContactAndProceed;
     window.downloadPDF = downloadPDF;
+    window.showWorkCalendar = showWorkCalendar;
 
     // Verification Links
 
