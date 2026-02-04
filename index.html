@@ -670,13 +670,25 @@
         white-space: nowrap;
       }
 
-      /* Cards in steps 3, 4, 5 - smaller height since no image inside */
+      /* Cards in steps 3, 4, 4B - smaller height since no image inside */
       #step3 .option-card,
       #step4 .option-card,
-      #step5 .option-card {
+      #step4B .option-card {
         height: 80px !important;
         min-height: auto !important;
         padding: 10px 8px !important;
+      }
+
+      /* Step 4B (AC) - 2 cards side by side */
+      #step4B .row {
+        flex-wrap: nowrap !important;
+        width: 100%;
+      }
+
+      #step4B .col-md-5 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 5px !important;
       }
 
       /* Step 2A specific */
@@ -877,14 +889,21 @@
         margin-bottom: 8px !important;
       }
 
-      /* Cards in steps 3, 4, 5 - smaller */
+      /* Cards in steps 3, 4, 4B - smaller */
       #step3 .option-card,
       #step4 .option-card,
-      #step5 .option-card {
+      #step4B .option-card {
         height: 70px !important;
       }
 
-      /* Step 5 col-md-4 fix */
+      /* Step 4B col-md-5 fix */
+      #step4B .col-md-5 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 4px !important;
+      }
+
+      /* Step 5 (service) col-md-4 fix */
       #step5 .col-md-4 {
         flex: 0 0 50% !important;
         max-width: 50% !important;
@@ -1220,6 +1239,28 @@
       </div>
     </div>
 
+    <!-- STEP 4B: Air Conditioning -->
+    <div class="step-content" id="step4B">
+      <div class="text-center my-auto">
+        <h1 class="mb-3">❄️</h1>
+        <h3 class="mb-3">¿Aire Acondicionado en el Techo?</h3>
+        <div class="row justify-content-center g-3">
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('ac', false, this)">
+              <h5 class="mt-2">No</h5>
+              <small class="text-muted">Sin unidad en el techo</small>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('ac', true, this)">
+              <h5 class="mt-2">Sí (+$200)</h5>
+              <small class="text-muted">Incluye protección</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- STEP 5: Service Type -->
     <div class="step-content" id="step5">
       <div class="text-center my-auto">
@@ -1367,6 +1408,10 @@
                 <td>Remoción / Desmontaje Placas Solares</td>
                 <td class="price text-warning">+$1,000.00</td>
               </tr>
+              <tr id="rowAC" style="display:none">
+                <td>Protección Aire Acondicionado</td>
+                <td class="price text-warning">+$200.00</td>
+              </tr>
               <tr id="rowRemoval" style="display:none">
                 <td id="lblRemoval">Remoción de Membranas</td>
                 <td class="price text-warning" id="sumRemoval">+$0.00</td>
@@ -1418,12 +1463,13 @@
 
   <script>
     let currentStep = 1;
-    const totalSteps = 7;
+    const totalSteps = 8;
     const state = {
       address: '',
       area: 0,
       cistern: null,
       solar: null,
+      ac: null,  // Air conditioning
       service: null,
       // New fields
       knowsSqFt: null,
@@ -1624,6 +1670,7 @@
             { id: 'KNWSmZs63hL2jMXNZvpM', value: grandTotal },
             { id: 'qDVGDd879hOARK6M6Uax', value: state.cistern ? 'Si' : 'No' },
             { id: 'D1yRe3BskNRgAtGbK7gJ', value: state.solar ? 'Si' : 'No' },
+            { id: '6wqy3fR4Osdt6xk55udZ', value: state.ac ? 'Si' : 'No' },  // Aire Acondicionado
             { id: 'usGrA7qJvXwrjZiU7kZh', value: state.service === 'Danosa' ? 'Danosa' : 'Silicone' },
             { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal ? 'Si' : 'No' },
             { id: 'j4FfurcAXnA7O8rCjv4z', value: state.layers || 1 }
@@ -1805,6 +1852,17 @@
                 name: 'Remoción / Desmontaje Placas Solares',
                 description: 'Servicio adicional de desmontaje de placas solares',
                 amount: 1000.00,
+                currency: 'USD',
+                qty: 1
+              });
+            }
+
+            // Air conditioning if applicable
+            if (state.ac) {
+              invoiceItems.push({
+                name: 'Protección Aire Acondicionado',
+                description: 'Servicio adicional de protección de unidad de A/C',
+                amount: 200.00,
                 currency: 'USD',
                 qty: 1
               });
@@ -2049,13 +2107,15 @@ Sujeto a inspección física final
       // 3. FIXED COSTS
       const cisternCost = state.cistern ? 150.00 : 0;
       const solarCost = state.solar ? 1000.00 : 0;
+      const acCost = state.ac ? 200.00 : 0;
 
       console.log("Add-ons:");
       console.log(`  Cisterna: ${state.cistern ? 'Yes' : 'No'} - $${cisternCost}`);
       console.log(`  Placas Solares: ${state.solar ? 'Yes' : 'No'} - $${solarCost}`);
+      console.log(`  Aire Acondicionado: ${state.ac ? 'Yes' : 'No'} - $${acCost}`);
 
       // 4. TOTALS
-      const subtotal = materialCost + cisternCost + solarCost;
+      const subtotal = materialCost + cisternCost + solarCost + acCost;
       const tax = subtotal * 0.115; // 11.5% IVU
       const grandTotal = subtotal + tax;
 
@@ -2075,6 +2135,9 @@ Sujeto a inspección física final
 
       const rSol = document.getElementById('rowSolar');
       if (rSol) rSol.style.display = state.solar ? 'table-row' : 'none';
+
+      const rAC = document.getElementById('rowAC');
+      if (rAC) rAC.style.display = state.ac ? 'table-row' : 'none';
 
       // Show removal cost row if Danosa with removal layers >= 2
       const rRem = document.getElementById('rowRemoval');
@@ -2172,9 +2235,10 @@ Sujeto a inspección física final
         2: 'step2A',
         3: 'step3',
         4: 'step4',
-        5: 'step5',
-        6: 'step6',
-        7: 'step7'
+        5: 'step4B',  // AC step
+        6: 'step5',
+        7: 'step6',
+        8: 'step7'
       };
 
       const targetId = stepMap[currentStep];
@@ -2340,8 +2404,22 @@ Sujeto a inspección física final
         });
       }
 
-      // Step 5: Service selection
-      if (currentStep === 5 && state.service !== null) {
+      // Step 5: AC selection
+      if (currentStep === 5 && state.ac !== null) {
+        const cards = document.querySelectorAll('#step4B .option-card');
+        cards.forEach(card => {
+          card.classList.remove('selected');
+          const onclick = card.getAttribute('onclick');
+          if (state.ac === true && onclick && onclick.includes('true')) {
+            card.classList.add('selected');
+          } else if (state.ac === false && onclick && onclick.includes('false')) {
+            card.classList.add('selected');
+          }
+        });
+      }
+
+      // Step 6: Service selection
+      if (currentStep === 6 && state.service !== null) {
         const cards = document.querySelectorAll('#step5 .option-card');
         cards.forEach(card => {
           card.classList.remove('selected');
@@ -2486,6 +2564,7 @@ Sujeto a inspección física final
       const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
       const showCistern = document.getElementById('rowCistern')?.style.display !== 'none';
       const showSolar = document.getElementById('rowSolar')?.style.display !== 'none';
+      const showAC = document.getElementById('rowAC')?.style.display !== 'none';
       const showRemoval = document.getElementById('rowRemoval')?.style.display !== 'none';
       const removalLabel = document.getElementById('lblRemoval')?.innerText || 'Remoción de Membranas';
       const removalAmount = document.getElementById('sumRemoval')?.innerText || '+$0.00';
@@ -2556,6 +2635,12 @@ Sujeto a inspección física final
           <tr>
             <td style="padding: 12px 0; color: #ffffff;">Remoción / Desmontaje Placas Solares</td>
             <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$1,000.00</td>
+          </tr>
+          ` : ''}
+          ${showAC ? `
+          <tr>
+            <td style="padding: 12px 0; color: #ffffff;">Protección Aire Acondicionado</td>
+            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$200.00</td>
           </tr>
           ` : ''}
           ${showRemoval ? `
@@ -2760,6 +2845,23 @@ Sujeto a inspección física final
           e.preventDefault();
           const hasSolar = index === 1;
           setOption('solar', hasSolar, this);
+        });
+      });
+
+      // STEP 4B (AC): Add explicit click listeners
+      const step4BCards = document.querySelectorAll('#step4B .option-card');
+      step4BCards.forEach((card, index) => {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Step4B card clicked:", index);
+          const hasAC = index === 1; // First = No, Second = Sí
+          setOption('ac', hasAC, this);
+        });
+        card.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          const hasAC = index === 1;
+          setOption('ac', hasAC, this);
         });
       });
 
