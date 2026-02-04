@@ -1508,9 +1508,11 @@
       try {
         // 4. Send to GoHighLevel API
         const ghlToken = 'pit-f3ebb971-2fd1-415b-91f0-f4449c8e5314';
+        const ghlLocationId = 'LVwbqYFEmGiKJ7AgtSIf';
         const ghlApiUrl = 'https://services.leadconnectorhq.com/contacts/';
 
         const contactData = {
+          locationId: ghlLocationId,
           firstName: name.split(' ')[0] || name,
           lastName: name.split(' ').slice(1).join(' ') || '',
           email: email,
