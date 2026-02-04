@@ -1593,7 +1593,8 @@
             console.log('📝 Contact exists, updating...', errorData.meta.contactId);
             contactId = errorData.meta.contactId;
 
-            // Update existing contact
+            // Update existing contact - remove locationId (not allowed in PUT)
+            const { locationId, ...updateData } = contactData;
             const updateResponse = await fetch(`${ghlApiUrl}${contactId}`, {
               method: 'PUT',
               headers: {
@@ -1601,7 +1602,7 @@
                 'Content-Type': 'application/json',
                 'Version': '2021-07-28'
               },
-              body: JSON.stringify(contactData)
+              body: JSON.stringify(updateData)
             });
 
             if (updateResponse.ok) {
