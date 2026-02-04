@@ -496,7 +496,7 @@
       }
 
       .w-header img {
-        max-height: 50px !important;
+        max-height: 45px !important;
       }
 
       .w-header .small {
@@ -519,7 +519,7 @@
 
       /* Step content - NO SCROLL by default */
       .step-content {
-        padding: 15px;
+        padding: 10px;
         overflow: hidden !important;
         display: none !important;
       }
@@ -530,7 +530,18 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        padding: 20px 15px;
+        padding: 10px;
+      }
+
+      /* Remove excessive padding on mobile */
+      .step-content .px-5 {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+      }
+
+      .step-content .my-auto {
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
       }
 
       .step-content.active > div {
@@ -548,67 +559,81 @@
 
       /* Typography */
       h2 {
-        font-size: 1.15rem !important;
-        margin-bottom: 0.75rem !important;
+        font-size: 1.1rem !important;
+        margin-bottom: 1rem !important;
       }
 
       h3 {
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
         margin-bottom: 0.5rem !important;
       }
 
       h5 {
-        font-size: 1rem !important;
+        font-size: 0.95rem !important;
       }
 
       p.text-muted {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
         margin-bottom: 0.5rem !important;
       }
 
-      /* Option cards - better visibility */
+      /* Option cards - compact and visible */
       .option-card {
-        padding: 20px 15px;
-        min-height: 180px;
+        padding: 15px 10px;
+        min-height: auto;
+        height: 140px;
         border-width: 2px;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        overflow: hidden;
+      }
+
+      .option-card h1 {
+        font-size: 2rem !important;
+        margin-bottom: 5px !important;
+        line-height: 1;
+      }
+
+      .option-card h3 {
+        font-size: 0.85rem !important;
+        margin-top: 8px !important;
+        margin-bottom: 3px !important;
+        white-space: nowrap;
       }
 
       .option-card h5 {
-        font-size: 1rem !important;
-        margin-top: 12px !important;
-        margin-bottom: 5px !important;
+        font-size: 0.85rem !important;
+        margin-top: 8px !important;
+        margin-bottom: 3px !important;
       }
 
       .option-card small {
-        font-size: 0.8rem !important;
-        line-height: 1.3;
+        font-size: 0.7rem !important;
+        line-height: 1.2;
         text-align: center;
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       /* Images in cards - visible */
       .option-card .img-3d,
       .option-card img {
-        max-height: 80px !important;
-        margin-bottom: 10px !important;
-      }
-
-      .option-card h1 {
-        font-size: 2.5rem !important;
+        max-height: 50px !important;
         margin-bottom: 5px !important;
       }
 
       #serviceImg {
-        max-height: 100px !important;
+        max-height: 60px !important;
       }
 
       /* Grid spacing */
       .row.g-3, .row.g-4 {
-        --bs-gutter-y: 12px;
-        --bs-gutter-x: 12px;
+        --bs-gutter-y: 10px;
+        --bs-gutter-x: 10px;
+        margin: 0 !important;
       }
 
       /* Step 1, 3, 4, 5 - 2 cards side by side */
@@ -617,24 +642,26 @@
       #step4 .row,
       #step5 .row {
         flex-wrap: nowrap !important;
+        width: 100%;
       }
 
+      #step1 .col-md-5,
       #step1 .col-md-6,
       #step3 .col-md-6,
       #step4 .col-md-6,
       #step5 .col-md-6 {
-        flex: 0 0 50%;
-        max-width: 50%;
-        padding: 6px !important;
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 5px !important;
       }
 
       /* Step 2A specific */
       #step2A h3 {
-        margin-bottom: 0.5rem !important;
+        margin-bottom: 1rem !important;
       }
 
       #step2A p.text-muted {
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.5rem !important;
       }
 
       #map-container {
@@ -642,7 +669,7 @@
       }
 
       .search-lg {
-        font-size: 1rem;
+        font-size: 1.1rem;
         padding: 12px 15px;
       }
 
@@ -700,12 +727,12 @@
 
       /* Danosa options */
       #danosaOptions {
-        padding: 15px !important;
-        margin-top: 15px !important;
+        padding: 12px !important;
+        margin-top: 12px !important;
       }
 
       #danosaOptions h5 {
-        font-size: 0.95rem !important;
+        font-size: 0.9rem !important;
         margin-bottom: 10px !important;
       }
 
@@ -744,12 +771,21 @@
 
       /* Better text sizing */
       p {
-        font-size: 0.95rem;
-        line-height: 1.5;
+        font-size: 0.9rem;
+        line-height: 1.4;
       }
 
       small {
-        font-size: 0.8rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      /* Margins reset */
+      .mb-4 {
+        margin-bottom: 1rem !important;
+      }
+
+      .mt-3 {
+        margin-top: 0.75rem !important;
       }
 
       /* Prevent zoom on focus for iOS */
@@ -766,46 +802,46 @@
     /* Extra small devices (phones in portrait) */
     @media (max-width: 576px) {
       .w-header img {
-        max-height: 45px !important;
+        max-height: 40px !important;
       }
 
       .w-header {
-        padding: 6px 10px !important;
+        padding: 5px 10px !important;
       }
 
       h2 {
-        font-size: 1.05rem !important;
-      }
-
-      h3 {
         font-size: 1rem !important;
       }
 
+      h3 {
+        font-size: 0.95rem !important;
+      }
+
       .option-card {
-        padding: 15px 10px;
-        min-height: 160px;
+        padding: 12px 8px;
+        height: 130px;
       }
 
       .option-card h1 {
-        font-size: 2rem !important;
+        font-size: 1.8rem !important;
         margin-bottom: 3px !important;
       }
 
       .option-card h3,
       .option-card h5 {
-        font-size: 0.9rem !important;
-        margin-top: 8px !important;
+        font-size: 0.8rem !important;
+        margin-top: 6px !important;
       }
 
       .option-card small {
-        font-size: 0.75rem !important;
+        font-size: 0.65rem !important;
         display: block;
-        line-height: 1.2;
+        line-height: 1.1;
       }
 
       .option-card .img-3d,
       .option-card img {
-        max-height: 65px !important;
+        max-height: 45px !important;
       }
 
       .total-row {
@@ -836,33 +872,33 @@
       }
 
       #danosaOptions {
-        padding: 12px !important;
-        margin-top: 12px !important;
-      }
-
-      #danosaOptions .d-flex {
-        gap: 8px !important;
-      }
-
-      #danosaOptions .btn {
-        padding: 8px 12px !important;
-        font-size: 0.8rem !important;
-        min-height: 40px;
-      }
-
-      #layersInput {
+        padding: 10px !important;
         margin-top: 10px !important;
       }
 
+      #danosaOptions .d-flex {
+        gap: 6px !important;
+      }
+
+      #danosaOptions .btn {
+        padding: 8px 10px !important;
+        font-size: 0.75rem !important;
+        min-height: 38px;
+      }
+
+      #layersInput {
+        margin-top: 8px !important;
+      }
+
       #layersInput .btn {
-        width: 36px;
-        height: 36px;
+        width: 34px;
+        height: 34px;
         font-size: 1rem;
       }
 
       #layersInput #layerCount {
-        font-size: 1.3rem !important;
-        min-width: 45px;
+        font-size: 1.2rem !important;
+        min-width: 40px;
       }
     }
 
