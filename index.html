@@ -1621,7 +1621,8 @@
             invoiceItems.push({
               name: `Sellado de Techo - ${state.service || 'Profesional'}`,
               description: `Área: ${Math.round(finalArea).toLocaleString()} ft² × $${totalRate.toFixed(2)}/ft²`,
-              price: materialCost,
+              amount: materialCost,
+              currency: 'USD',
               qty: 1
             });
 
@@ -1630,7 +1631,8 @@
               invoiceItems.push({
                 name: 'Remoción / Manejo de Cisterna',
                 description: 'Servicio adicional de manejo de cisterna',
-                price: 150.00,
+                amount: 150.00,
+                currency: 'USD',
                 qty: 1
               });
             }
@@ -1640,32 +1642,54 @@
               invoiceItems.push({
                 name: 'Remoción / Desmontaje Placas Solares',
                 description: 'Servicio adicional de desmontaje de placas solares',
-                price: 1000.00,
+                amount: 1000.00,
+                currency: 'USD',
                 qty: 1
               });
             }
 
-            // Calculate due date (30 days from now)
+            // IVU Tax item
+            invoiceItems.push({
+              name: 'IVU (11.5%)',
+              description: 'Impuesto sobre Ventas y Uso',
+              amount: tax,
+              currency: 'USD',
+              qty: 1
+            });
+
+            // Calculate dates
+            const today = new Date();
+            const issueDate = today.toISOString().split('T')[0];
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
 
+            // Format phone for E.164
+            const formatPhone = (p) => {
+              const digits = p.replace(/\D/g, '');
+              return digits.startsWith('1') ? `+${digits}` : `+1${digits}`;
+            };
+
             const invoiceData = {
+              altId: ghlLocationId,
+              altType: 'location',
               contactId: contactId,
-              name: `Cotización Sellado - ${name}`,
-              title: 'Cotización de Sellado de Techo',
+              name: `Cotización - ${name}`,
+              issueDate: issueDate,
               dueDate: dueDate.toISOString().split('T')[0],
               status: 'draft',
               currency: 'USD',
               items: invoiceItems,
-              amountDue: grandTotal,
               businessDetails: {
                 name: 'Sella El Techo',
-                address: 'Puerto Rico',
-                phone: '(787) 123-4567',
+                phoneNo: '+17879876543',
                 email: 'info@sellaeltecho.com'
               },
-              invoiceNote: `Cotización generada automáticamente desde el Cotizador Online.\n\nDetalles:\n- Área: ${Math.round(finalArea).toLocaleString()} ft²\n- Servicio: ${state.service || 'No especificado'}\n- IVU (11.5%): $${tax.toFixed(2)}\n\n* Precio sujeto a inspección física final`,
-              terms: 'Precio válido por 30 días. Sujeto a inspección física final.'
+              contactDetails: {
+                id: contactId,
+                name: name,
+                email: email,
+                phoneNo: formatPhone(phone)
+              }
             };
 
             console.log("Creating invoice in GHL:", invoiceData);
