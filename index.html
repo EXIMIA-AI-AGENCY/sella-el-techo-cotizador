@@ -2642,15 +2642,15 @@ ${state.pinLocation.mapsUrl}` : ''}
               email: 'info@sellaeltecho.com'
             };
 
-            // Required contact details
+            // Required contact details - must include id!
             const contactDetails = {
+              id: String(contactId),
               name: sanitize(name || 'Cliente'),
               email: sanitize(email || 'cliente@email.com'),
               phone: formatPhoneE164(phone)
             };
 
             // Base invoice data with ALL required fields
-            // Using invoiceItems (not items) per GHL API documentation
             const baseInvoice = {
               altId: String(ghlLocationId),
               altType: 'location',
@@ -2663,7 +2663,7 @@ ${state.pinLocation.mapsUrl}` : ''}
               dueDate: dueDate,
               businessDetails: businessDetails,
               contactDetails: contactDetails,
-              invoiceItems: invoiceItems
+              items: invoiceItems
             };
 
             let invoiceCreated = false;
