@@ -657,10 +657,17 @@
       #step1 .col-md-5,
       #step3 .col-md-5,
       #step4 .col-md-5,
+      #step5 .col-md-4,
       #step5 .col-md-5 {
         flex: 0 0 50% !important;
         max-width: 50% !important;
         padding: 5px !important;
+      }
+
+      /* Step 5 service cards - need more space for text */
+      #step5 .option-card h5 {
+        font-size: 0.75rem !important;
+        white-space: nowrap;
       }
 
       /* Cards in steps 3, 4, 5 - smaller height since no image inside */
@@ -875,6 +882,17 @@
       #step4 .option-card,
       #step5 .option-card {
         height: 70px !important;
+      }
+
+      /* Step 5 col-md-4 fix */
+      #step5 .col-md-4 {
+        flex: 0 0 50% !important;
+        max-width: 50% !important;
+        padding: 4px !important;
+      }
+
+      #step5 .option-card h5 {
+        font-size: 0.7rem !important;
       }
 
       .total-row {
