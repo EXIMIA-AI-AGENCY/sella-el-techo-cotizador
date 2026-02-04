@@ -2475,6 +2475,78 @@
         });
       }
 
+      // STEP 1: Add explicit click listeners for mobile
+      const step1Cards = document.querySelectorAll('#step1 .option-card');
+      step1Cards.forEach((card, index) => {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Step1 card clicked:", index);
+          const knows = index === 0; // First card = true (Sí), Second card = false (No)
+          setKnowsSqFt(knows, this);
+        });
+        // Also add touch event for better mobile support
+        card.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          console.log("Step1 card touched:", index);
+          const knows = index === 0;
+          setKnowsSqFt(knows, this);
+        });
+      });
+
+      // STEP 3 (Cistern): Add explicit click listeners
+      const step3Cards = document.querySelectorAll('#step3 .option-card');
+      step3Cards.forEach((card, index) => {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Step3 card clicked:", index);
+          const hasCistern = index === 1; // First = No, Second = Sí
+          setOption('cistern', hasCistern, this);
+        });
+        card.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          const hasCistern = index === 1;
+          setOption('cistern', hasCistern, this);
+        });
+      });
+
+      // STEP 4 (Solar): Add explicit click listeners
+      const step4Cards = document.querySelectorAll('#step4 .option-card');
+      step4Cards.forEach((card, index) => {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Step4 card clicked:", index);
+          const hasSolar = index === 1; // First = No, Second = Sí
+          setOption('solar', hasSolar, this);
+        });
+        card.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          const hasSolar = index === 1;
+          setOption('solar', hasSolar, this);
+        });
+      });
+
+      // STEP 5 (Service): Add explicit click listeners
+      const step5Cards = document.querySelectorAll('#step5 .option-card');
+      step5Cards.forEach((card, index) => {
+        card.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log("Step5 card clicked:", index);
+          const service = index === 0 ? 'Silicona' : 'Danosa';
+          setOption('service', service, this);
+        });
+        card.addEventListener('touchend', function(e) {
+          e.preventDefault();
+          const service = index === 0 ? 'Silicona' : 'Danosa';
+          setOption('service', service, this);
+        });
+      });
+
+      console.log("✅ All option card listeners attached");
+
       updateSteps(); // Initial UI Sync
     });
 
