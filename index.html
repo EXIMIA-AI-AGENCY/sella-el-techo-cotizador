@@ -1687,7 +1687,7 @@
         }
 
         // 6. Create Invoice in Draft status
-        const contactId = result.contact?.id;
+        // contactId already defined above from contact creation
         if (contactId) {
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
