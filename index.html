@@ -1557,9 +1557,32 @@
           phone: phone,
           address1: address || '',
           source: 'Cotizador Online',
-          tags: [
-            'cotizador-online',
-            state.service ? state.service.toLowerCase().replace(/\s+/g, '-') : 'sin-servicio'
+          tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
+          customFields: [
+            {
+              key: 'area_pies_cuadrados',
+              value: Math.round(finalArea).toString()
+            },
+            {
+              key: 'valor_cotizacion',
+              value: grandTotal.toFixed(2)
+            },
+            {
+              key: 'tipo_servicio',
+              value: state.service || 'No seleccionado'
+            },
+            {
+              key: 'tiene_cisterna',
+              value: state.cistern ? 'Sí' : 'No'
+            },
+            {
+              key: 'tiene_placas_solares',
+              value: state.solar ? 'Sí' : 'No'
+            },
+            {
+              key: 'direccion_propiedad',
+              value: address || 'No proporcionada'
+            }
           ]
         };
 
