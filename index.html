@@ -2680,8 +2680,12 @@ Sujeto a inspección física final
       } else if (currentStep === 4) {
         valid = state.solar !== null;
       } else if (currentStep === 5) {
-        valid = state.service !== null;
+        // Step 5 is now AC step (step4B)
+        valid = state.ac !== null;
       } else if (currentStep === 6) {
+        // Step 6 is now Service step (step5)
+        valid = state.service !== null;
+      } else if (currentStep === 7) {
         // Contact form validation - OBLIGATORIO llenar todos los campos
         const name = document.getElementById('contactName')?.value?.trim();
         const email = document.getElementById('contactEmail')?.value?.trim();
@@ -2695,6 +2699,9 @@ Sujeto a inspección física final
         if (shake && !valid) {
           alert('⚠️ Por favor completa todos los campos requeridos correctamente');
         }
+      } else if (currentStep === 8) {
+        // Final step - always valid
+        valid = true;
       }
 
       return valid;
