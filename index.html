@@ -589,8 +589,11 @@
         max-height: 100%;
       }
 
-      /* Calendar step needs scrolling */
-      #step2B.active {
+      /* Steps that need scrolling on mobile */
+      #step2B.active,
+      #step5.active,
+      #step6.active,
+      #step7.active {
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
       }
@@ -598,18 +601,6 @@
       #step2B .flex-grow-1 {
         min-height: auto;
         height: auto;
-      }
-
-      /* Contact form step needs scrolling */
-      #step6.active {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      /* Quote summary step needs scrolling */
-      #step7.active {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch;
       }
 
       #map-container {
