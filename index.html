@@ -2235,8 +2235,19 @@
       } else if (currentStep === 5) {
         valid = state.service !== null;
       } else if (currentStep === 6) {
-        // Contact form validation - handled by submitContactAndProceed()
-        valid = true; // Validation happens on submit
+        // Contact form validation - OBLIGATORIO llenar todos los campos
+        const name = document.getElementById('contactName')?.value?.trim();
+        const email = document.getElementById('contactEmail')?.value?.trim();
+        const phone = document.getElementById('contactPhone')?.value?.trim();
+        const consent = document.getElementById('contactConsent')?.checked;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        valid = name && email && phone && consent &&
+                emailRegex.test(email) && phone.length >= 10;
+
+        if (shake && !valid) {
+          alert('⚠️ Por favor completa todos los campos requeridos correctamente');
+        }
       }
 
       return valid;
