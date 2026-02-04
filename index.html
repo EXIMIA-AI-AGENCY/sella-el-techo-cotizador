@@ -1878,7 +1878,7 @@
         const contactData = {
           locationId: ghlLocationId,
           firstName: firstName,
-          lastName: lastName || 'Cliente',
+          lastName: lastName,
           email: email,
           phone: phone,
           address1: address || '',
@@ -2213,8 +2213,8 @@ Sujeto a inspección física final
         state.contactPhone = phone;
         state.contactAddress = address;
 
-        // 8. Navigate to Step 7 (Quote Summary)
-        currentStep = 7;
+        // 8. Navigate to Step 8 (Final Quote Summary)
+        currentStep = 8;
         showStep('step7');
         updateSteps();
 
