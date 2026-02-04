@@ -1051,6 +1051,225 @@
         /* Space for chat widget on right side */
       }
     }
+
+    /* ========================================
+       HEIGHT-BASED BREAKPOINTS FOR SMALL PHONES
+       iPhone SE/8: ~667px height in browser
+       iPhone 5/SE1: ~568px height
+       ======================================== */
+
+    /* Medium-small height devices (iPhone SE, iPhone 8, etc.) */
+    @media (max-width: 768px) and (max-height: 700px) {
+      .wizard-container {
+        padding-bottom: 60px;
+      }
+
+      .w-header {
+        padding: 4px 10px !important;
+      }
+
+      .w-header img {
+        max-height: 35px !important;
+      }
+
+      h3 {
+        font-size: 0.9rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* Hide large step images on small height screens */
+      #step3 > div > .img-3d,
+      #step4 > div > .img-3d,
+      #step4B > div > h1,
+      #step5 > div > .img-3d {
+        max-height: 50px !important;
+        max-width: 60px !important;
+        margin-bottom: 5px !important;
+      }
+
+      /* Smaller cards */
+      .option-card {
+        height: auto !important;
+        min-height: 60px !important;
+        padding: 8px 6px !important;
+      }
+
+      #step3 .option-card,
+      #step4 .option-card,
+      #step4B .option-card {
+        height: 60px !important;
+        min-height: auto !important;
+      }
+
+      .option-card h5 {
+        font-size: 0.75rem !important;
+        margin-top: 4px !important;
+        margin-bottom: 2px !important;
+      }
+
+      .option-card small {
+        font-size: 0.6rem !important;
+      }
+
+      /* Danosa options - much more compact */
+      #danosaOptions {
+        padding: 8px !important;
+        margin-top: 8px !important;
+      }
+
+      #danosaOptions h5 {
+        font-size: 0.8rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      #danosaOptions p {
+        font-size: 0.75rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      #danosaOptions .d-flex {
+        gap: 4px !important;
+      }
+
+      #danosaOptions .btn {
+        padding: 6px 8px !important;
+        font-size: 0.7rem !important;
+        min-height: 32px !important;
+      }
+
+      #layersInput {
+        margin-top: 6px !important;
+      }
+
+      #layersInput .btn {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 0.9rem !important;
+      }
+
+      #layersInput #layerCount {
+        font-size: 1rem !important;
+        min-width: 35px !important;
+      }
+
+      /* Step 5 specific - service cards */
+      #step5 .option-card {
+        height: 65px !important;
+        min-height: auto !important;
+      }
+
+      #step5 .option-card h5 {
+        font-size: 0.65rem !important;
+      }
+
+      #step5 .option-card small {
+        font-size: 0.55rem !important;
+      }
+
+      /* Row spacing */
+      .row.g-3, .row.g-4 {
+        --bs-gutter-y: 6px !important;
+        --bs-gutter-x: 6px !important;
+      }
+
+      /* Back button */
+      #backButtonContainer {
+        padding-top: 4px !important;
+      }
+    }
+
+    /* Very small height devices (iPhone 5/SE1, small Android) */
+    @media (max-width: 768px) and (max-height: 600px) {
+      .wizard-container {
+        padding-bottom: 50px;
+      }
+
+      .w-header {
+        padding: 3px 8px !important;
+      }
+
+      .w-header img {
+        max-height: 28px !important;
+      }
+
+      h3 {
+        font-size: 0.85rem !important;
+        margin-bottom: 5px !important;
+      }
+
+      /* Hide images completely on very small screens */
+      #step3 > div > .img-3d,
+      #step4 > div > .img-3d,
+      #step4B > div > h1,
+      #step5 > div > .img-3d {
+        display: none !important;
+      }
+
+      /* Even smaller cards */
+      .option-card {
+        min-height: 50px !important;
+        padding: 6px 5px !important;
+      }
+
+      #step3 .option-card,
+      #step4 .option-card,
+      #step4B .option-card {
+        height: 50px !important;
+      }
+
+      #step5 .option-card {
+        height: 55px !important;
+      }
+
+      .option-card h5 {
+        font-size: 0.7rem !important;
+        margin-top: 3px !important;
+      }
+
+      .option-card small {
+        font-size: 0.55rem !important;
+        line-height: 1 !important;
+      }
+
+      /* Ultra compact danosa options */
+      #danosaOptions {
+        padding: 6px !important;
+        margin-top: 5px !important;
+      }
+
+      #danosaOptions h5 {
+        font-size: 0.75rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #danosaOptions p {
+        font-size: 0.7rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #danosaOptions .btn {
+        padding: 5px 6px !important;
+        font-size: 0.65rem !important;
+        min-height: 28px !important;
+      }
+
+      #layersInput .btn {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 0.85rem !important;
+      }
+
+      #layersInput #layerCount {
+        font-size: 0.9rem !important;
+        min-width: 30px !important;
+      }
+
+      /* Row spacing */
+      .row.g-3, .row.g-4 {
+        --bs-gutter-y: 4px !important;
+        --bs-gutter-x: 4px !important;
+      }
+    }
   </style>
 </head>
 
@@ -1062,7 +1281,7 @@
     <div class="w-header">
       <img src="assets/logo_white_ps.png" alt="Sella El Techo"
         style="max-height: 450px; width: auto; object-fit: contain;">
-      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 7</div>
+      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 8</div>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
