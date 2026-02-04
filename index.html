@@ -2485,72 +2485,14 @@ ${state.pinLocation.mapsUrl}` : ''}
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
 
-            // Build line items for the invoice - GHL API uses: name, amount, qty, currency
-            const invoiceItems = [];
-
-            // Main service item
-            invoiceItems.push({
-              name: `Sellado de Techo - ${state.service || 'Profesional'}`,
-              description: `Area: ${Math.round(finalArea)} ft2`,
-              amount: Math.round(materialCost * 100) / 100,
+            // Build single line item with total - simplest format for GHL API
+            const invoiceItems = [{
+              name: 'Sellado de Techo Profesional',
+              amount: Math.round(grandTotal),
               qty: 1,
-              currency: 'USD'
-            });
-
-            // Cistern if applicable
-            if (state.cistern) {
-              invoiceItems.push({
-                name: 'Remocion Cisterna',
-                description: 'Manejo de cisterna',
-                amount: 150.00,
-                qty: 1,
-                currency: 'USD'
-              });
-            }
-
-            // Solar panels if applicable
-            if (state.solar) {
-              invoiceItems.push({
-                name: 'Desmontaje Placas Solares',
-                description: 'Remocion de placas solares',
-                amount: 1000.00,
-                qty: 1,
-                currency: 'USD'
-              });
-            }
-
-            // Air conditioning if applicable
-            if (state.ac) {
-              invoiceItems.push({
-                name: 'Proteccion Aire Acondicionado',
-                description: 'Proteccion de unidad de AC',
-                amount: 200.00,
-                qty: 1,
-                currency: 'USD'
-              });
-            }
-
-            // Membrane removal surcharge if applicable (Danosa with layers >= 2)
-            if (state.service === 'Danosa' && state.removal && state.layers >= 2) {
-              const extraLayers = state.layers - 1;
-              const removalCost = extraLayers * 1.00 * finalArea;
-              invoiceItems.push({
-                name: `Remocion de ${extraLayers} Membranas`,
-                description: `${extraLayers} capas adicionales`,
-                amount: Math.round(removalCost * 100) / 100,
-                qty: 1,
-                currency: 'USD'
-              });
-            }
-
-            // IVU Tax item
-            invoiceItems.push({
-              name: 'IVU 11.5%',
-              description: 'Impuesto',
-              amount: Math.round(tax * 100) / 100,
-              qty: 1,
-              currency: 'USD'
-            });
+              currency: 'USD',
+              taxes: []
+            }];
 
             // Calculate dates
             const today = new Date();
@@ -2558,17 +2500,15 @@ ${state.pinLocation.mapsUrl}` : ''}
             const dueDate = new Date();
             dueDate.setDate(dueDate.getDate() + 30);
 
-            // Main invoice data - using correct GHL API fields
+            // Main invoice data - minimal required fields
             const invoiceData = {
               altId: ghlLocationId,
               altType: 'location',
               contactId: contactId,
-              name: `Cotizacion - ${name.substring(0, 30)}`,
-              issueDate: issueDate,
-              dueDate: dueDate.toISOString().split('T')[0],
+              name: 'Cotizacion Sellado de Techo',
               status: 'draft',
               currency: 'USD',
-              items: invoiceItems
+              invoiceItems: invoiceItems
             };
 
             console.log("Creating invoice in GHL:", JSON.stringify(invoiceData, null, 2));
@@ -2602,61 +2542,59 @@ ${state.pinLocation.mapsUrl}` : ''}
             let invoiceCreated = false;
 
             // Strategy 1: Full invoice with all items
+            // Try with invoiceItems field name first
             try {
-              const result = await tryCreateInvoice(invoiceData, 'full');
+              const result = await tryCreateInvoice(invoiceData, 'invoiceItems');
               state.invoiceId = result.invoice?.id || result.id;
               invoiceCreated = true;
             } catch (e1) {
-              console.warn('Strategy 1 failed:', e1.message);
+              console.warn('Strategy 1 (invoiceItems) failed:', e1.message);
 
-              // Strategy 2: Simplified - single line item with total
+              // Strategy 2: Try with 'items' field name instead
               try {
                 await new Promise(r => setTimeout(r, 500));
-                const simpleInvoice = {
+                const itemsInvoice = {
                   altId: ghlLocationId,
                   altType: 'location',
                   contactId: contactId,
-                  name: 'Cotizacion Sella El Techo',
-                  issueDate: issueDate,
-                  dueDate: dueDate.toISOString().split('T')[0],
+                  name: 'Cotizacion Sellado',
                   status: 'draft',
                   currency: 'USD',
                   items: [{
-                    name: 'Sellado de Techo Profesional',
-                    description: 'Incluye materiales mano de obra e IVU',
-                    amount: Math.round(grandTotal * 100) / 100,
+                    name: 'Sellado de Techo',
+                    amount: Math.round(grandTotal),
                     qty: 1,
-                    currency: 'USD'
+                    currency: 'USD',
+                    taxes: []
                   }]
                 };
-                const result = await tryCreateInvoice(simpleInvoice, 'simple');
+                const result = await tryCreateInvoice(itemsInvoice, 'items');
                 state.invoiceId = result.invoice?.id || result.id;
                 invoiceCreated = true;
               } catch (e2) {
-                console.warn('Strategy 2 failed:', e2.message);
+                console.warn('Strategy 2 (items) failed:', e2.message);
 
-                // Strategy 3: Minimal - just required fields
+                // Strategy 3: Try with lineItems
                 try {
                   await new Promise(r => setTimeout(r, 500));
-                  const minimalInvoice = {
+                  const lineItemsInvoice = {
                     altId: ghlLocationId,
                     altType: 'location',
                     contactId: contactId,
                     name: 'Cotizacion',
                     status: 'draft',
                     currency: 'USD',
-                    items: [{
-                      name: 'Servicio de Sellado',
+                    lineItems: [{
+                      name: 'Servicio',
                       amount: Math.round(grandTotal),
-                      qty: 1,
-                      currency: 'USD'
+                      qty: 1
                     }]
                   };
-                  const result = await tryCreateInvoice(minimalInvoice, 'minimal');
+                  const result = await tryCreateInvoice(lineItemsInvoice, 'lineItems');
                   state.invoiceId = result.invoice?.id || result.id;
                   invoiceCreated = true;
                 } catch (e3) {
-                  console.error('All invoice strategies failed');
+                  console.error('All invoice strategies failed:', e3.message);
                   state.invoiceErrorMsg = e3.message;
                 }
               }
