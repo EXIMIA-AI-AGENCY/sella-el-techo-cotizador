@@ -453,7 +453,7 @@
       justify-content: space-between;
     }
 
-    /* Mobile Responsiveness - Enhanced */
+    /* Mobile Responsiveness - No Scroll Design */
     @media (max-width: 768px) {
       body {
         padding: 0 !important;
@@ -487,59 +487,195 @@
         margin: 0 !important;
       }
 
+      /* Compact header for mobile */
       .w-header {
-        padding: 8px 15px;
-        flex-wrap: wrap;
-        gap: 5px;
+        padding: 5px 10px;
+        flex-wrap: nowrap;
+        gap: 0;
         flex-shrink: 0;
       }
 
       .w-header img {
-        max-height: 180px !important;
+        max-height: 60px !important;
       }
 
       .w-header .small {
-        font-size: 0.75rem !important;
+        display: none !important;
+      }
+
+      .progress-track {
+        height: 4px;
       }
 
       #backButtonContainer {
         flex-shrink: 0;
-        padding: 5px 15px !important;
+        padding: 3px 10px !important;
       }
 
+      #backButtonContainer .btn {
+        padding: 4px 10px !important;
+        font-size: 0.8rem !important;
+      }
+
+      /* Step content - NO SCROLL by default */
       .step-content {
-        padding: 10px 15px;
-        overflow: hidden;
-      }
-
-      .step-content.active {
+        padding: 8px 12px;
+        overflow: hidden !important;
         flex: 1;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
-        padding-top: 20px;
+      }
+
+      .step-content.active {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding-top: 5px;
       }
 
       .step-content > div {
         max-height: 100%;
+        width: 100%;
       }
 
-      /* Steps that need scrolling on mobile */
-      #step1.active,
-      #step2A.active,
-      #step2B.active,
-      #step3.active,
-      #step4.active,
-      #step5.active,
+      /* ONLY contact form and quote need scrolling */
       #step6.active,
-      #step7.active {
+      #step7.active,
+      #step2B.active {
         overflow-y: auto !important;
         -webkit-overflow-scrolling: touch;
+        justify-content: flex-start !important;
       }
 
-      #step2B .flex-grow-1 {
+      /* Compact typography */
+      h1 {
+        font-size: 1.2rem !important;
+        margin-bottom: 0.3rem !important;
+      }
+
+      h2 {
+        font-size: 1rem !important;
+        margin-bottom: 0.3rem !important;
+      }
+
+      h3 {
+        font-size: 0.95rem !important;
+        margin-bottom: 0.2rem !important;
+      }
+
+      h4 {
+        font-size: 0.9rem !important;
+      }
+
+      h5 {
+        font-size: 0.85rem !important;
+      }
+
+      p.text-muted {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.3rem !important;
+      }
+
+      /* Compact option cards - fit 2 in view */
+      .option-card {
+        padding: 10px 8px;
         min-height: auto;
-        height: auto;
+        border-width: 2px;
+      }
+
+      .option-card h5 {
+        font-size: 0.9rem !important;
+        margin-top: 5px !important;
+        margin-bottom: 2px !important;
+      }
+
+      .option-card small {
+        font-size: 0.7rem !important;
+        line-height: 1.2;
+      }
+
+      /* Compact images in cards */
+      .option-card .img-3d,
+      .option-card img {
+        max-height: 70px !important;
+        margin-bottom: 5px !important;
+      }
+
+      #serviceImg {
+        max-height: 60px !important;
+      }
+
+      /* Grid spacing */
+      .row.g-3 {
+        --bs-gutter-y: 8px;
+        --bs-gutter-x: 8px;
+      }
+
+      .row.g-4 {
+        --bs-gutter-y: 8px;
+        --bs-gutter-x: 8px;
+      }
+
+      /* Step 1 specific - 2 cards side by side */
+      #step1 .row {
+        flex-wrap: nowrap !important;
+      }
+
+      #step1 .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 4px !important;
+      }
+
+      /* Step 2A specific - compact */
+      #step2A .text-center {
+        padding: 0 !important;
+      }
+
+      #step2A h3 {
+        margin-bottom: 0.3rem !important;
+      }
+
+      #step2A p.text-muted {
+        margin-bottom: 0.5rem !important;
+      }
+
+      #step2A .row {
+        margin-top: 0.5rem !important;
+      }
+
+      /* Step 3 specific - 2 cards side by side */
+      #step3 .row {
+        flex-wrap: nowrap !important;
+      }
+
+      #step3 .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 4px !important;
+      }
+
+      /* Step 4 specific - 2 cards side by side */
+      #step4 .row {
+        flex-wrap: nowrap !important;
+      }
+
+      #step4 .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 4px !important;
+      }
+
+      /* Step 5 specific - 2 cards side by side */
+      #step5 .row {
+        flex-wrap: nowrap !important;
+      }
+
+      #step5 .col-md-6 {
+        flex: 0 0 50%;
+        max-width: 50%;
+        padding: 4px !important;
       }
 
       #map-container {
@@ -547,82 +683,39 @@
       }
 
       .search-lg {
-        font-size: 1rem;
-        padding: 10px 14px;
-      }
-
-      h1 {
-        font-size: 1.5rem !important;
-      }
-
-      h2 {
-        font-size: 1.2rem !important;
-        margin-bottom: 0.5rem !important;
-      }
-
-      h3 {
-        font-size: 1.1rem !important;
-      }
-
-      h4 {
-        font-size: 1rem !important;
-      }
-
-      h5 {
-        font-size: 0.9rem !important;
-      }
-
-      /* Improved option cards for touch */
-      .option-card {
-        padding: 15px 10px;
-        min-height: auto;
-        border-width: 2px;
-        /* More visible */
-      }
-
-      .option-card h5 {
-        font-size: 1.1rem !important;
-        margin-top: 10px !important;
-      }
-
-      .option-card small {
-        font-size: 0.9rem !important;
-      }
-
-      /* Better spacing for option grids */
-      .row.g-3 {
-        gap: 15px !important;
+        font-size: 0.9rem;
+        padding: 8px 12px;
       }
 
       /* Summary table improvements */
       .summary-table td {
-        padding: 8px 0;
-        font-size: 0.9rem;
+        padding: 6px 0;
+        font-size: 0.85rem;
       }
 
       .summary-table .price {
-        font-size: 1.05rem;
+        font-size: 0.95rem;
       }
 
-      /* Professional quote improvements on mobile */
+      /* Contact form step - allow scroll */
       #step6 h3 {
-        font-size: 1.4rem !important;
+        font-size: 1.1rem !important;
       }
 
       #step6 .total-row {
-        font-size: 1.2rem;
-        padding-top: 15px;
+        font-size: 1rem;
+        padding-top: 10px;
       }
 
       /* Quote content box */
       #quoteContent {
-        padding: 20px 16px !important;
+        padding: 12px !important;
       }
 
       /* Input improvements */
       input[type="number"] {
-        font-size: 1.5rem !important;
-        padding: 18px !important;
+        font-size: 1.2rem !important;
+        padding: 12px !important;
         text-align: center;
         -webkit-appearance: none;
         -moz-appearance: textfield;
@@ -638,16 +731,7 @@
       /* Floating area badge on map */
       #map-container .position-absolute {
         max-width: 95% !important;
-        margin: 10px !important;
-      }
-
-      /* Images */
-      .img-3d {
-        max-height: 140px !important;
-      }
-
-      #serviceImg {
-        max-height: 120px !important;
+        margin: 8px !important;
       }
 
       /* Calendar iframe */
@@ -655,59 +739,76 @@
         min-height: 70vh !important;
       }
 
-      /* Danosa options */
+      /* Danosa options - compact */
       #danosaOptions {
-        padding: 20px 15px !important;
-        margin-top: 20px !important;
+        padding: 10px !important;
+        margin-top: 10px !important;
+      }
+
+      #danosaOptions h5 {
+        font-size: 0.85rem !important;
+        margin-bottom: 8px !important;
       }
 
       #danosaOptions .btn {
-        padding: 12px 18px !important;
-        font-size: 0.95rem !important;
-        min-height: 48px;
-        /* Touch friendly */
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+        min-height: 40px;
       }
 
       /* Layer adjustment buttons */
       #layersInput .btn {
-        width: 44px;
-        height: 44px;
-        font-size: 1.2rem;
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
         padding: 0;
       }
 
       #layersInput #layerCount {
-        font-size: 1.8rem !important;
-        min-width: 60px;
+        font-size: 1.4rem !important;
+        min-width: 50px;
       }
 
-      /* Action buttons (Continuar, etc) */
+      /* Action buttons - more compact */
       .btn-warning {
-        font-size: 1.1rem !important;
-        padding: 15px 30px !important;
-        min-height: 54px;
+        font-size: 0.95rem !important;
+        padding: 10px 20px !important;
+        min-height: 44px;
       }
 
       /* PDF Download button */
       .btn-success {
-        font-size: 1rem !important;
-        padding: 12px 20px !important;
-        min-height: 50px;
-      }
-
-      /* Quote content box */
-      #quoteContent {
-        padding: 20px 15px !important;
+        font-size: 0.9rem !important;
+        padding: 10px 16px !important;
+        min-height: 44px;
       }
 
       /* Better text sizing */
       p {
-        font-size: 1rem;
-        line-height: 1.5;
+        font-size: 0.9rem;
+        line-height: 1.4;
       }
 
       small {
-        font-size: 0.875rem !important;
+        font-size: 0.75rem !important;
+      }
+
+      /* Margins and paddings - compact */
+      .mb-4 {
+        margin-bottom: 0.4rem !important;
+      }
+
+      .mt-4 {
+        margin-top: 0.4rem !important;
+      }
+
+      .mb-3 {
+        margin-bottom: 0.3rem !important;
+      }
+
+      .py-3 {
+        padding-top: 0.4rem !important;
+        padding-bottom: 0.4rem !important;
       }
 
       /* Prevent zoom on focus for iOS */
@@ -718,82 +819,108 @@
       input[type="email"],
       input[type="tel"] {
         font-size: 16px !important;
-        /* Prevents zoom on iOS */
       }
     }
 
     /* Extra small devices (phones in portrait) */
     @media (max-width: 576px) {
       .w-header img {
-        max-height: 150px !important;
+        max-height: 50px !important;
       }
 
       .w-header {
-        padding: 5px 10px !important;
+        padding: 4px 8px !important;
       }
 
       h2 {
-        font-size: 1.1rem !important;
+        font-size: 0.95rem !important;
       }
 
       h3 {
-        font-size: 1rem !important;
+        font-size: 0.9rem !important;
       }
 
       .option-card {
-        padding: 12px 10px;
+        padding: 8px 6px;
       }
 
       .option-card h1 {
-        font-size: 1.5rem !important;
+        font-size: 1.2rem !important;
         margin-bottom: 0 !important;
       }
 
-      .option-card h3 {
-        font-size: 0.95rem !important;
-        margin-top: 0.3rem !important;
+      .option-card h3,
+      .option-card h5 {
+        font-size: 0.8rem !important;
+        margin-top: 3px !important;
       }
 
       .option-card small {
-        font-size: 0.75rem !important;
+        font-size: 0.65rem !important;
+        display: block;
+        line-height: 1.1;
+      }
+
+      .option-card .img-3d,
+      .option-card img {
+        max-height: 55px !important;
       }
 
       .total-row {
-        font-size: 1rem;
+        font-size: 0.9rem;
         flex-direction: column;
         align-items: flex-end;
-        gap: 3px;
-      }
-
-      .row.g-4 {
-        --bs-gutter-y: 0.5rem;
-        --bs-gutter-x: 0.5rem;
-      }
-
-      .mb-4 {
-        margin-bottom: 0.5rem !important;
-      }
-
-      .mt-4 {
-        margin-top: 0.5rem !important;
-      }
-
-      .py-3 {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
+        gap: 2px;
       }
 
       input[type="number"] {
-        font-size: 1.1rem !important;
-        padding: 10px !important;
+        font-size: 1rem !important;
+        padding: 8px !important;
       }
 
       #quoteContent {
-        padding: 10px !important;
+        padding: 8px !important;
       }
 
       #quoteContent table {
-        font-size: 0.85rem;
+        font-size: 0.8rem;
+      }
+
+      /* Even more compact buttons */
+      .btn-warning {
+        font-size: 0.9rem !important;
+        padding: 8px 16px !important;
+        min-height: 40px;
+      }
+
+      #danosaOptions {
+        padding: 8px !important;
+        margin-top: 8px !important;
+      }
+
+      #danosaOptions .d-flex {
+        gap: 5px !important;
+      }
+
+      #danosaOptions .btn {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        min-height: 36px;
+      }
+
+      #layersInput {
+        margin-top: 8px !important;
+      }
+
+      #layersInput .btn {
+        width: 32px;
+        height: 32px;
+        font-size: 0.9rem;
+      }
+
+      #layersInput #layerCount {
+        font-size: 1.2rem !important;
+        min-width: 40px;
       }
     }
 
