@@ -2337,6 +2337,14 @@ ${state.pinLocation.mapsUrl}` : ''}
           } catch (verifyError) {
             console.warn('⚠️ Could not verify contact:', verifyError.message);
           }
+
+          // Validate contactId before creating invoice
+          if (!contactId || typeof contactId !== 'string' || contactId.length < 5) {
+            console.error('❌ Invalid contactId for invoice:', contactId);
+            state.invoiceErrorMsg = 'ContactId inválido - no se puede crear invoice';
+            throw new Error('Invalid contactId');
+          }
+
           try {
             const invoiceApiUrl = 'https://services.leadconnectorhq.com/invoices/';
 
@@ -2467,14 +2475,14 @@ Sujeto a inspección física final
               items: invoiceItems,
               businessDetails: {
                 name: 'Sella El Techo',
-                phoneNo: '+17879876543',
+                phone: '+17879876543',
                 email: 'info@sellaeltecho.com'
               },
               contactDetails: {
                 id: contactId,
                 name: name,
                 email: email,
-                phoneNo: formatPhone(phone)
+                phone: formatPhone(phone)
               },
               description: invoiceDescription,
               termsNotes: 'Precio válido por 30 días. Sujeto a inspección física final. Garantía incluida.'
