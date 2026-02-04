@@ -1964,156 +1964,192 @@
     }
 
     // PDF Download Function
-    function downloadPDF() {
-      // Get current date for filename
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('es-PR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\//g, '-');
+    async function downloadPDF() {
+      // Show loading state on button
+      const downloadBtn = document.querySelector('button[onclick="downloadPDF()"]');
+      const originalText = downloadBtn ? downloadBtn.innerHTML : '';
+      if (downloadBtn) {
+        downloadBtn.innerHTML = '⏳ Generando PDF...';
+        downloadBtn.disabled = true;
+      }
 
-      // Get customer name if available
-      const customerName = document.getElementById('inputNombre')?.value || 'Cliente';
-      const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
+      try {
+        // Get current date for filename
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('es-PR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).replace(/\//g, '-');
 
-      // Create PDF container
-      const pdfContainer = document.createElement('div');
-      pdfContainer.id = 'pdfContent';
-      pdfContainer.style.cssText = `
-        width: 210mm;
-        padding: 20mm;
-        background: #0a192f;
-        color: #ffffff;
-        font-family: 'Inter', Arial, sans-serif;
-      `;
+        // Get customer name if available
+        const customerName = document.getElementById('inputNombre')?.value || 'Cliente';
+        const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
 
-      // Get quote values from the DOM
-      const areaRaw = document.getElementById('sumAreaRaw')?.innerText || '0';
-      const wastePercent = document.getElementById('lblWaste')?.innerText || '15';
-      const wasteAmount = document.getElementById('sumWaste')?.innerText || '0';
-      const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || '0 ft²';
-      const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
-      const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
-      const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
-      const showCistern = document.getElementById('rowCistern')?.style.display !== 'none';
-      const showSolar = document.getElementById('rowSolar')?.style.display !== 'none';
-
-      // Get service type
-      const serviceType = state.service || 'Sellado Profesional';
-
-      // Build PDF HTML content
-      pdfContainer.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px;">
-          <img src="assets/logo_white_ps.png" style="max-width: 200px; height: auto;" crossorigin="anonymous" />
-        </div>
-
-        <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 2px solid #ff9900;">
-          <h1 style="color: #ff9900; font-size: 24px; margin: 0; letter-spacing: 2px;">COTIZACION PROFESIONAL</h1>
-          <p style="color: #94a3b8; font-size: 12px; margin-top: 5px;">Sella El Techo</p>
-        </div>
-
-        <div style="margin-bottom: 20px; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px;">
-          <p style="margin: 5px 0; color: #94a3b8;"><strong style="color: #ffffff;">Cliente:</strong> ${customerName}</p>
-          <p style="margin: 5px 0; color: #94a3b8;"><strong style="color: #ffffff;">Fecha:</strong> ${today.toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
-          <p style="margin: 5px 0; color: #94a3b8;"><strong style="color: #ffffff;">Servicio:</strong> ${serviceType}</p>
-          ${state.address ? `<p style="margin: 5px 0; color: #94a3b8;"><strong style="color: #ffffff;">Direccion:</strong> ${state.address}</p>` : ''}
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <tr style="border-bottom: 1px solid #1a2f4f;">
-            <td style="padding: 12px 0; color: #94a3b8;">Area Geometrica (3D)</td>
-            <td style="padding: 12px 0; text-align: right; color: #ffffff;">${areaRaw} ft²</td>
-          </tr>
-          <tr style="border-bottom: 1px solid #1a2f4f;">
-            <td style="padding: 12px 0; padding-left: 20px; color: #64748b; font-size: 14px;">+ Seguridad (${wastePercent}%)</td>
-            <td style="padding: 12px 0; text-align: right; color: #64748b; font-size: 14px;">+${wasteAmount} ft²</td>
-          </tr>
-          <tr style="border-bottom: 2px solid #ff9900;">
-            <td style="padding: 12px 0; font-weight: bold; color: #ffffff;">Material Requerido</td>
-            <td style="padding: 12px 0; text-align: right; font-weight: bold; color: #ff9900;">${effectiveArea}</td>
-          </tr>
-          <tr>
-            <td style="padding: 15px 0 12px; color: #ffffff;">Precio Base</td>
-            <td style="padding: 15px 0 12px; text-align: right; color: #ffffff;">${basePrice}</td>
-          </tr>
-          ${showCistern ? `
-          <tr>
-            <td style="padding: 12px 0; color: #ffffff;">Remocion / Manejo de Cisterna</td>
-            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$150.00</td>
-          </tr>
-          ` : ''}
-          ${showSolar ? `
-          <tr>
-            <td style="padding: 12px 0; color: #ffffff;">Remocion / Desmontaje Placas Solares</td>
-            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$1,000.00</td>
-          </tr>
-          ` : ''}
-          <tr style="border-top: 1px solid #1a2f4f;">
-            <td style="padding: 12px 0; color: #94a3b8;">IVU (11.5%)</td>
-            <td style="padding: 12px 0; text-align: right; color: #94a3b8;">${taxAmount}</td>
-          </tr>
-        </table>
-
-        <div style="background: rgba(255, 153, 0, 0.15); border: 2px solid #ff9900; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 20px; font-weight: bold; color: #ffffff;">TOTAL</span>
-            <span style="font-size: 28px; font-weight: bold; color: #ff9900;">${totalAmount}</span>
-          </div>
-        </div>
-
-        <div style="background: rgba(255, 153, 0, 0.05); border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 25px;">
-          <p style="margin: 0; color: #94a3b8; font-size: 12px;">
-            <span style="color: #ff9900;">*</span> Precio sujeto a inspeccion fisica final
-          </p>
-        </div>
-
-        <div style="border-top: 1px solid #1a2f4f; padding-top: 20px; text-align: center;">
-          <p style="color: #94a3b8; font-size: 12px; margin: 5px 0;">
-            <strong style="color: #ff9900;">Sella El Techo</strong> - Sellado Profesional de Techos
-          </p>
-          <p style="color: #64748b; font-size: 11px; margin: 5px 0;">
-            Tel: (787) 123-4567 | info@sellaeltecho.com
-          </p>
-          <p style="color: #64748b; font-size: 11px; margin: 5px 0;">
-            www.sellaeltecho.com
-          </p>
-        </div>
-      `;
-
-      // Append to body temporarily (hidden)
-      pdfContainer.style.position = 'absolute';
-      pdfContainer.style.left = '-9999px';
-      document.body.appendChild(pdfContainer);
-
-      // Configure html2pdf options
-      const opt = {
-        margin: 0,
-        filename: `Cotizacion_${sanitizedName}_${dateStr}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#0a192f',
-          logging: false
-        },
-        jsPDF: {
-          unit: 'mm',
-          format: 'letter',
-          orientation: 'portrait'
+        // Convert logo to base64 to avoid CORS issues
+        let logoBase64 = '';
+        try {
+          const logoImg = new Image();
+          logoImg.crossOrigin = 'anonymous';
+          await new Promise((resolve, reject) => {
+            logoImg.onload = resolve;
+            logoImg.onerror = reject;
+            logoImg.src = 'assets/logo_white_ps.png?' + Date.now();
+          });
+          const canvas = document.createElement('canvas');
+          canvas.width = logoImg.naturalWidth;
+          canvas.height = logoImg.naturalHeight;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(logoImg, 0, 0);
+          logoBase64 = canvas.toDataURL('image/png');
+        } catch (e) {
+          console.warn('Could not load logo:', e);
         }
-      };
 
-      // Generate and download PDF
-      html2pdf().set(opt).from(pdfContainer).save().then(() => {
-        // Clean up: remove temporary container
+        // Get quote values from the DOM
+        const areaRaw = document.getElementById('sumAreaRaw')?.innerText || '0';
+        const wastePercent = document.getElementById('lblWaste')?.innerText || '15';
+        const wasteAmount = document.getElementById('sumWaste')?.innerText || '0';
+        const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || '0 ft²';
+        const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
+        const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
+        const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
+        const showCistern = document.getElementById('rowCistern')?.style.display !== 'none';
+        const showSolar = document.getElementById('rowSolar')?.style.display !== 'none';
+
+        // Get service type
+        const serviceType = state.service || 'Sellado Profesional';
+
+        // Create PDF container
+        const pdfContainer = document.createElement('div');
+        pdfContainer.id = 'pdfContent';
+
+        // Build PDF HTML content - using table layout for better compatibility
+        pdfContainer.innerHTML = `
+          <div style="width: 612px; min-height: 792px; padding: 40px; background: #0a192f; color: #ffffff; font-family: Arial, Helvetica, sans-serif; box-sizing: border-box;">
+
+            ${logoBase64 ? `
+            <div style="text-align: center; margin-bottom: 30px;">
+              <img src="${logoBase64}" style="width: 180px; height: auto;" />
+            </div>
+            ` : ''}
+
+            <div style="text-align: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 3px solid #ff9900;">
+              <div style="color: #ff9900; font-size: 26px; font-weight: bold; letter-spacing: 3px; margin: 0;">COTIZACIÓN PROFESIONAL</div>
+              <div style="color: #94a3b8; font-size: 14px; margin-top: 8px;">Sella El Techo</div>
+            </div>
+
+            <div style="margin-bottom: 25px; padding: 20px; background: #112240; border-radius: 8px;">
+              <div style="margin: 8px 0; color: #94a3b8; font-size: 14px;"><span style="color: #ffffff; font-weight: bold;">Cliente:</span> ${customerName}</div>
+              <div style="margin: 8px 0; color: #94a3b8; font-size: 14px;"><span style="color: #ffffff; font-weight: bold;">Fecha:</span> ${today.toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+              <div style="margin: 8px 0; color: #94a3b8; font-size: 14px;"><span style="color: #ffffff; font-weight: bold;">Servicio:</span> ${serviceType}</div>
+              ${state.address ? `<div style="margin: 8px 0; color: #94a3b8; font-size: 14px;"><span style="color: #ffffff; font-weight: bold;">Dirección:</span> ${state.address}</div>` : ''}
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
+              <tr style="border-bottom: 1px solid #1e3a5f;">
+                <td style="padding: 14px 0; color: #94a3b8; font-size: 15px;">Área Geométrica (3D)</td>
+                <td style="padding: 14px 0; text-align: right; color: #ffffff; font-size: 15px;">${areaRaw} ft²</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #1e3a5f;">
+                <td style="padding: 14px 0; padding-left: 25px; color: #64748b; font-size: 13px;">+ Seguridad (${wastePercent}%)</td>
+                <td style="padding: 14px 0; text-align: right; color: #64748b; font-size: 13px;">+${wasteAmount} ft²</td>
+              </tr>
+              <tr style="border-bottom: 3px solid #ff9900;">
+                <td style="padding: 14px 0; font-weight: bold; color: #ffffff; font-size: 15px;">Material Requerido</td>
+                <td style="padding: 14px 0; text-align: right; font-weight: bold; color: #ff9900; font-size: 15px;">${effectiveArea}</td>
+              </tr>
+              <tr>
+                <td style="padding: 18px 0 14px; color: #ffffff; font-size: 15px;">Precio Base</td>
+                <td style="padding: 18px 0 14px; text-align: right; color: #ffffff; font-size: 15px;">${basePrice}</td>
+              </tr>
+              ${showCistern ? `
+              <tr>
+                <td style="padding: 14px 0; color: #ffffff; font-size: 15px;">Remoción / Manejo de Cisterna</td>
+                <td style="padding: 14px 0; text-align: right; color: #ff9900; font-size: 15px;">+$150.00</td>
+              </tr>
+              ` : ''}
+              ${showSolar ? `
+              <tr>
+                <td style="padding: 14px 0; color: #ffffff; font-size: 15px;">Remoción / Desmontaje Placas Solares</td>
+                <td style="padding: 14px 0; text-align: right; color: #ff9900; font-size: 15px;">+$1,000.00</td>
+              </tr>
+              ` : ''}
+              <tr style="border-top: 1px solid #1e3a5f;">
+                <td style="padding: 14px 0; color: #94a3b8; font-size: 15px;">IVU (11.5%)</td>
+                <td style="padding: 14px 0; text-align: right; color: #94a3b8; font-size: 15px;">${taxAmount}</td>
+              </tr>
+            </table>
+
+            <table style="width: 100%; background: #1a3a5c; border: 3px solid #ff9900; border-radius: 8px; margin-bottom: 25px;">
+              <tr>
+                <td style="padding: 20px 25px; font-size: 22px; font-weight: bold; color: #ffffff;">TOTAL</td>
+                <td style="padding: 20px 25px; text-align: right; font-size: 30px; font-weight: bold; color: #ff9900;">${totalAmount}</td>
+              </tr>
+            </table>
+
+            <div style="background: #112240; border-radius: 8px; padding: 15px; text-align: center; margin-bottom: 30px;">
+              <div style="color: #94a3b8; font-size: 13px;">
+                <span style="color: #ff9900;">*</span> Precio sujeto a inspección física final
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid #1e3a5f; padding-top: 25px; text-align: center;">
+              <div style="color: #ff9900; font-size: 14px; font-weight: bold; margin-bottom: 8px;">Sella El Techo</div>
+              <div style="color: #94a3b8; font-size: 12px;">Sellado Profesional de Techos</div>
+              <div style="color: #64748b; font-size: 11px; margin-top: 10px;">
+                Tel: (787) 370-5765 | www.sellaeltecho.com
+              </div>
+            </div>
+          </div>
+        `;
+
+        // Append to body - use fixed positioning to avoid scroll issues
+        pdfContainer.style.cssText = 'position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none;';
+        document.body.appendChild(pdfContainer);
+
+        // Wait a moment for rendering
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        // Configure html2pdf options
+        const opt = {
+          margin: 0,
+          filename: `Cotizacion_${sanitizedName}_${dateStr}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: {
+            scale: 2,
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#0a192f',
+            logging: false,
+            width: 612,
+            height: 792
+          },
+          jsPDF: {
+            unit: 'px',
+            format: [612, 792],
+            orientation: 'portrait',
+            hotfixes: ['px_scaling']
+          }
+        };
+
+        // Generate and download PDF
+        await html2pdf().set(opt).from(pdfContainer.firstElementChild).save();
+
+        // Clean up
         document.body.removeChild(pdfContainer);
         console.log('PDF downloaded successfully');
-      }).catch(err => {
+
+      } catch (err) {
         console.error('Error generating PDF:', err);
-        document.body.removeChild(pdfContainer);
         alert('Error al generar el PDF. Por favor intente de nuevo.');
-      });
+      } finally {
+        // Restore button state
+        if (downloadBtn) {
+          downloadBtn.innerHTML = originalText;
+          downloadBtn.disabled = false;
+        }
+      }
     }
 
     // Bridging Map Logic
