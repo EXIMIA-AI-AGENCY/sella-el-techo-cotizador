@@ -1974,7 +1974,9 @@
       const name = document.getElementById('contactName').value.trim();
       const email = document.getElementById('contactEmail').value.trim();
       const phone = document.getElementById('contactPhone').value.trim();
-      const address = document.getElementById('contactAddress').value.trim();
+      const formAddress = document.getElementById('contactAddress').value.trim();
+      // Use pin location address if form address is empty
+      const address = formAddress || (state.pinLocation?.address || '');
       const consent = document.getElementById('contactConsent').checked;
 
       if (!name || !email || !phone) {
@@ -2065,8 +2067,13 @@
 ─────────────────────────────────────
 • Tiene Cisterna: ${state.cistern ? 'Sí' : 'No'}
 • Tiene Placas Solares: ${state.solar ? 'Sí' : 'No'}
+• Tiene Aire Acondicionado: ${state.ac ? 'Sí' : 'No'}
 • Requiere Remoción: ${state.removal ? 'Sí' : 'No'}
 • Capas de Remoción: ${state.layers || 1}
+${state.pinLocation?.mapsUrl ? `
+📍 UBICACIÓN EN MAPA:
+─────────────────────────────────────
+${state.pinLocation.mapsUrl}` : ''}
 
 📅 Fecha: ${new Date().toLocaleString('es-PR')}
 ═══════════════════════════════════
@@ -2094,7 +2101,17 @@
           ]
         };
 
-        console.log("Sending to GHL:", contactData);
+        console.log("📤 Sending to GHL:", contactData);
+        console.log("📋 Custom Fields being sent:");
+        console.log("  - Pies Cuadrados:", Math.round(finalArea));
+        console.log("  - Valor Cotizacion:", grandTotal);
+        console.log("  - Cisterna:", state.cistern ? 'Si' : 'No');
+        console.log("  - Placas Solares:", state.solar ? 'Si' : 'No');
+        console.log("  - Aire Acondicionado:", state.ac ? 'Si' : 'No');
+        console.log("  - Material:", state.service === 'Danosa' ? 'Danosa' : 'Silicone');
+        console.log("  - Remocion:", state.removal ? 'Si' : 'No');
+        console.log("  - Capas:", state.layers || 1);
+        console.log("  - Pin Location:", state.pinLocation?.mapsUrl || '(vacío)');
 
         const response = await fetch(ghlApiUrl, {
           method: 'POST',
@@ -2863,6 +2880,15 @@ Sujeto a inspección física final
             google.maps.event.trigger(locationMap, 'resize');
           }
         }, 200);
+      }
+
+      // Pre-fill contact form address with pin location when entering step 8
+      if (currentStep === 8) {
+        const addressField = document.getElementById('contactAddress');
+        if (addressField && state.pinLocation?.address && !addressField.value.trim()) {
+          addressField.value = state.pinLocation.address;
+          console.log("📍 Pre-filled address from pin location:", state.pinLocation.address);
+        }
       }
 
       // Render summary when reaching final step
