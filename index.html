@@ -1581,17 +1581,46 @@
           body: JSON.stringify(contactData)
         });
 
+        let result;
+        let contactId;
+
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('GHL API Error:', errorText);
-          throw new Error(`Error del servidor: ${response.status}`);
+          const errorData = await response.json();
+          console.log('GHL Response:', errorData);
+
+          // If duplicate contact, update existing one
+          if (response.status === 400 && errorData.meta?.contactId) {
+            console.log('📝 Contact exists, updating...', errorData.meta.contactId);
+            contactId = errorData.meta.contactId;
+
+            // Update existing contact
+            const updateResponse = await fetch(`${ghlApiUrl}${contactId}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${ghlToken}`,
+                'Content-Type': 'application/json',
+                'Version': '2021-07-28'
+              },
+              body: JSON.stringify(contactData)
+            });
+
+            if (updateResponse.ok) {
+              result = await updateResponse.json();
+              console.log('✅ Contact updated in GHL:', result);
+            } else {
+              console.error('Update failed:', await updateResponse.text());
+              throw new Error(`Error del servidor: ${updateResponse.status}`);
+            }
+          } else {
+            throw new Error(`Error del servidor: ${response.status}`);
+          }
+        } else {
+          result = await response.json();
+          contactId = result.contact?.id;
+          console.log('✅ Contact created in GHL:', result);
         }
 
-        const result = await response.json();
-        console.log('✅ Contact created in GHL:', result);
-
         // 4b. Add note to contact with quote details
-        const contactId = result.contact?.id;
         if (contactId) {
           try {
             const noteResponse = await fetch(`https://services.leadconnectorhq.com/contacts/${contactId}/notes`, {
@@ -1620,7 +1649,7 @@
 
         const quoteData = {
           // Contact Information
-          contactId: result.contact?.id || null,
+          contactId: contactId || null,
           nombre: name,
           email: email,
           telefono: phone,
