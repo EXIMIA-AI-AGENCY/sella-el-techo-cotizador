@@ -1099,6 +1099,59 @@
         padding: 14px 16px !important;
         font-size: 1rem !important;
       }
+
+      /* Step 1B - Location for Calendar flow (same as step5C) */
+      #step1B {
+        padding: 8px 12px !important;
+        overflow: visible !important;
+      }
+
+      #step1B .location-container {
+        display: flex;
+        flex-direction: column;
+        height: auto;
+      }
+
+      #step1B h3 {
+        font-size: 1rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step1B p.text-muted {
+        font-size: 0.7rem !important;
+        margin-bottom: 4px !important;
+      }
+
+      #step1B #autoLocationBtnCal {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step1B #locationSearchCal {
+        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+      }
+
+      #step1B #locationMapContainerCal {
+        height: 35vh !important;
+        max-height: 200px !important;
+        min-height: 140px !important;
+        margin-bottom: 8px !important;
+      }
+
+      #step1B #selectedAddressCal {
+        font-size: 0.7rem !important;
+        margin-bottom: 8px !important;
+        padding: 8px 10px;
+        background: rgba(255, 153, 0, 0.1);
+        border-radius: 8px;
+      }
+
+      #step1B #locationContinueBtnCal {
+        padding: 14px 16px !important;
+        font-size: 1rem !important;
+      }
     }
 
     /* Desktop chat widget spacing */
@@ -1475,6 +1528,44 @@
         <button class="btn btn-warning fw-bold px-5 mt-3" onclick="confirmManualSqFt()">Continuar ➡️</button>
         <!-- Debug info -->
         <div id="debugArea" class="mt-3 small text-warning" style="display:none;"></div>
+      </div>
+    </div>
+
+    <!-- STEP 1B: Location for Calendar Flow (before scheduling) -->
+    <div class="step-content" id="step1B">
+      <div class="text-center location-container">
+        <h3 class="mb-1"><span class="location-icon">📍</span> ¿Dónde está la propiedad?</h3>
+        <p class="text-muted small mb-2">Necesitamos saber dónde ir para la inspección</p>
+
+        <!-- Auto-location button -->
+        <button type="button" class="btn btn-outline-warning w-100 py-2 mb-2" id="autoLocationBtnCal" onclick="autoLocateForCalendar()">
+          <span id="autoLocateBtnTextCal">📍 Usar mi ubicación actual</span>
+          <span id="autoLocateSpinnerCal" style="display:none;">
+            <span class="spinner-border spinner-border-sm me-2"></span>Localizando...
+          </span>
+        </button>
+
+        <p class="text-muted small mb-1">— o escribe la dirección —</p>
+
+        <div class="mb-2">
+          <input type="text" id="locationSearchCal" class="form-control search-lg"
+            placeholder="Escribe la dirección..."
+            style="background: var(--card-bg); color: white; border-color: var(--accent);">
+        </div>
+
+        <div id="locationMapContainerCal" class="mb-2"
+          style="height: 200px; border-radius: 12px; overflow: hidden; border: 2px solid var(--accent);">
+          <div id="locationMapCal" style="width: 100%; height: 100%;"></div>
+        </div>
+
+        <p id="selectedAddressCal" class="text-warning small mb-2" style="display:none;">
+          <strong>📍</strong> <span id="addressTextCal"></span>
+        </p>
+
+        <button type="button" class="btn btn-warning w-100 py-2 fw-bold" id="locationContinueBtnCal"
+          onclick="confirmLocationForCalendar()" style="display:none;">
+          Continuar a Agendar Cita →
+        </button>
       </div>
     </div>
 
@@ -1920,8 +2011,10 @@
           showStep('step2A');
           currentStep = 2; // technical mapping
         } else {
-          // Go to Calendar
-          goToCalendar(1);
+          // Go to Location step first, then Calendar
+          showStep('step1B');
+          currentStep = 98; // Location before Calendar mode
+          initLocationMapForCalendar();
         }
         updateSteps();
       }, 300);
@@ -2787,9 +2880,10 @@ Sujeto a inspección física final
       // Progress Bar Update based on numeric currentStep
       // If 99 (Calendar), full bar
       let pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
+      if (currentStep === 98) pct = 15; // Location before calendar
       if (currentStep === 99) pct = 100;
       document.getElementById('progressFill').style.width = pct + '%';
-      document.querySelector('.w-header .small span').innerText = (currentStep > 6) ? '-' : currentStep;
+      document.querySelector('.w-header .small span').innerText = (currentStep > 6 && currentStep < 98) ? '-' : (currentStep >= 98 ? '📍' : currentStep);
     }
 
     // --- NEW LOGIC END ---
@@ -2859,6 +2953,9 @@ Sujeto a inspección física final
         // Hide on step 1 (nothing to go back to) and step 7 (quote summary has its own buttons)
         if (currentStep === 1 || currentStep === 7 || currentStep === 99) {
           backBtnContainer.style.display = 'none';
+        } else if (currentStep === 98) {
+          // Show back button for location step in calendar flow
+          backBtnContainer.style.display = 'block';
         } else {
           backBtnContainer.style.display = 'block';
         }
@@ -2921,14 +3018,22 @@ Sujeto a inspección física final
         if (currentStep === 99) {
           // Return from Calendar to Origin
           currentStep = previousStepForCalendar;
-          // If coming back to Step 1, explicitly set it
-          if (previousStepForCalendar === 1) {
+          // If coming from location step (98), go back to location
+          if (previousStepForCalendar === 98) {
+            showStep('step1B');
+            currentStep = 98;
+          } else if (previousStepForCalendar === 1) {
             showStep('step1');
           } else {
             // If was at 6, go back to 6
             if (previousStepForCalendar === 6) renderSummary();
             // Force update via standard logic if numeric match
           }
+        }
+        else if (currentStep === 98) {
+          // Return from Location (calendar flow) to Step 1
+          currentStep = 1;
+          showStep('step1');
         }
         else if (currentStep === 3) {
           // Step 3 (Cistern) -> Step 2A (Manual Input)
@@ -3295,6 +3400,285 @@ Sujeto a inspección física final
           maximumAge: 60000
         }
       );
+    }
+
+    // ========== CALENDAR FLOW LOCATION FUNCTIONS ==========
+    let locationMapCal = null;
+    let locationMarkerCal = null;
+    let locationAutocompleteCal = null;
+
+    function initLocationMapForCalendar() {
+      console.log('📍 Initializing location map for calendar flow...');
+
+      const mapContainer = document.getElementById('locationMapCal');
+      if (!mapContainer) {
+        console.error('Calendar location map container not found');
+        return;
+      }
+
+      // Default to Puerto Rico center
+      const defaultLocation = { lat: 18.2208, lng: -66.5901 };
+
+      locationMapCal = new google.maps.Map(mapContainer, {
+        center: defaultLocation,
+        zoom: 9,
+        styles: [
+          { elementType: "geometry", stylers: [{ color: "#1d2c4d" }] },
+          { elementType: "labels.text.stroke", stylers: [{ color: "#1a3646" }] },
+          { elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+          { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+          { featureType: "road", elementType: "geometry", stylers: [{ color: "#304a7d" }] },
+        ],
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false
+      });
+
+      // Add click listener to map for manual pin placement
+      locationMapCal.addListener('click', function(event) {
+        placeMarkerCal(event.latLng);
+        reverseGeocodeCal(event.latLng);
+      });
+
+      // Initialize autocomplete
+      const input = document.getElementById('locationSearchCal');
+      if (input && google.maps.places) {
+        locationAutocompleteCal = new google.maps.places.Autocomplete(input, {
+          componentRestrictions: { country: 'pr' },
+          fields: ['formatted_address', 'geometry', 'name']
+        });
+
+        locationAutocompleteCal.addListener('place_changed', function() {
+          const place = locationAutocompleteCal.getPlace();
+          if (place.geometry && place.geometry.location) {
+            const location = place.geometry.location;
+            locationMapCal.setCenter(location);
+            locationMapCal.setZoom(17);
+            placeMarkerCal(location);
+
+            const address = place.formatted_address || place.name;
+            updateLocationStateCal(location.lat(), location.lng(), address);
+          }
+        });
+      }
+
+      console.log('✅ Calendar location map initialized');
+    }
+
+    function placeMarkerCal(location) {
+      if (locationMarkerCal) {
+        locationMarkerCal.setMap(null);
+      }
+
+      locationMarkerCal = new google.maps.Marker({
+        position: location,
+        map: locationMapCal,
+        draggable: true,
+        animation: google.maps.Animation.DROP,
+        icon: {
+          url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#ff9900">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+            </svg>
+          `),
+          scaledSize: new google.maps.Size(40, 40),
+          anchor: new google.maps.Point(20, 40)
+        }
+      });
+
+      // Allow dragging the marker
+      locationMarkerCal.addListener('dragend', function() {
+        const pos = locationMarkerCal.getPosition();
+        reverseGeocodeCal(pos);
+      });
+    }
+
+    function reverseGeocodeCal(location) {
+      const geocoder = new google.maps.Geocoder();
+      geocoder.geocode({ location: location }, function(results, status) {
+        if (status === 'OK' && results[0]) {
+          const address = results[0].formatted_address;
+          updateLocationStateCal(location.lat(), location.lng(), address);
+        } else {
+          updateLocationStateCal(location.lat(), location.lng(), `${location.lat().toFixed(6)}, ${location.lng().toFixed(6)}`);
+        }
+      });
+    }
+
+    function updateLocationStateCal(lat, lng, address) {
+      const mapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      state.pinLocationCal = {
+        lat: lat,
+        lng: lng,
+        address: address,
+        mapsUrl: mapsUrl
+      };
+
+      // Update UI
+      document.getElementById('addressTextCal').textContent = address;
+      document.getElementById('selectedAddressCal').style.display = 'block';
+      document.getElementById('locationContinueBtnCal').style.display = 'block';
+
+      // Store in localStorage for later use after calendar booking
+      localStorage.setItem('pendingPinLocation', JSON.stringify(state.pinLocationCal));
+
+      console.log('📍 Calendar location updated:', state.pinLocationCal);
+    }
+
+    function confirmLocationForCalendar() {
+      if (state.pinLocationCal) {
+        console.log('✅ Location confirmed for calendar:', state.pinLocationCal);
+        // Store location data for after booking
+        localStorage.setItem('pendingPinLocation', JSON.stringify(state.pinLocationCal));
+        // Go to calendar
+        goToCalendar(98);
+      }
+    }
+
+    function autoLocateForCalendar() {
+      if (!navigator.geolocation) {
+        alert('Tu navegador no soporta geolocalización. Por favor escribe tu dirección.');
+        return;
+      }
+
+      // Show loading state
+      document.getElementById('autoLocateBtnTextCal').style.display = 'none';
+      document.getElementById('autoLocateSpinnerCal').style.display = 'inline';
+      document.getElementById('autoLocationBtnCal').disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          // Success
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const location = new google.maps.LatLng(lat, lng);
+
+          console.log('📍 GPS location obtained for calendar:', lat, lng);
+
+          // Center map and place marker
+          if (locationMapCal) {
+            locationMapCal.setCenter(location);
+            locationMapCal.setZoom(17);
+            placeMarkerCal(location);
+            reverseGeocodeCal(location);
+          }
+
+          // Reset button state
+          document.getElementById('autoLocateBtnTextCal').style.display = 'inline';
+          document.getElementById('autoLocateSpinnerCal').style.display = 'none';
+          document.getElementById('autoLocationBtnCal').disabled = false;
+        },
+        function(error) {
+          // Error
+          console.error('Geolocation error:', error);
+          let errorMsg = 'No se pudo obtener tu ubicación. ';
+
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMsg += 'Permiso denegado. Por favor permite el acceso a tu ubicación.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMsg += 'Ubicación no disponible.';
+              break;
+            case error.TIMEOUT:
+              errorMsg += 'Tiempo de espera agotado.';
+              break;
+            default:
+              errorMsg += 'Por favor escribe tu dirección manualmente.';
+          }
+
+          alert(errorMsg);
+
+          // Reset button state
+          document.getElementById('autoLocateBtnTextCal').style.display = 'inline';
+          document.getElementById('autoLocateSpinnerCal').style.display = 'none';
+          document.getElementById('autoLocationBtnCal').disabled = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
+    }
+
+    // Listen for calendar booking completion and update contact
+    window.addEventListener('message', async function(event) {
+      // Check if message is from GHL calendar widget
+      if (event.data && (event.data.type === 'booking_confirmed' || event.data.booking_confirmed)) {
+        console.log('📅 Calendar booking detected:', event.data);
+        await updateContactWithPinLocation(event.data);
+      }
+    });
+
+    // Also check periodically if user has booked (fallback)
+    async function updateContactWithPinLocation(bookingData) {
+      const pendingLocation = localStorage.getItem('pendingPinLocation');
+      if (!pendingLocation) {
+        console.log('No pending pin location to update');
+        return;
+      }
+
+      const pinData = JSON.parse(pendingLocation);
+      const email = bookingData?.email || bookingData?.contact?.email;
+
+      if (!email) {
+        console.log('No email found in booking data, will try to update later');
+        return;
+      }
+
+      try {
+        const ghlToken = 'pit-f3ebb971-2fd1-415b-91f0-f4449c8e5314';
+        const ghlLocationId = 'LVwbqYFEmGiKJ7AgtSIf';
+
+        // Search for contact by email
+        const searchResponse = await fetch(
+          `https://services.leadconnectorhq.com/contacts/?locationId=${ghlLocationId}&query=${encodeURIComponent(email)}&limit=1`,
+          {
+            headers: {
+              'Authorization': `Bearer ${ghlToken}`,
+              'Version': '2021-07-28',
+              'Accept': 'application/json'
+            }
+          }
+        );
+
+        if (searchResponse.ok) {
+          const searchResult = await searchResponse.json();
+          if (searchResult.contacts && searchResult.contacts.length > 0) {
+            const contactId = searchResult.contacts[0].id;
+
+            // Update contact with pin location
+            const updateResponse = await fetch(
+              `https://services.leadconnectorhq.com/contacts/${contactId}`,
+              {
+                method: 'PUT',
+                headers: {
+                  'Authorization': `Bearer ${ghlToken}`,
+                  'Content-Type': 'application/json',
+                  'Version': '2021-07-28'
+                },
+                body: JSON.stringify({
+                  address1: pinData.address,
+                  customFields: [
+                    { id: 'X8GLbec6WrfimB9lR4XV', value: pinData.mapsUrl }
+                  ]
+                })
+              }
+            );
+
+            if (updateResponse.ok) {
+              console.log('✅ Contact updated with pin location');
+              localStorage.removeItem('pendingPinLocation');
+            } else {
+              console.warn('Failed to update contact with pin location');
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error updating contact with pin location:', error);
+      }
     }
 
     // ========== END LOCATION FUNCTIONS ==========
