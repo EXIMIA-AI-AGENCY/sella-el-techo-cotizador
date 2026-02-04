@@ -4061,25 +4061,41 @@ ${state.pinLocation.mapsUrl}` : ''}
       const customerName = document.getElementById('contactName')?.value || state.contactName || 'Cliente';
       const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
 
-      // Get quote values from the DOM
-      const areaRaw = document.getElementById('sumAreaRaw')?.innerText || '0';
+      // Get quote values - first try DOM, then fallback to state
+      const areaRaw = document.getElementById('sumAreaRaw')?.innerText || String(Math.round(state.area || 0));
       const wastePercent = document.getElementById('lblWaste')?.innerText || '15';
-      const wasteAmount = document.getElementById('sumWaste')?.innerText || '0';
-      const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || '0 ft²';
+      const wasteAmount = document.getElementById('sumWaste')?.innerText || String(Math.round((state.area || 0) * 0.15));
+      const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || `${Math.round((state.area || 0) * 1.15)} ft²`;
       const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
       const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
       const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
-      const showCistern = document.getElementById('rowCistern')?.style.display !== 'none';
-      const showSolar = document.getElementById('rowSolar')?.style.display !== 'none';
-      const showAC = document.getElementById('rowAC')?.style.display !== 'none';
-      const showRemoval = document.getElementById('rowRemoval')?.style.display !== 'none';
-      const removalLabel = document.getElementById('lblRemoval')?.innerText || 'Remoción de Membranas';
+      const showCistern = state.cistern === true || document.getElementById('rowCistern')?.style.display !== 'none';
+      const showSolar = state.solar === true || document.getElementById('rowSolar')?.style.display !== 'none';
+      const showAC = state.ac === true || document.getElementById('rowAC')?.style.display !== 'none';
+      const showRemoval = state.removal === true || document.getElementById('rowRemoval')?.style.display !== 'none';
+      const removalLabel = document.getElementById('lblRemoval')?.innerText || `Remoción de ${state.layers || 1} Membranas`;
       const removalAmount = document.getElementById('sumRemoval')?.innerText || '+$0.00';
 
       // Get service type
       const serviceType = state.service || 'Sellado Profesional';
 
-      // Create PDF container - use fixed dimensions and visible rendering
+      // Debug logging
+      console.log('📄 PDF Data:', {
+        customerName,
+        serviceType,
+        areaRaw,
+        effectiveArea,
+        basePrice,
+        taxAmount,
+        totalAmount,
+        showCistern,
+        showSolar,
+        showAC,
+        showRemoval,
+        state: { ...state }
+      });
+
+      // Create PDF container - position off-screen but VISIBLE for html2canvas
       const pdfContainer = document.createElement('div');
       pdfContainer.id = 'pdfContent';
       pdfContainer.style.cssText = `
@@ -4089,12 +4105,11 @@ ${state.pinLocation.mapsUrl}` : ''}
         background: #0a192f;
         color: #ffffff;
         font-family: Arial, Helvetica, sans-serif;
-        position: fixed;
+        position: absolute;
         top: 0;
-        left: 0;
-        z-index: -1;
-        opacity: 0;
-        pointer-events: none;
+        left: -9999px;
+        z-index: 9999;
+        opacity: 1;
       `;
 
       // Build PDF HTML content - using text-based header instead of image
@@ -4202,8 +4217,21 @@ ${state.pinLocation.mapsUrl}` : ''}
           backgroundColor: '#0a192f',
           logging: true,
           allowTaint: true,
-          windowWidth: 816,
-          windowHeight: 1056
+          width: 816,
+          height: 1056,
+          scrollX: 0,
+          scrollY: 0,
+          x: 0,
+          y: 0,
+          onclone: function(clonedDoc) {
+            const clonedElement = clonedDoc.getElementById('pdfContent');
+            if (clonedElement) {
+              clonedElement.style.position = 'relative';
+              clonedElement.style.left = '0';
+              clonedElement.style.top = '0';
+              clonedElement.style.opacity = '1';
+            }
+          }
         },
         jsPDF: {
           unit: 'px',
@@ -4215,6 +4243,7 @@ ${state.pinLocation.mapsUrl}` : ''}
 
       // Generate and download PDF with a small delay to ensure DOM is ready
       console.log('📥 Starting PDF generation...');
+      console.log('📄 PDF Container HTML:', pdfContainer.innerHTML.substring(0, 500) + '...');
 
       setTimeout(() => {
         html2pdf().set(opt).from(pdfContainer).save().then(() => {
