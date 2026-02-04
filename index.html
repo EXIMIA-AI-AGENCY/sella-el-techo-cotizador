@@ -1610,7 +1610,17 @@
       <div class="text-center my-auto">
         <h1 class="mb-2">📍</h1>
         <h3 class="mb-3">¿Dónde está la propiedad?</h3>
-        <p class="text-muted small mb-3">Busca tu dirección y confirma el pin en el mapa</p>
+        <p class="text-muted small mb-3">Usa tu ubicación actual o escribe la dirección</p>
+
+        <!-- Auto-location button -->
+        <button type="button" class="btn btn-outline-warning w-100 py-2 mb-3" id="autoLocationBtn" onclick="autoLocate()">
+          <span id="autoLocateBtnText">📍 Usar mi ubicación actual</span>
+          <span id="autoLocateSpinner" style="display:none;">
+            <span class="spinner-border spinner-border-sm me-2"></span>Localizando...
+          </span>
+        </button>
+
+        <p class="text-muted small mb-2">— o escribe la dirección —</p>
 
         <div class="mb-3">
           <input type="text" id="locationSearch" class="form-control search-lg"
@@ -1630,10 +1640,6 @@
         <button type="button" class="btn btn-warning w-100 py-2 fw-bold" id="locationContinueBtn"
           onclick="confirmLocation()" style="display:none;">
           Confirmar Ubicación →
-        </button>
-
-        <button type="button" class="btn btn-outline-secondary w-100 py-2 mt-2" onclick="skipLocation()">
-          Saltar este paso
         </button>
       </div>
     </div>
@@ -2968,8 +2974,8 @@ Sujeto a inspección física final
         // Step 6 is Service step (step5)
         valid = state.service !== null;
       } else if (currentStep === 7) {
-        // Step 7 is Location step (step5C) - always valid (can skip)
-        valid = true;
+        // Step 7 is Location step (step5C) - requires location to be selected
+        valid = state.pinLocation !== null;
       } else if (currentStep === 8) {
         // Step 8 is Contact form (step6)
         const name = document.getElementById('contactName')?.value?.trim();
@@ -3120,10 +3126,71 @@ Sujeto a inspección física final
       }
     }
 
-    function skipLocation() {
-      state.pinLocation = null;
-      console.log('⏭️ Location skipped');
-      changeStep(1);
+    function autoLocate() {
+      if (!navigator.geolocation) {
+        alert('Tu navegador no soporta geolocalización. Por favor escribe tu dirección.');
+        return;
+      }
+
+      // Show loading state
+      document.getElementById('autoLocateBtnText').style.display = 'none';
+      document.getElementById('autoLocateSpinner').style.display = 'inline';
+      document.getElementById('autoLocationBtn').disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        function(position) {
+          // Success
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          const location = new google.maps.LatLng(lat, lng);
+
+          console.log('📍 GPS location obtained:', lat, lng);
+
+          // Center map and place marker
+          if (locationMap) {
+            locationMap.setCenter(location);
+            locationMap.setZoom(17);
+            placeMarker(location);
+            reverseGeocode(location);
+          }
+
+          // Reset button state
+          document.getElementById('autoLocateBtnText').style.display = 'inline';
+          document.getElementById('autoLocateSpinner').style.display = 'none';
+          document.getElementById('autoLocationBtn').disabled = false;
+        },
+        function(error) {
+          // Error
+          console.error('Geolocation error:', error);
+          let errorMsg = 'No se pudo obtener tu ubicación. ';
+
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMsg += 'Permiso denegado. Por favor permite el acceso a tu ubicación.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMsg += 'Ubicación no disponible.';
+              break;
+            case error.TIMEOUT:
+              errorMsg += 'Tiempo de espera agotado.';
+              break;
+            default:
+              errorMsg += 'Por favor escribe tu dirección manualmente.';
+          }
+
+          alert(errorMsg);
+
+          // Reset button state
+          document.getElementById('autoLocateBtnText').style.display = 'inline';
+          document.getElementById('autoLocateSpinner').style.display = 'none';
+          document.getElementById('autoLocationBtn').disabled = false;
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        }
+      );
     }
 
     // ========== END LOCATION FUNCTIONS ==========
