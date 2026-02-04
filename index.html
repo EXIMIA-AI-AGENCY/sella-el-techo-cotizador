@@ -1209,6 +1209,10 @@
                 <td>Remoción / Desmontaje Placas Solares</td>
                 <td class="price text-warning">+$1,000.00</td>
               </tr>
+              <tr id="rowRemoval" style="display:none">
+                <td id="lblRemoval">Remoción de Membranas</td>
+                <td class="price text-warning" id="sumRemoval">+$0.00</td>
+              </tr>
               <tr class="border-top border-secondary">
                 <td class="pt-3 text-muted">IVU (11.5%)</td>
                 <td class="pt-3 price text-muted" id="sumTax">$0.00</td>
@@ -1648,6 +1652,19 @@
               });
             }
 
+            // Membrane removal surcharge if applicable (Danosa with layers >= 2)
+            if (state.service === 'Danosa' && state.removal && state.layers >= 2) {
+              const extraLayers = state.layers - 1;
+              const removalCost = extraLayers * 1.00 * finalArea;
+              invoiceItems.push({
+                name: `Remoción de Membranas (${extraLayers} capa${extraLayers > 1 ? 's' : ''})`,
+                description: `${extraLayers} capa${extraLayers > 1 ? 's' : ''} adicional${extraLayers > 1 ? 'es' : ''} × $1.00/ft² × ${Math.round(finalArea).toLocaleString()} ft²`,
+                amount: removalCost,
+                currency: 'USD',
+                qty: 1
+              });
+            }
+
             // IVU Tax item
             invoiceItems.push({
               name: 'IVU (11.5%)',
@@ -1900,6 +1917,19 @@ Sujeto a inspección física final
 
       const rSol = document.getElementById('rowSolar');
       if (rSol) rSol.style.display = state.solar ? 'table-row' : 'none';
+
+      // Show removal cost row if Danosa with removal layers >= 2
+      const rRem = document.getElementById('rowRemoval');
+      if (rRem) {
+        const showRemoval = state.service === 'Danosa' && state.removal && state.layers >= 2;
+        rRem.style.display = showRemoval ? 'table-row' : 'none';
+        if (showRemoval) {
+          const extraLayers = state.layers - 1;
+          const removalCost = extraLayers * 1.00 * finalArea;
+          safeSetText('lblRemoval', `Remoción de Membranas (${extraLayers} capa${extraLayers > 1 ? 's' : ''})`);
+          safeSetText('sumRemoval', '+' + formatMoney(removalCost));
+        }
+      }
 
       safeSetText('sumTax', formatMoney(tax));
       safeSetText('sumTotal', formatMoney(grandTotal));
@@ -2292,6 +2322,9 @@ Sujeto a inspección física final
       const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
       const showCistern = document.getElementById('rowCistern')?.style.display !== 'none';
       const showSolar = document.getElementById('rowSolar')?.style.display !== 'none';
+      const showRemoval = document.getElementById('rowRemoval')?.style.display !== 'none';
+      const removalLabel = document.getElementById('lblRemoval')?.innerText || 'Remoción de Membranas';
+      const removalAmount = document.getElementById('sumRemoval')?.innerText || '+$0.00';
 
       // Get service type
       const serviceType = state.service || 'Sellado Profesional';
@@ -2345,6 +2378,12 @@ Sujeto a inspección física final
           <tr>
             <td style="padding: 12px 0; color: #ffffff;">Remocion / Desmontaje Placas Solares</td>
             <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$1,000.00</td>
+          </tr>
+          ` : ''}
+          ${showRemoval ? `
+          <tr>
+            <td style="padding: 12px 0; color: #ffffff;">${removalLabel}</td>
+            <td style="padding: 12px 0; text-align: right; color: #ff9900;">${removalAmount}</td>
           </tr>
           ` : ''}
           <tr style="border-top: 1px solid #1a2f4f;">
