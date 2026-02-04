@@ -2623,22 +2623,6 @@ ${state.pinLocation.mapsUrl}` : ''}
               taxes: []
             });
 
-            // Main invoice data - minimal required fields, all sanitized
-            const invoiceData = {
-              altId: String(ghlLocationId),
-              altType: 'location',
-              contactId: String(contactId),
-              name: sanitize('Cotizacion Sellado de Techo'),
-              status: 'draft',
-              currency: 'USD',
-              invoiceItems: invoiceItems
-            };
-
-            console.log("Creating invoice in GHL:", JSON.stringify(invoiceData, null, 2));
-            console.log("ContactId for invoice:", contactId);
-
-            // BULLETPROOF Invoice Creation - will try everything until it works
-
             // Calculate dates in YYYY-MM-DD format
             const today = new Date();
             const issueDate = today.toISOString().split('T')[0];
@@ -2666,18 +2650,20 @@ ${state.pinLocation.mapsUrl}` : ''}
             };
 
             // Base invoice data with ALL required fields
+            // Using invoiceItems (not items) per GHL API documentation
             const baseInvoice = {
               altId: String(ghlLocationId),
               altType: 'location',
               contactId: String(contactId),
               name: 'Cotizacion Sellado de Techo',
+              title: 'COTIZACION',
               status: 'draft',
               currency: 'USD',
               issueDate: issueDate,
               dueDate: dueDate,
               businessDetails: businessDetails,
               contactDetails: contactDetails,
-              items: invoiceItems
+              invoiceItems: invoiceItems
             };
 
             let invoiceCreated = false;
