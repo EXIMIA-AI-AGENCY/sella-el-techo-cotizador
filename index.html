@@ -1552,28 +1552,15 @@
         const contactData = {
           locationId: ghlLocationId,
           firstName: firstName,
-          lastName: lastName,
-          name: name, // Full name as fallback
+          lastName: lastName || 'Cliente',
           email: email,
           phone: phone,
           address1: address || '',
           source: 'Cotizador Online',
           tags: [
             'cotizador-online',
-            state.service ? state.service.toLowerCase().replace(/\s+/g, '-') : 'sin-servicio',
-            `area-${Math.round(finalArea)}sqft`,
-            `total-${Math.round(grandTotal)}`
-          ],
-          customFields: {
-            pies_cuadrados: Math.round(finalArea).toString(),
-            valor_cotizacion: grandTotal.toFixed(2),
-            tipo_servicio: state.service || 'No seleccionado',
-            cisterna: state.cistern ? 'Sí' : 'No',
-            placas_solares: state.solar ? 'Sí' : 'No',
-            direccion_propiedad: address || 'No proporcionada',
-            remocion: state.removal ? 'Sí' : 'No',
-            capas_remocion: (state.layers || 1).toString()
-          }
+            state.service ? state.service.toLowerCase().replace(/\s+/g, '-') : 'sin-servicio'
+          ]
         };
 
         console.log("Sending to GHL:", contactData);
