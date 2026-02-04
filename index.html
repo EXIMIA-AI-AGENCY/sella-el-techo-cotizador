@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Cotizador Satelital | Sella El Techo</title>
+  <title>Cotizador | Sella El Techo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1514,7 +1514,7 @@
           email: email,
           phone: phone,
           address1: address || '',
-          source: 'Cotizador Satelital',
+          source: 'Cotizador Online',
           tags: ['cotizador-online', state.service ? state.service.toLowerCase() : 'sin-servicio'],
           customFields: [
             {
@@ -1596,7 +1596,7 @@
           capas_remocion: state.layers || 1,
 
           // Metadata
-          fuente: 'Cotizador Satelital',
+          fuente: 'Cotizador Online',
           fecha_cotizacion: new Date().toISOString(),
           url_origen: window.location.href
         };
@@ -1685,7 +1685,7 @@
                 phone: '(787) 123-4567',
                 email: 'info@sellaeltecho.com'
               },
-              invoiceNote: `Cotización generada automáticamente desde el Cotizador Satelital.\n\nDetalles:\n- Área: ${Math.round(finalArea).toLocaleString()} ft²\n- Servicio: ${state.service || 'No especificado'}\n- IVU (11.5%): $${tax.toFixed(2)}\n\n* Precio sujeto a inspección física final`,
+              invoiceNote: `Cotización generada automáticamente desde el Cotizador Online.\n\nDetalles:\n- Área: ${Math.round(finalArea).toLocaleString()} ft²\n- Servicio: ${state.service || 'No especificado'}\n- IVU (11.5%): $${tax.toFixed(2)}\n\n* Precio sujeto a inspección física final`,
               terms: 'Precio válido por 30 días. Sujeto a inspección física final.'
             };
 
