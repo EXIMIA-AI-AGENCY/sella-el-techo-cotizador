@@ -4431,11 +4431,6 @@ ${state.pinLocation.mapsUrl}` : ''}
         opacity: 1;
       `;
 
-      // Get quote number and date from state or generate new
-      const quoteNumber = state.quoteNumber || ('SET-' + today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0') + '-' + String(Math.floor(Math.random() * 9000) + 1000));
-      const quoteDate = state.quoteDate || today.toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' });
-      const serviceLabel = state.service === 'Danosa' ? 'Danosa' : 'Silicone';
-
       // Build PDF HTML content matching professional design
       pdfContainer.innerHTML = `
         <!-- Company Header -->
@@ -4624,6 +4619,15 @@ ${state.pinLocation.mapsUrl}` : ''}
           alert('Error al generar el PDF: ' + err.message);
         });
       }, 100);
+
+      } catch (error) {
+        console.error('❌ Error in downloadPDF:', error);
+        if (pdfBtn) {
+          pdfBtn.innerHTML = originalBtnText;
+          pdfBtn.disabled = false;
+        }
+        alert('Error al generar el PDF: ' + error.message);
+      }
     }
 
     // Bridging Map Logic
