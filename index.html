@@ -1762,6 +1762,24 @@
       }
     }
   </style>
+
+  <!-- Meta Pixel Code -->
+  <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '957533069392232');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=957533069392232&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Meta Pixel Code -->
 </head>
 
 <body>
@@ -3028,6 +3046,17 @@ ${state.pinLocation.mapsUrl}` : ''}
         state.contactEmail = email;
         state.contactPhone = phone;
         state.contactAddress = address;
+
+        // 8. Fire Meta Pixel Lead Event - Contact info submitted successfully
+        if (typeof fbq === 'function') {
+          fbq('track', 'Lead', {
+            content_name: state.service || 'Cotización',
+            content_category: 'Sellado de Techo',
+            value: grandTotal,
+            currency: 'USD'
+          });
+          console.log('📊 Meta Pixel: Lead event fired');
+        }
 
         // 9. Navigate to Step 9 (Final Quote Summary)
         currentStep = 9;
@@ -4754,6 +4783,20 @@ ${state.pinLocation.mapsUrl}` : ''}
 
         if (response.ok) {
           console.log('✅ Webhook sent successfully');
+
+          // Fire Meta Pixel InitiateCheckout - High-intent customer requesting contract
+          if (typeof fbq === 'function') {
+            // Parse total amount for value
+            const totalValue = parseFloat(totalAmount.replace(/[^0-9.]/g, '')) || 0;
+            fbq('track', 'InitiateCheckout', {
+              content_name: 'Contrato ' + (serviceType || 'Sellado'),
+              content_category: 'Sellado de Techo',
+              value: totalValue,
+              currency: 'USD',
+              num_items: 1
+            });
+            console.log('📊 Meta Pixel: InitiateCheckout event fired (high-intent customer)');
+          }
 
           // Show success message
           if (btn) {
