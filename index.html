@@ -934,6 +934,34 @@
         white-space: nowrap;
       }
 
+      /* Step 5 - hide image and make title smaller when Danosa options visible */
+      #step5 h3 {
+        font-size: 1rem !important;
+        margin-bottom: 8px !important;
+      }
+
+      /* Danosa options - compact on mobile */
+      #danosaOptions {
+        margin-top: 8px !important;
+        padding: 8px !important;
+      }
+
+      #danosaOptions p {
+        font-size: 0.8rem !important;
+        margin-bottom: 6px !important;
+      }
+
+      #danosaOptions .btn-sm {
+        padding: 4px 12px !important;
+        font-size: 0.75rem !important;
+      }
+
+      #danosaContinueBtn {
+        padding: 10px !important;
+        font-size: 0.9rem !important;
+        margin-top: 8px !important;
+      }
+
       /* Cards in steps 3, 4, 4B - smaller height since no image inside */
       #step3 .option-card,
       #step4 .option-card,
@@ -2021,47 +2049,45 @@
     <!-- STEP 5: Service Type -->
     <div class="step-content" id="step5">
       <div class="text-center my-auto">
-        <img src="assets/service.png" id="serviceImg" class="img-3d img-fluid mb-4">
-        <h3 class="mb-3">Tipo de Sellado</h3>
+        <img src="assets/service.png" id="serviceImg" class="img-3d img-fluid mb-2">
+        <h3 class="mb-2">Tipo de Sellado</h3>
 
-        <div class="row justify-content-center g-3 mb-4">
+        <div class="row justify-content-center g-2 mb-2">
           <div class="col-md-4">
             <div class="option-card" onclick="setOption('service', 'Silicona', this)">
-              <h5 class="mt-2 text-warning">Silicona 100%</h5>
+              <h5 class="mt-1 text-warning">Silicona 100%</h5>
               <small class="text-muted">Premium Reflectivo</small>
             </div>
           </div>
           <div class="col-md-4">
             <div class="option-card" onclick="setOption('service', 'Danosa', this)">
-              <h5 class="mt-2">Danosa</h5>
+              <h5 class="mt-1">Danosa</h5>
               <small class="text-muted">Membrana Asfáltica</small>
             </div>
           </div>
         </div>
 
-        <!-- DANOSA EXTRA OPTIONS -->
-        <div id="danosaOptions" class="mt-4 p-3 border border-secondary rounded"
+        <!-- DANOSA EXTRA OPTIONS - Compact layout -->
+        <div id="danosaOptions" class="mt-2 p-2 border border-secondary rounded"
           style="display:none; background: rgba(255,153,0,0.05);">
-          <h5 class="mb-3 text-warning">Opciones de Remoción</h5>
-          <p class="small text-muted">¿Necesitas remover membrana vieja?</p>
+          <p class="small text-warning mb-2 fw-bold">¿Remover membrana vieja?</p>
 
-          <div class="d-flex justify-content-center gap-3 mb-3">
-            <button class="btn btn-outline-light btn-sm" onclick="setRemoval(false, this)">No, techo limpio</button>
-            <button class="btn btn-outline-light btn-sm" onclick="setRemoval(true, this)">Sí, remover viejo</button>
+          <div class="d-flex justify-content-center gap-2 mb-2">
+            <button class="btn btn-outline-light btn-sm px-3" onclick="setRemoval(false, this)">No</button>
+            <button class="btn btn-outline-light btn-sm px-3" onclick="setRemoval(true, this)">Sí, remover</button>
           </div>
 
           <div id="layersInput" style="display:none;">
-            <label class="small text-muted mb-2">¿Cuántas capas estimadas hay?</label>
-            <div class="d-flex justify-content-center align-items-center gap-2">
-              <button class="btn btn-secondary btn-sm" onclick="adjLayers(-1)">-</button>
-              <span id="layerCount" class="fw-bold fs-5 px-3">1</span>
-              <button class="btn btn-secondary btn-sm" onclick="adjLayers(1)">+</button>
+            <div class="d-flex justify-content-center align-items-center gap-2 mb-1">
+              <small class="text-muted">Capas:</small>
+              <button class="btn btn-secondary btn-sm py-0 px-2" onclick="adjLayers(-1)">-</button>
+              <span id="layerCount" class="fw-bold px-2">1</span>
+              <button class="btn btn-secondary btn-sm py-0 px-2" onclick="adjLayers(1)">+</button>
             </div>
-            <small class="text-warning d-block mt-2">*Si hay más de 2 capas, se cobra extra ($1/ft² por capa
-              adicional).</small>
+            <small class="text-warning">*1ra incluida. $1/ft² extra por capa.</small>
           </div>
 
-          <button id="danosaContinueBtn" class="btn btn-warning w-100 mt-3 py-2 fw-bold" style="display:none;" onclick="changeStep(1)">
+          <button id="danosaContinueBtn" class="btn btn-warning w-100 mt-2 py-2 fw-bold" onclick="continueFromDanosa()">
             Continuar →
           </button>
         </div>
@@ -3212,11 +3238,22 @@ ${state.pinLocation.mapsUrl}` : ''}
       const layerDiv = document.getElementById('layersInput');
       layerDiv.style.display = isRemoval ? 'block' : 'none';
 
-      // Show continue button after selection
-      const continueBtn = document.getElementById('danosaContinueBtn');
-      if (continueBtn) continueBtn.style.display = 'block';
+      // Reset layers to 1 if "No" is selected
+      if (!isRemoval) {
+        state.layers = 1;
+        document.getElementById('layerCount').innerText = '1';
+      }
 
       validateStep();
+    }
+
+    function continueFromDanosa() {
+      // Check if removal option was selected
+      if (state.removal === undefined || state.removal === null) {
+        alert('Por favor selecciona si necesitas remover membrana vieja.');
+        return;
+      }
+      changeStep(1);
     }
 
     function adjLayers(delta) {
@@ -4306,12 +4343,19 @@ ${state.pinLocation.mapsUrl}` : ''}
 
         if (val === 'Danosa') {
           danosaOpts.style.display = 'block';
-          if (serviceImg) serviceImg.src = 'assets/danosa_membrane.png?v=' + new Date().getTime() + '_2';
+          // Hide image on mobile to make room for Danosa options
+          if (serviceImg) {
+            serviceImg.style.display = window.innerWidth <= 768 ? 'none' : 'block';
+            serviceImg.src = 'assets/danosa_membrane.png?v=' + new Date().getTime() + '_2';
+          }
           // Don't auto-advance - user needs to configure Danosa options
         } else {
           danosaOpts.style.display = 'none';
           state.removal = false; // reset
-          if (serviceImg) serviceImg.src = 'assets/service.png?v=2';
+          if (serviceImg) {
+            serviceImg.style.display = 'block';
+            serviceImg.src = 'assets/service.png?v=2';
+          }
           // Auto-advance for Silicona after short delay
           setTimeout(() => {
             changeStep(1);
