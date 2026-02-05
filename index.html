@@ -760,7 +760,7 @@
       }
 
       .w-header img {
-        max-height: 80px !important;
+        max-height: 120px !important;
       }
 
       .w-header .small {
@@ -1102,7 +1102,7 @@
     /* Extra small devices (phones in portrait) */
     @media (max-width: 576px) {
       .w-header img {
-        max-height: 70px !important;
+        max-height: 100px !important;
       }
 
       .w-header {
@@ -1444,7 +1444,7 @@
       }
 
       .w-header img {
-        max-height: 60px !important;
+        max-height: 90px !important;
       }
 
       h3 {
@@ -1608,7 +1608,7 @@
       }
 
       .w-header img {
-        max-height: 50px !important;
+        max-height: 80px !important;
       }
 
       h3 {
@@ -3116,34 +3116,30 @@ ${state.pinLocation.mapsUrl}` : ''}
 
       // 2. CALCULATE RATES & SURCHARGES
       let baseRate = 3.50; // Default - $3.50/ft² for both Silicona and Danosa
-      let surchargeRate = 0;
-      let surchargeLabel = "";
+      let removalCost = 0;
 
       console.log("Service type:", state.service);
 
       if (state.service === 'Danosa') {
         baseRate = 3.50;
         console.log("✅ Danosa selected - Using $3.50 per ft²");
-        // Logic: Removal adds $1.00 starting from 2nd layer
+        // Logic: Removal adds $1.00/ft² per extra layer (starting from 2nd layer)
         if (state.removal && state.layers >= 2) {
-          const extra = state.layers - 1;
-          surchargeRate = extra * 1.00;
-          surchargeLabel = ` (Inc. ${extra} capa${extra > 1 ? 's' : ''} removida${extra > 1 ? 's' : ''})`;
-          console.log(`Adding removal surcharge: ${extra} layer(s) × $1.00 = $${surchargeRate}/ft²`);
+          const extraLayers = state.layers - 1;
+          removalCost = extraLayers * 1.00 * finalArea;
+          console.log(`Adding removal cost: ${extraLayers} layer(s) × $1.00/ft² × ${finalArea} ft² = $${removalCost.toFixed(2)}`);
         }
       } else {
         console.log("✅ Silicona selected - Using $3.50 per ft²");
       }
 
-      const totalRate = baseRate + surchargeRate;
-      const materialCost = finalArea * totalRate;
+      const materialCost = finalArea * baseRate;
 
       console.log("Calculation breakdown:");
       console.log(`  Base rate: $${baseRate}/ft²`);
-      console.log(`  Surcharge: $${surchargeRate}/ft²`);
-      console.log(`  Total rate: $${totalRate}/ft²`);
       console.log(`  Area: ${finalArea} ft²`);
       console.log(`  Material cost: $${materialCost.toFixed(2)}`);
+      console.log(`  Removal cost: $${removalCost.toFixed(2)}`);
 
       // 3. FIXED COSTS
       const cisternCost = state.cistern ? 150.00 : 0;
@@ -3154,9 +3150,10 @@ ${state.pinLocation.mapsUrl}` : ''}
       console.log(`  Cisterna: ${state.cistern ? 'Yes' : 'No'} - $${cisternCost}`);
       console.log(`  Placas Solares: ${state.solar ? 'Yes' : 'No'} - $${solarCost}`);
       console.log(`  Aire Acondicionado: ${state.ac ? 'Yes' : 'No'} - $${acCost}`);
+      console.log(`  Remoción: ${removalCost > 0 ? 'Yes' : 'No'} - $${removalCost.toFixed(2)}`);
 
-      // 4. TOTALS
-      const subtotal = materialCost + cisternCost + solarCost + acCost;
+      // 4. TOTALS (now includes removal cost)
+      const subtotal = materialCost + cisternCost + solarCost + acCost + removalCost;
       const tax = subtotal * 0.115; // 11.5% IVU
       const grandTotal = subtotal + tax;
 
@@ -3169,7 +3166,7 @@ ${state.pinLocation.mapsUrl}` : ''}
       safeSetText('sumAreaRaw', Math.round(finalArea).toLocaleString());
       safeSetText('sumeffectiveArea', Math.round(finalArea).toLocaleString() + " ft²");
 
-      safeSetText('sumBase', formatMoney(materialCost) + surchargeLabel);
+      safeSetText('sumBase', formatMoney(materialCost));
 
       const rCis = document.getElementById('rowCistern');
       if (rCis) rCis.style.display = state.cistern ? 'table-row' : 'none';
@@ -3183,12 +3180,11 @@ ${state.pinLocation.mapsUrl}` : ''}
       // Show removal cost row if Danosa with removal layers >= 2
       const rRem = document.getElementById('rowRemoval');
       if (rRem) {
-        const showRemoval = state.service === 'Danosa' && state.removal && state.layers >= 2;
+        const showRemoval = removalCost > 0;
         rRem.style.display = showRemoval ? 'table-row' : 'none';
         if (showRemoval) {
           const extraLayers = state.layers - 1;
-          const removalCost = extraLayers * 1.00 * finalArea;
-          safeSetText('lblRemoval', `Remoción de Membranas (${extraLayers} capa${extraLayers > 1 ? 's' : ''})`);
+          safeSetText('lblRemoval', `Remoción de ${extraLayers} Membrana${extraLayers > 1 ? 's' : ''} ($1.00/ft²)`);
           safeSetText('sumRemoval', '+' + formatMoney(removalCost));
         }
       }
@@ -4359,9 +4355,9 @@ ${state.pinLocation.mapsUrl}` : ''}
     function downloadPDF() {
       console.log('📥 downloadPDF() called');
 
-      // Check if html2pdf is available
-      if (typeof html2pdf === 'undefined') {
-        console.error('❌ html2pdf library not loaded');
+      // Check if jsPDF is available (comes with html2pdf bundle)
+      if (typeof window.jspdf === 'undefined' && typeof jsPDF === 'undefined') {
+        console.error('❌ jsPDF library not loaded');
         alert('Error: La librería de PDF no está cargada. Recarga la página e intenta de nuevo.');
         return;
       }
@@ -4374,35 +4370,50 @@ ${state.pinLocation.mapsUrl}` : ''}
         pdfBtn.disabled = true;
       }
 
-      // Get current date for filename
-      const today = new Date();
-      const dateStr = today.toLocaleDateString('es-PR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit'
-      }).replace(/\//g, '-');
+      try {
+        // Get jsPDF constructor
+        const { jsPDF } = window.jspdf || { jsPDF: window.jsPDF };
 
-      // Get customer name if available
-      const customerName = document.getElementById('contactName')?.value || state.contactName || 'Cliente';
-      const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
+        // Create PDF document (Letter size in points: 612 x 792)
+        const doc = new jsPDF({
+          orientation: 'portrait',
+          unit: 'pt',
+          format: 'letter'
+        });
 
-      // Get quote values - first try DOM, then fallback to state
-      const areaRaw = document.getElementById('sumAreaRaw')?.innerText || String(Math.round(state.area || 0));
-      const wastePercent = document.getElementById('lblWaste')?.innerText || '15';
-      const wasteAmount = document.getElementById('sumWaste')?.innerText || String(Math.round((state.area || 0) * 0.15));
-      const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || `${Math.round((state.area || 0) * 1.15)} ft²`;
-      const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
-      const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
-      const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
-      const showCistern = state.cistern === true || document.getElementById('rowCistern')?.style.display !== 'none';
-      const showSolar = state.solar === true || document.getElementById('rowSolar')?.style.display !== 'none';
-      const showAC = state.ac === true || document.getElementById('rowAC')?.style.display !== 'none';
-      const showRemoval = state.removal === true || document.getElementById('rowRemoval')?.style.display !== 'none';
-      const removalLabel = document.getElementById('lblRemoval')?.innerText || `Remoción de ${state.layers || 1} Membranas`;
-      const removalAmount = document.getElementById('sumRemoval')?.innerText || '+$0.00';
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 40;
+        let y = margin;
 
-      // Get service type
-      const serviceType = state.service || 'Sellado Profesional';
+        // Get current date
+        const today = new Date();
+        const dateStr = today.toLocaleDateString('es-PR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).replace(/\//g, '-');
+
+        // Get all data
+        const customerName = document.getElementById('contactName')?.value || state.contactName || 'Cliente';
+        const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
+        const areaRaw = document.getElementById('sumAreaRaw')?.innerText || String(Math.round(state.area || 0));
+        const wastePercent = document.getElementById('lblWaste')?.innerText || '15';
+        const wasteAmount = document.getElementById('sumWaste')?.innerText || String(Math.round((state.area || 0) * 0.15));
+        const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || `${Math.round((state.area || 0) * 1.15)} ft²`;
+        const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
+        const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
+        const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
+        const showCistern = state.cistern === true;
+        const showSolar = state.solar === true;
+        const showAC = state.ac === true;
+        const showRemoval = state.removal === true && state.service === 'Danosa' && state.layers >= 2;
+        const removalLabel = `Remoción de ${(state.layers || 1) - 1} Membranas`;
+        const removalAmount = document.getElementById('sumRemoval')?.innerText || '+$0.00';
+        const quoteNumber = state.quoteNumber || ('SET-' + today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + String(today.getDate()).padStart(2, '0') + '-' + String(Math.floor(Math.random() * 9000) + 1000));
+        const quoteDate = state.quoteDate || today.toLocaleDateString('es-PR', { year: 'numeric', month: 'long', day: 'numeric' });
+        const serviceLabel = state.service === 'Danosa' ? 'Danosa' : 'Silicone';
+        const customerAddress = state.address || state.contactAddress || '';
 
       // Debug logging
       console.log('📄 PDF Data:', {
