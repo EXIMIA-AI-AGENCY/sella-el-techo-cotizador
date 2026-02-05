@@ -2279,7 +2279,7 @@
           </div>
 
           <div class="text-center mt-4 d-grid gap-2">
-            <button class="btn btn-warning py-3 fw-bold" onclick="downloadPDF()">📥 Descargar PDF</button>
+            <button id="btnContract" class="btn btn-warning py-3 fw-bold" onclick="requestContract()">📄 Recibir Contrato</button>
             <button id="btnShowCalendar" class="btn btn-primary py-3 fw-bold" onclick="showWorkCalendar()">📅 Agendar Día del Trabajo</button>
           </div>
 
@@ -4627,6 +4627,112 @@ ${state.pinLocation.mapsUrl}` : ''}
           pdfBtn.disabled = false;
         }
         alert('Error al generar el PDF: ' + error.message);
+      }
+    }
+
+    // Request Contract - Send webhook with all client info
+    async function requestContract() {
+      console.log('📄 requestContract() called');
+
+      const btn = document.getElementById('btnContract');
+      const originalText = btn ? btn.innerHTML : '';
+
+      // Show loading state
+      if (btn) {
+        btn.innerHTML = '⏳ Enviando...';
+        btn.disabled = true;
+      }
+
+      try {
+        // Gather all client and quote data
+        const customerName = document.getElementById('contactName')?.value || state.contactName || '';
+        const customerEmail = document.getElementById('contactEmail')?.value || state.contactEmail || '';
+        const customerPhone = document.getElementById('contactPhone')?.value || state.contactPhone || '';
+        const customerAddress = state.address || state.pinLocation?.address || '';
+
+        const areaRaw = document.getElementById('sumAreaRaw')?.innerText || String(Math.round(state.area || 0));
+        const effectiveArea = document.getElementById('sumeffectiveArea')?.innerText || '';
+        const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
+        const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
+        const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
+
+        const quoteNumber = state.quoteNumber || '';
+        const quoteDate = state.quoteDate || new Date().toLocaleDateString('es-PR');
+        const serviceType = state.service || 'Silicone';
+
+        // Build webhook payload
+        const webhookData = {
+          // Contact Info
+          contact: {
+            name: customerName,
+            email: customerEmail,
+            phone: customerPhone,
+            address: customerAddress
+          },
+          // Quote Info
+          quote: {
+            number: quoteNumber,
+            date: quoteDate,
+            service: serviceType,
+            area: areaRaw,
+            effectiveArea: effectiveArea,
+            basePrice: basePrice,
+            tax: taxAmount,
+            total: totalAmount
+          },
+          // Options
+          options: {
+            cistern: state.cistern === true,
+            solar: state.solar === true,
+            ac: state.ac === true,
+            removal: state.removal === true,
+            layers: state.layers || 1
+          },
+          // Location
+          location: state.pinLocation || null,
+          // Timestamp
+          timestamp: new Date().toISOString(),
+          source: 'cotizador_web'
+        };
+
+        console.log('📤 Sending webhook with data:', webhookData);
+
+        // Send to webhook
+        const webhookUrl = 'https://services.leadconnectorhq.com/hooks/LVwbqYFEmGiKJ7AgtSIf/webhook-trigger/92d49c40-0af4-461d-9a1f-4251d7acf30f';
+
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(webhookData)
+        });
+
+        if (response.ok) {
+          console.log('✅ Webhook sent successfully');
+
+          // Show success message
+          if (btn) {
+            btn.innerHTML = '✅ Contrato Solicitado';
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success');
+          }
+
+          alert('¡Solicitud enviada! Te enviaremos el contrato a tu correo electrónico pronto.');
+        } else {
+          throw new Error('Webhook response: ' + response.status);
+        }
+
+      } catch (error) {
+        console.error('❌ Error sending webhook:', error);
+
+        // Restore button
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+
+        alert('Error al enviar la solicitud. Por favor intenta de nuevo.');
       }
     }
 
