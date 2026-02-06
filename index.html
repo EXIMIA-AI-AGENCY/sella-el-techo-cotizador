@@ -905,7 +905,7 @@
     <div class="w-header">
       <img src="assets/logo_white_ps.png" alt="Sella El Techo"
         style="max-height: 360px; width: auto; object-fit: contain;">
-      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 7</div>
+      <div class="text-muted small" id="stepCounter">Paso <span id="stepCount" class="font-monospace">1</span> de 8</div>
     </div>
     <div class="progress-track">
       <div class="progress-fill" id="progressFill"></div>
@@ -1043,7 +1043,7 @@
           </div>
           <div class="col-md-5">
             <div class="option-card" onclick="setOption('cistern', true, this)">
-              <h5 class="mt-2">Sí (+$150)</h5>
+              <h5 class="mt-2">Sí (<span class="cistern-price-label">+$150</span>)</h5>
               <small class="text-muted">Incluye movimiento</small>
             </div>
           </div>
@@ -1065,8 +1065,30 @@
           </div>
           <div class="col-md-5">
             <div class="option-card" onclick="setOption('solar', true, this)">
-              <h5 class="mt-2">Sí (+$1,000)</h5>
+              <h5 class="mt-2">Sí (<span class="solar-price-label">+$1,000</span>)</h5>
               <small class="text-muted">Protección especial</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP AC: Aire Acondicionado -->
+    <div class="step-content" id="stepAC">
+      <div class="text-center my-auto">
+        <h1 class="mb-3" style="font-size: 3rem;">❄️</h1>
+        <h3 class="mb-3">¿Tienes Aire Acondicionado en el techo?</h3>
+        <div class="row justify-content-center g-3">
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('ac', false, this)">
+              <h5 class="mt-2">No</h5>
+              <small class="text-muted">Sin unidad de AC</small>
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="option-card" onclick="setOption('ac', true, this)">
+              <h5 class="mt-2">Sí (<span class="ac-price-label">+$200</span>)</h5>
+              <small class="text-muted">Incluye manejo de unidad</small>
             </div>
           </div>
         </div>
@@ -1210,11 +1232,15 @@
               </tr>
               <tr id="rowCistern" style="display:none">
                 <td>Remoción / Manejo de Cisterna</td>
-                <td class="price text-warning">+$150.00</td>
+                <td class="price text-warning" id="sumCisternPrice">+$150.00</td>
               </tr>
               <tr id="rowSolar" style="display:none">
                 <td>Remoción / Desmontaje Placas Solares</td>
-                <td class="price text-warning">+$1,000.00</td>
+                <td class="price text-warning" id="sumSolarPrice">+$1,000.00</td>
+              </tr>
+              <tr id="rowAC" style="display:none">
+                <td>Manejo de Aire Acondicionado</td>
+                <td class="price text-warning" id="sumAcPrice">+$200.00</td>
               </tr>
               <tr class="border-top border-secondary">
                 <td class="pt-3 text-muted">IVU (11.5%)</td>
@@ -1237,7 +1263,7 @@
           </div>
 
           <div class="text-center mt-4 d-grid gap-2">
-            <button class="btn btn-primary py-3 fw-bold" onclick="goToCalendar(6)">📅 Agendar día del sellado</button>
+            <button class="btn btn-primary py-3 fw-bold" onclick="goToCalendar(7)">📅 Agendar día del sellado</button>
             <button class="btn btn-warning py-3 fw-bold" onclick="downloadPDF()">📥 Descargar PDF</button>
             <button onclick="location.reload()" class="btn btn-link text-muted small text-decoration-none mt-2">Empezar
               de nuevo</button>
@@ -1270,14 +1296,77 @@
 
   <script>
     let currentStep = 1;
-    const totalSteps = 7;
+    const totalSteps = 8;
+
+    // Dynamic pricing - loaded from backend API
+    const BACKEND_URL = window.location.hostname === 'localhost'
+      ? 'http://localhost:3001'
+      : (window.BACKEND_URL || 'http://localhost:3001');
+
+    window.PRICING = {
+      silicona: 4.50,
+      danosa: 3.50,
+      danosa_removal: 1.00,
+      cisterna: 150.00,
+      placas_solares: 1000.00,
+      ac: 200.00,
+      tax_rate: 0.115,
+      waste_factor: 1.15
+    };
+
+    // Fetch pricing from backend on load
+    (async function loadPricing() {
+      try {
+        const res = await fetch(BACKEND_URL + '/api/pricing');
+        if (!res.ok) throw new Error('API no disponible');
+        const data = await res.json();
+        const p = data.pricing;
+        const c = data.config;
+
+        if (p.silicona) window.PRICING.silicona = p.silicona.price;
+        if (p.danosa) window.PRICING.danosa = p.danosa.price;
+        if (p.danosa_removal) window.PRICING.danosa_removal = p.danosa_removal.price;
+        if (p.cisterna) window.PRICING.cisterna = p.cisterna.price;
+        if (p.placas_solares) window.PRICING.placas_solares = p.placas_solares.price;
+        if (p.ac) window.PRICING.ac = p.ac.price;
+        if (c.tax_rate) window.PRICING.tax_rate = c.tax_rate;
+        if (c.waste_factor) window.PRICING.waste_factor = c.waste_factor;
+
+        // Update price labels in the UI
+        updatePriceLabels();
+        console.log('Precios cargados desde backend:', window.PRICING);
+      } catch (err) {
+        console.warn('Backend no disponible, usando precios por defecto:', err.message);
+      }
+    })();
+
+    function updatePriceLabels() {
+      const P = window.PRICING;
+      // Cistern price label
+      const cisternLabels = document.querySelectorAll('.cistern-price-label');
+      cisternLabels.forEach(el => el.textContent = '+$' + P.cisterna.toLocaleString('en-US'));
+      // Solar price label
+      const solarLabels = document.querySelectorAll('.solar-price-label');
+      solarLabels.forEach(el => el.textContent = '+$' + P.placas_solares.toLocaleString('en-US'));
+      // AC price label
+      const acLabels = document.querySelectorAll('.ac-price-label');
+      acLabels.forEach(el => el.textContent = '+$' + P.ac.toLocaleString('en-US'));
+      // Summary fixed price labels
+      const sumCisternPrice = document.getElementById('sumCisternPrice');
+      if (sumCisternPrice) sumCisternPrice.textContent = '+$' + P.cisterna.toFixed(2);
+      const sumSolarPrice = document.getElementById('sumSolarPrice');
+      if (sumSolarPrice) sumSolarPrice.textContent = '+$' + P.placas_solares.toFixed(2);
+      const sumAcPrice = document.getElementById('sumAcPrice');
+      if (sumAcPrice) sumAcPrice.textContent = '+$' + P.ac.toFixed(2);
+    }
+
     const state = {
       address: '',
       area: 0,
       cistern: null,
       solar: null,
+      ac: null,
       service: null,
-      // New fields
       knowsSqFt: null,
       removal: false,
       layers: 1,
@@ -1398,23 +1487,25 @@
         return;
       }
 
-      // Calculate rates
-      let baseRate = 4.50; // Silicona
+      // Calculate rates from dynamic pricing
+      const P = window.PRICING;
+      let baseRate = P.silicona;
       let surchargeRate = 0;
 
       if (state.service === 'Danosa') {
-        baseRate = 3.50;
+        baseRate = P.danosa;
         if (state.removal && state.layers >= 2) {
-          surchargeRate = (state.layers - 1) * 1.00;
+          surchargeRate = (state.layers - 1) * P.danosa_removal;
         }
       }
 
       const totalRate = baseRate + surchargeRate;
       const materialCost = finalArea * totalRate;
-      const cisternCost = state.cistern ? 150.00 : 0;
-      const solarCost = state.solar ? 1000.00 : 0;
-      const subtotal = materialCost + cisternCost + solarCost;
-      const tax = subtotal * 0.115;
+      const cisternCost = state.cistern ? P.cisterna : 0;
+      const solarCost = state.solar ? P.placas_solares : 0;
+      const acCost = state.ac ? P.ac : 0;
+      const subtotal = materialCost + cisternCost + solarCost + acCost;
+      const tax = subtotal * P.tax_rate;
       const grandTotal = subtotal + tax;
 
       // 3. Show loading state
@@ -1458,6 +1549,10 @@
               value: state.solar ? 'Sí' : 'No'
             },
             {
+              key: 'tiene_ac',
+              value: state.ac ? 'Sí' : 'No'
+            },
+            {
               key: 'direccion_propiedad',
               value: address || 'No proporcionada'
             }
@@ -1492,7 +1587,7 @@
         state.contactAddress = address;
 
         // 6. Navigate to Step 7 (Quote Summary)
-        currentStep = 7;
+        currentStep = 8;
         showStep('step7');
         updateSteps();
 
@@ -1570,25 +1665,25 @@
 
       console.log("✅ SUCCESS: finalArea resolved to:", finalArea);
 
-      // 2. CALCULATE RATES & SURCHARGES
-      let baseRate = 4.50; // Default Silicona
+      // 2. CALCULATE RATES & SURCHARGES (dynamic pricing)
+      const P = window.PRICING;
+      let baseRate = P.silicona;
       let surchargeRate = 0;
       let surchargeLabel = "";
 
       console.log("Service type:", state.service);
 
       if (state.service === 'Danosa') {
-        baseRate = 3.50;
-        console.log("✅ Danosa selected - Using $3.50 per ft²");
-        // Logic: Removal adds $1.00 starting from 2nd layer
+        baseRate = P.danosa;
+        console.log("✅ Danosa selected - Using $" + baseRate + " per ft²");
         if (state.removal && state.layers >= 2) {
           const extra = state.layers - 1;
-          surchargeRate = extra * 1.00;
+          surchargeRate = extra * P.danosa_removal;
           surchargeLabel = ` (Inc. ${extra} capa${extra > 1 ? 's' : ''} removida${extra > 1 ? 's' : ''})`;
-          console.log(`Adding removal surcharge: ${extra} layer(s) × $1.00 = $${surchargeRate}/ft²`);
+          console.log(`Adding removal surcharge: ${extra} layer(s) × $${P.danosa_removal} = $${surchargeRate}/ft²`);
         }
       } else {
-        console.log("Silicona selected - Using $4.50 per ft²");
+        console.log("Silicona selected - Using $" + baseRate + " per ft²");
       }
 
       const totalRate = baseRate + surchargeRate;
@@ -1601,17 +1696,19 @@
       console.log(`  Area: ${finalArea} ft²`);
       console.log(`  Material cost: $${materialCost.toFixed(2)}`);
 
-      // 3. FIXED COSTS
-      const cisternCost = state.cistern ? 150.00 : 0;
-      const solarCost = state.solar ? 1000.00 : 0;
+      // 3. FIXED COSTS (dynamic pricing)
+      const cisternCost = state.cistern ? P.cisterna : 0;
+      const solarCost = state.solar ? P.placas_solares : 0;
+      const acCost = state.ac ? P.ac : 0;
 
       console.log("Add-ons:");
       console.log(`  Cisterna: ${state.cistern ? 'Yes' : 'No'} - $${cisternCost}`);
       console.log(`  Placas Solares: ${state.solar ? 'Yes' : 'No'} - $${solarCost}`);
+      console.log(`  Aire Acondicionado: ${state.ac ? 'Yes' : 'No'} - $${acCost}`);
 
       // 4. TOTALS
-      const subtotal = materialCost + cisternCost + solarCost;
-      const tax = subtotal * 0.115; // 11.5% IVU
+      const subtotal = materialCost + cisternCost + solarCost + acCost;
+      const tax = subtotal * P.tax_rate;
       const grandTotal = subtotal + tax;
 
       console.log("Final totals:");
@@ -1630,6 +1727,12 @@
 
       const rSol = document.getElementById('rowSolar');
       if (rSol) rSol.style.display = state.solar ? 'table-row' : 'none';
+
+      const rAC = document.getElementById('rowAC');
+      if (rAC) rAC.style.display = state.ac ? 'table-row' : 'none';
+
+      // Update dynamic price labels in summary
+      updatePriceLabels();
 
       safeSetText('sumTax', formatMoney(tax));
       safeSetText('sumTotal', formatMoney(grandTotal));
@@ -1676,7 +1779,7 @@
       let pct = ((currentStep - 1) / (totalSteps - 1)) * 100;
       if (currentStep === 99) pct = 100;
       document.getElementById('progressFill').style.width = pct + '%';
-      document.querySelector('.w-header .small span').innerText = (currentStep > 6) ? '-' : currentStep;
+      document.querySelector('.w-header .small span').innerText = (currentStep > 7) ? '-' : currentStep;
     }
 
     // --- NEW LOGIC END ---
@@ -1710,9 +1813,10 @@
         2: 'step2A',
         3: 'step3',
         4: 'step4',
-        5: 'step5',
-        6: 'step6',
-        7: 'step7'
+        5: 'stepAC',
+        6: 'step5',
+        7: 'step6',
+        8: 'step7'
       };
 
       const targetId = stepMap[currentStep];
@@ -1732,10 +1836,10 @@
       document.getElementById('progressFill').style.width = pct + '%';
       document.getElementById('stepCount').innerText = currentStep;
 
-      // Hide step counter on final summary page (step 7)
+      // Hide step counter on final summary page (step 8)
       const stepCounter = document.getElementById('stepCounter');
       if (stepCounter) {
-        stepCounter.style.display = (currentStep === 7) ? 'none' : 'block';
+        stepCounter.style.display = (currentStep === 8) ? 'none' : 'block';
       }
 
       // Buttons
@@ -1754,9 +1858,8 @@
 
       const nextBtn = document.getElementById('btnNext');
       nextBtn.innerText = (currentStep === totalSteps) ? 'Finalizar' : 'Siguiente';
-      // Hide Next button on Step 2 (manual input has its own Continuar button)
-      // Also hide on Step 6 (contact form - has its own submit button), Step 7 (summary) and Step 99 (calendar)
-      if (currentStep === 2 || currentStep === 6 || currentStep === totalSteps || currentStep === 99) {
+      // Hide Next button on Step 2 (manual input), Step 7 (contact form), Step 8 (summary), Step 99 (calendar)
+      if (currentStep === 2 || currentStep === 7 || currentStep === totalSteps || currentStep === 99) {
         nextBtn.style.display = 'none';
       } else {
         nextBtn.style.display = 'block';
@@ -1773,8 +1876,8 @@
         }, 100);
       }
 
-      if (currentStep === 7) {
-        console.log("📊 Step 7 reached - calling renderSummary()");
+      if (currentStep === 8) {
+        console.log("📊 Step 8 reached - calling renderSummary()");
         console.log("Current state before renderSummary:", state);
         renderSummary();
       }
@@ -1798,8 +1901,8 @@
           if (previousStepForCalendar === 1) {
             showStep('step1');
           } else {
-            // If was at 6, go back to 6
-            if (previousStepForCalendar === 6) renderSummary();
+            // If was at 7 (contact), go back
+            if (previousStepForCalendar === 7) renderSummary();
             // Force update via standard logic if numeric match
           }
         }
@@ -1909,11 +2012,8 @@
       let valid = false;
 
       if (currentStep === 1) {
-        // Validation handled by card selection
         valid = state.knowsSqFt !== null;
       } else if (currentStep === 2) {
-        // For step 2A (manual input), check if area is set
-        // OR check if input has a valid value
         const inputEl = document.getElementById('inputSqFt');
         valid = state.area > 0 || (inputEl && parseFloat(inputEl.value) >= 100);
       } else if (currentStep === 3) {
@@ -1921,10 +2021,11 @@
       } else if (currentStep === 4) {
         valid = state.solar !== null;
       } else if (currentStep === 5) {
-        valid = state.service !== null;
+        valid = state.ac !== null;
       } else if (currentStep === 6) {
-        // Contact form validation - handled by submitContactAndProceed()
-        valid = true; // No next button shown, validation happens on submit
+        valid = state.service !== null;
+      } else if (currentStep === 7) {
+        valid = true;
       }
 
       if (nextBtn) nextBtn.disabled = !valid;
@@ -1998,6 +2099,8 @@
       const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
       const showCistern = document.getElementById('rowCistern')?.style.display !== 'none';
       const showSolar = document.getElementById('rowSolar')?.style.display !== 'none';
+      const showAC = document.getElementById('rowAC')?.style.display !== 'none';
+      const P = window.PRICING;
 
       // Get service type
       const serviceType = state.service || 'Sellado Profesional';
@@ -2040,17 +2143,23 @@
           ${showCistern ? `
           <tr>
             <td style="padding: 12px 0; color: #ffffff;">Remocion / Manejo de Cisterna</td>
-            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$150.00</td>
+            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$${P.cisterna.toFixed(2)}</td>
           </tr>
           ` : ''}
           ${showSolar ? `
           <tr>
             <td style="padding: 12px 0; color: #ffffff;">Remocion / Desmontaje Placas Solares</td>
-            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$1,000.00</td>
+            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$${P.placas_solares.toFixed(2)}</td>
+          </tr>
+          ` : ''}
+          ${showAC ? `
+          <tr>
+            <td style="padding: 12px 0; color: #ffffff;">Manejo de Aire Acondicionado</td>
+            <td style="padding: 12px 0; text-align: right; color: #ff9900;">+$${P.ac.toFixed(2)}</td>
           </tr>
           ` : ''}
           <tr style="border-top: 1px solid #1a2f4f;">
-            <td style="padding: 12px 0; color: #94a3b8;">IVU (11.5%)</td>
+            <td style="padding: 12px 0; color: #94a3b8;">IVU (${(P.tax_rate * 100).toFixed(1)}%)</td>
             <td style="padding: 12px 0; text-align: right; color: #94a3b8;">${taxAmount}</td>
           </tr>
         </table>
@@ -2144,7 +2253,7 @@
       }
 
       // If we are on the quote page, re-render
-      if (currentStep === 7) renderSummary();
+      if (currentStep === 8) renderSummary();
 
       validateStep();
     };

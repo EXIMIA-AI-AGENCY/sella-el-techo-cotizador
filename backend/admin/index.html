@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Sella El Techo Precios</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0f1117;
+      --card-bg: #1a1d27;
+      --card-elevated: #22262f;
+      --accent: #ff9900;
+      --accent-hover: #ffad33;
+      --text-primary: #e8e8e8;
+      --text-muted: #8a8d97;
+      --success: #28a745;
+      --danger: #dc3545;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    .navbar-brand {
+      color: var(--accent) !important;
+      font-weight: 700;
+      font-size: 1.2rem;
+    }
+
+    .navbar { background: var(--card-bg) !important; border-bottom: 1px solid rgba(255,153,0,0.2); }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+    }
+
+    .card-header {
+      background: var(--card-elevated);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      font-weight: 600;
+    }
+
+    .table { color: var(--text-primary); }
+    .table thead th {
+      background: var(--card-elevated);
+      color: var(--accent);
+      border-bottom: 2px solid rgba(255,153,0,0.3);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .table td { border-color: rgba(255,255,255,0.06); vertical-align: middle; }
+    .table tbody tr:hover { background: rgba(255,153,0,0.04); }
+
+    .form-control, .form-select {
+      background: var(--card-elevated);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text-primary);
+    }
+    .form-control:focus, .form-select:focus {
+      background: var(--card-elevated);
+      color: var(--text-primary);
+      border-color: var(--accent);
+      box-shadow: 0 0 0 0.2rem rgba(255,153,0,0.2);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: #000;
+      font-weight: 600;
+      border: none;
+    }
+    .btn-accent:hover { background: var(--accent-hover); color: #000; }
+
+    .price-display {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .unit-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .unit-sqft { background: rgba(0,123,255,0.15); color: #5b9aff; }
+    .unit-flat { background: rgba(40,167,69,0.15); color: #5cd67b; }
+
+    .status-active { color: var(--success); }
+    .status-inactive { color: var(--danger); }
+
+    .edit-input {
+      background: var(--card-elevated);
+      border: 1px solid var(--accent);
+      color: var(--text-primary);
+      padding: 4px 8px;
+      border-radius: 6px;
+      width: 100%;
+    }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; }
+    .toast-success { background: var(--success) !important; }
+    .toast-error { background: var(--danger) !important; }
+
+    .section-title {
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 0;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      color: var(--text-primary);
+      border: 1px solid rgba(255,153,0,0.2);
+    }
+    .modal-header { border-bottom-color: rgba(255,255,255,0.08); }
+    .modal-footer { border-top-color: rgba(255,255,255,0.08); }
+    .btn-close { filter: invert(1); }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark px-3 mb-4">
+    <span class="navbar-brand">SELLA EL TECHO - Panel de Precios</span>
+    <span class="text-muted small" id="lastUpdate"></span>
+  </nav>
+
+  <div class="container-fluid px-4">
+
+    <!-- Toast notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Settings Section -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center px-4 py-3">
+        <span class="section-title">Configuracion General</span>
+      </div>
+      <div class="card-body p-4">
+        <div class="row g-4" id="settingsContainer">
+          <!-- Settings rendered here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="card mb-4">
+      <div class="card-header d-flex justify-content-between align-items-center px-4 py-3">
+        <span class="section-title">Productos y Precios</span>
+        <button class="btn btn-accent btn-sm" onclick="showAddModal()">+ Nuevo Producto</button>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table mb-0">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Slug</th>
+                <th>Descripcion</th>
+                <th>Tipo</th>
+                <th class="text-end">Precio</th>
+                <th class="text-center">Estado</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="productsTable">
+              <!-- Products rendered here -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Add/Edit Product Modal -->
+  <div class="modal fade" id="productModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalTitle">Nuevo Producto</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editProductId">
+          <div class="mb-3">
+            <label class="form-label">Slug (identificador unico)</label>
+            <input type="text" class="form-control" id="inputSlug" placeholder="ej: impermeabilizante">
+            <small class="text-muted">Sin espacios, minusculas. Se usa en el sistema.</small>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="inputName" placeholder="ej: Impermeabilizante Premium">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Descripcion</label>
+            <input type="text" class="form-control" id="inputDesc" placeholder="ej: Sellado profesional">
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label">Tipo de Cobro</label>
+              <select class="form-select" id="inputUnit">
+                <option value="sqft">Por pie cuadrado ($/ft2)</option>
+                <option value="flat">Precio fijo ($)</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Precio ($)</label>
+              <input type="number" step="0.01" min="0" class="form-control" id="inputPrice" placeholder="0.00">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-accent" onclick="saveProduct()">Guardar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const API_BASE = window.location.origin + '/api';
+    let products = [];
+    let settings = [];
+    let productModal;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      productModal = new bootstrap.Modal(document.getElementById('productModal'));
+      loadAll();
+    });
+
+    async function loadAll() {
+      await Promise.all([loadProducts(), loadSettings()]);
+      document.getElementById('lastUpdate').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-PR');
+    }
+
+    // --- Products ---
+
+    async function loadProducts() {
+      try {
+        const res = await fetch(API_BASE + '/products');
+        products = await res.json();
+        renderProducts();
+      } catch (err) {
+        showToast('Error cargando productos: ' + err.message, 'error');
+      }
+    }
+
+    function renderProducts() {
+      const tbody = document.getElementById('productsTable');
+      tbody.innerHTML = products.map(p => `
+        <tr id="row-${p.id}">
+          <td><strong>${esc(p.name)}</strong></td>
+          <td><code>${esc(p.slug)}</code></td>
+          <td class="text-muted">${esc(p.description)}</td>
+          <td>
+            <span class="unit-badge ${p.unit === 'sqft' ? 'unit-sqft' : 'unit-flat'}">
+              ${p.unit === 'sqft' ? '$/ft2' : 'Fijo'}
+            </span>
+          </td>
+          <td class="text-end">
+            <span class="price-display" id="price-display-${p.id}">$${p.price.toFixed(2)}</span>
+            <input type="number" step="0.01" min="0" class="edit-input d-none" id="price-input-${p.id}"
+              value="${p.price.toFixed(2)}" onkeydown="if(event.key==='Enter')saveInlinePrice(${p.id})">
+          </td>
+          <td class="text-center">
+            <span class="${p.active ? 'status-active' : 'status-inactive'}" style="cursor:pointer"
+              onclick="toggleActive(${p.id}, ${p.active})">
+              ${p.active ? 'Activo' : 'Inactivo'}
+            </span>
+          </td>
+          <td class="text-center">
+            <button class="btn btn-sm btn-outline-warning me-1" onclick="startInlineEdit(${p.id})" title="Editar precio">
+              $
+            </button>
+            <button class="btn btn-sm btn-outline-light me-1" onclick="showEditModal(${p.id})" title="Editar todo">
+              E
+            </button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deleteProduct(${p.id})" title="Eliminar">
+              X
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function startInlineEdit(id) {
+      document.getElementById('price-display-' + id).classList.add('d-none');
+      const input = document.getElementById('price-input-' + id);
+      input.classList.remove('d-none');
+      input.focus();
+      input.select();
+    }
+
+    async function saveInlinePrice(id) {
+      const input = document.getElementById('price-input-' + id);
+      const price = parseFloat(input.value);
+      if (isNaN(price) || price < 0) {
+        showToast('Precio invalido', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/products/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ price })
+        });
+
+        if (!res.ok) throw new Error('Error actualizando');
+
+        const product = products.find(p => p.id === id);
+        showToast(`${product.name}: $${price.toFixed(2)}`, 'success');
+        await loadProducts();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    async function toggleActive(id, currentActive) {
+      try {
+        await fetch(API_BASE + '/products/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ active: !currentActive })
+        });
+        await loadProducts();
+        showToast('Estado actualizado', 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    function showAddModal() {
+      document.getElementById('modalTitle').textContent = 'Nuevo Producto';
+      document.getElementById('editProductId').value = '';
+      document.getElementById('inputSlug').value = '';
+      document.getElementById('inputSlug').disabled = false;
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputDesc').value = '';
+      document.getElementById('inputUnit').value = 'sqft';
+      document.getElementById('inputPrice').value = '';
+      productModal.show();
+    }
+
+    function showEditModal(id) {
+      const p = products.find(x => x.id === id);
+      if (!p) return;
+      document.getElementById('modalTitle').textContent = 'Editar: ' + p.name;
+      document.getElementById('editProductId').value = p.id;
+      document.getElementById('inputSlug').value = p.slug;
+      document.getElementById('inputSlug').disabled = true;
+      document.getElementById('inputName').value = p.name;
+      document.getElementById('inputDesc').value = p.description;
+      document.getElementById('inputUnit').value = p.unit;
+      document.getElementById('inputPrice').value = p.price;
+      productModal.show();
+    }
+
+    async function saveProduct() {
+      const id = document.getElementById('editProductId').value;
+      const data = {
+        slug: document.getElementById('inputSlug').value.trim(),
+        name: document.getElementById('inputName').value.trim(),
+        description: document.getElementById('inputDesc').value.trim(),
+        unit: document.getElementById('inputUnit').value,
+        price: parseFloat(document.getElementById('inputPrice').value)
+      };
+
+      if (!data.name || !data.slug || isNaN(data.price)) {
+        showToast('Completa todos los campos requeridos', 'error');
+        return;
+      }
+
+      try {
+        const url = id ? API_BASE + '/products/' + id : API_BASE + '/products';
+        const method = id ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || 'Error guardando');
+        }
+
+        productModal.hide();
+        showToast(id ? 'Producto actualizado' : 'Producto creado', 'success');
+        await loadProducts();
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    }
+
+    async function deleteProduct(id) {
+      const p = products.find(x => x.id === id);
+      if (!confirm(`Eliminar "${p?.name}"?`)) return;
+
+      try {
+        await fetch(API_BASE + '/products/' + id, { method: 'DELETE' });
+        showToast('Producto eliminado', 'success');
+        await loadProducts();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    // --- Settings ---
+
+    async function loadSettings() {
+      try {
+        const res = await fetch(API_BASE + '/settings');
+        settings = await res.json();
+        renderSettings();
+      } catch (err) {
+        showToast('Error cargando configuracion: ' + err.message, 'error');
+      }
+    }
+
+    function renderSettings() {
+      const container = document.getElementById('settingsContainer');
+      container.innerHTML = settings.map(s => `
+        <div class="col-md-4">
+          <label class="form-label text-muted small">${esc(s.label || s.key)}</label>
+          <div class="input-group">
+            <input type="text" class="form-control" id="setting-${s.key}" value="${esc(s.value)}">
+            <button class="btn btn-accent" onclick="saveSetting('${s.key}')">Guardar</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function saveSetting(key) {
+      const value = document.getElementById('setting-' + key).value;
+      try {
+        const res = await fetch(API_BASE + '/settings/' + key, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ value })
+        });
+        if (!res.ok) throw new Error('Error');
+        showToast('Configuracion actualizada', 'success');
+        await loadSettings();
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      }
+    }
+
+    // --- Utils ---
+
+    function esc(str) {
+      const div = document.createElement('div');
+      div.textContent = str || '';
+      return div.innerHTML;
+    }
+
+    function showToast(message, type) {
+      const container = document.getElementById('toastContainer');
+      const id = 'toast-' + Date.now();
+      container.insertAdjacentHTML('beforeend', `
+        <div id="${id}" class="toast show text-white ${type === 'success' ? 'toast-success' : 'toast-error'}"
+          role="alert" style="min-width:280px; border-radius:8px; margin-bottom:8px;">
+          <div class="toast-body d-flex justify-content-between align-items-center">
+            <span>${type === 'success' ? 'OK' : 'Error'}: ${esc(message)}</span>
+            <button type="button" class="btn-close btn-close-white ms-2" onclick="this.closest('.toast').remove()"></button>
+          </div>
+        </div>
+      `);
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }, 3500);
+    }
+  </script>
+</body>
+</html>

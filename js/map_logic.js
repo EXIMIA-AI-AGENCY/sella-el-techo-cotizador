@@ -7,11 +7,11 @@ let currentPolygon = null;
 window.useCurrentLocation = useCurrentLocation;
 window.initMap = initMap;
 
-// Global Pricing Constants
+// Global Pricing Constants (defaults, overridden by backend via window.PRICING)
 const CONSTANTS = {
-    WASTE_FACTOR: 1.15, // 15% waste/overlap
-    PRICE_SQFT: 4.50,   // Base price example
-    TAX_RATE: 0.115
+    get WASTE_FACTOR() { return window.PRICING ? window.PRICING.waste_factor : 1.15; },
+    get PRICE_SQFT() { return window.PRICING ? window.PRICING.silicona : 4.50; },
+    get TAX_RATE() { return window.PRICING ? window.PRICING.tax_rate : 0.115; }
 };
 
 // Initialize when DOM is ready

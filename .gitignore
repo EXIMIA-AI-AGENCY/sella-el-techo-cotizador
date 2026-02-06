@@ -6,3 +6,7 @@ __pycache__/
 env/
 venv/
 automations/
+
+# Backend
+backend/node_modules/
+backend/db/*.db
