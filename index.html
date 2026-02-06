@@ -2565,9 +2565,9 @@ ${state.pinLocation.mapsUrl}` : ''}
           customFields: [
             { id: 'JVE4U8McHgJfAV20nSNH', value: String(Math.round(finalArea)) },
             { id: 'KNWSmZs63hL2jMXNZvpM', value: String(grandTotal.toFixed(2)) },
-            { id: 'qDVGDd879hOARK6M6Uax', value: String(state.cistern) },
+            { id: 'qDVGDd879hOARK6M6Uax', value: state.cistern > 0 ? 'Si' : 'No' },
             { id: 'D1yRe3BskNRgAtGbK7gJ', value: state.solar === true ? 'Si' : 'No' },
-            { id: '6wqy3fR4Osdt6xk55udZ', value: String(state.ac) },
+            { id: '6wqy3fR4Osdt6xk55udZ', value: state.ac > 0 ? 'Si' : 'No' },
             { id: 'usGrA7qJvXwrjZiU7kZh', value: state.service === 'Danosa' ? 'Danosa' : 'Silicone' },
             { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal === true ? 'Si' : 'No' },
             { id: 'j4FfurcAXnA7O8rCjv4z', value: String(state.layers || 1) },
@@ -2579,9 +2579,9 @@ ${state.pinLocation.mapsUrl}` : ''}
         console.log("📋 Custom Fields being sent:");
         console.log("  - Pies Cuadrados (JVE4U8McHgJfAV20nSNH):", String(Math.round(finalArea)));
         console.log("  - Valor Cotizacion (KNWSmZs63hL2jMXNZvpM):", String(grandTotal.toFixed(2)));
-        console.log("  - Cisternas (qDVGDd879hOARK6M6Uax):", String(state.cistern));
+        console.log("  - Cisterna (qDVGDd879hOARK6M6Uax):", state.cistern > 0 ? 'Si' : 'No');
         console.log("  - Placas Solares (D1yRe3BskNRgAtGbK7gJ):", state.solar === true ? 'Si' : 'No');
-        console.log("  - Aires Acondicionados (6wqy3fR4Osdt6xk55udZ):", String(state.ac));
+        console.log("  - Aire Acondicionado (6wqy3fR4Osdt6xk55udZ):", state.ac > 0 ? 'Si' : 'No');
         console.log("  - Material (usGrA7qJvXwrjZiU7kZh):", state.service === 'Danosa' ? 'Danosa' : 'Silicone');
         console.log("  - Remocion (VA7E6Ir1bk0zBqpbQ4Mb):", state.removal === true ? 'Si' : 'No', '| state.removal =', state.removal);
         console.log("  - Capas (j4FfurcAXnA7O8rCjv4z):", String(state.layers || 1));
@@ -2719,8 +2719,8 @@ ${state.pinLocation.mapsUrl}` : ''}
           total: grandTotal.toFixed(2),
 
           // Additional Options
-          cantidad_cisternas: state.cistern,
-          cantidad_ac: state.ac,
+          tiene_cisterna: state.cistern > 0,
+          tiene_ac: state.ac > 0,
           tiene_placas_solares: state.solar ? true : false,
           requiere_remocion: state.removal ? true : false,
           capas_remocion: state.layers || 1,
@@ -4783,9 +4783,9 @@ ${state.pinLocation.mapsUrl}` : ''}
           },
           // Options
           options: {
-            cisternCount: state.cistern,
+            cistern: state.cistern > 0,
             solar: state.solar === true,
-            acCount: state.ac,
+            ac: state.ac > 0,
             removal: state.removal === true,
             layers: state.layers || 1
           },
