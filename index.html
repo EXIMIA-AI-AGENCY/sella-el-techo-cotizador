@@ -2002,21 +2002,16 @@
     <div class="step-content" id="step3">
       <div class="text-center my-auto">
         <img src="assets/cistern.png" class="img-3d img-fluid mb-4">
-        <h3 class="mb-3">¿Tienes Cisterna?</h3>
-        <div class="row justify-content-center g-3">
-          <div class="col-md-5">
-            <div class="option-card" onclick="setOption('cistern', false, this)">
-              <h5 class="mt-2">No</h5>
-              <small class="text-muted">Techo libre</small>
-            </div>
-          </div>
-          <div class="col-md-5">
-            <div class="option-card" onclick="setOption('cistern', true, this)">
-              <h5 class="mt-2">Sí (+$150)</h5>
-              <small class="text-muted">Incluye movimiento</small>
-            </div>
-          </div>
+        <h3 class="mb-3">¿Cuántas Cisternas Tienes?</h3>
+        <p class="text-muted mb-3">$250 por cada cisterna</p>
+        <div class="d-flex justify-content-center align-items-center gap-3 mb-4">
+          <button class="btn btn-outline-light btn-lg px-4" onclick="adjustCistern(-1)">-</button>
+          <span id="cisternCount" class="display-4 fw-bold text-warning px-4">0</span>
+          <button class="btn btn-outline-light btn-lg px-4" onclick="adjustCistern(1)">+</button>
         </div>
+        <button class="btn btn-warning w-50 py-2 fw-bold" onclick="confirmCistern()">
+          Continuar →
+        </button>
       </div>
     </div>
 
@@ -2046,21 +2041,16 @@
     <div class="step-content" id="step4B">
       <div class="text-center my-auto">
         <h1 class="mb-3">❄️</h1>
-        <h3 class="mb-3">¿Aire Acondicionado en el Techo?</h3>
-        <div class="row justify-content-center g-3">
-          <div class="col-md-5">
-            <div class="option-card" onclick="setOption('ac', false, this)">
-              <h5 class="mt-2">No</h5>
-              <small class="text-muted">Sin unidad en el techo</small>
-            </div>
-          </div>
-          <div class="col-md-5">
-            <div class="option-card" onclick="setOption('ac', true, this)">
-              <h5 class="mt-2">Sí (+$200)</h5>
-              <small class="text-muted">Incluye protección</small>
-            </div>
-          </div>
+        <h3 class="mb-3">¿Cuántos Aires Acondicionados en el Techo?</h3>
+        <p class="text-muted mb-3">$250 por cada unidad</p>
+        <div class="d-flex justify-content-center align-items-center gap-3 mb-4">
+          <button class="btn btn-outline-light btn-lg px-4" onclick="adjustAC(-1)">-</button>
+          <span id="acCount" class="display-4 fw-bold text-warning px-4">0</span>
+          <button class="btn btn-outline-light btn-lg px-4" onclick="adjustAC(1)">+</button>
         </div>
+        <button class="btn btn-warning w-50 py-2 fw-bold" onclick="confirmAC()">
+          Continuar →
+        </button>
       </div>
     </div>
 
@@ -2278,16 +2268,16 @@
                     <td class="py-2 text-end text-light" id="sumBase">$0.00</td>
                   </tr>
                   <tr id="rowCistern" style="display:none">
-                    <td class="py-2 text-light">Manejo de Cisterna</td>
-                    <td class="py-2 text-end text-warning">+$150.00</td>
+                    <td class="py-2 text-light" id="lblCistern">Manejo de Cisterna</td>
+                    <td class="py-2 text-end text-warning" id="sumCistern">+$0.00</td>
                   </tr>
                   <tr id="rowSolar" style="display:none">
                     <td class="py-2 text-light">Desmontaje de Placas Solares</td>
                     <td class="py-2 text-end text-warning">+$1,000.00</td>
                   </tr>
                   <tr id="rowAC" style="display:none">
-                    <td class="py-2 text-light">Protección de Aire Acondicionado</td>
-                    <td class="py-2 text-end text-warning">+$200.00</td>
+                    <td class="py-2 text-light" id="lblAC">Protección de Aire Acondicionado</td>
+                    <td class="py-2 text-end text-warning" id="sumAC">+$0.00</td>
                   </tr>
                   <tr id="rowRemoval" style="display:none">
                     <td class="py-2 text-light" id="lblRemoval">Remoción de Membranas</td>
@@ -2360,9 +2350,9 @@
     const state = {
       address: '',
       area: 0,
-      cistern: null,
+      cistern: 0,  // Number of cisterns ($250 each)
       solar: null,
-      ac: null,  // Air conditioning
+      ac: 0,  // Number of AC units ($250 each)
       service: null,
       // New fields
       knowsSqFt: null,
@@ -2505,9 +2495,9 @@
 
       const totalRate = baseRate + surchargeRate;
       const materialCost = finalArea * totalRate;
-      const cisternCost = state.cistern ? 150.00 : 0;
+      const cisternCost = state.cistern * 250.00;  // $250 per cistern
       const solarCost = state.solar ? 1000.00 : 0;
-      const acCost = state.ac ? 200.00 : 0;
+      const acCost = state.ac * 250.00;  // $250 per AC unit
       const subtotal = materialCost + cisternCost + solarCost + acCost;
       const tax = subtotal * 0.115;
       const grandTotal = subtotal + tax;
@@ -2549,9 +2539,9 @@
 
 🏠 DETALLES ADICIONALES:
 ─────────────────────────────────────
-• Tiene Cisterna: ${state.cistern ? 'Sí' : 'No'}
+• Cisternas: ${state.cistern} ($250 c/u)
 • Tiene Placas Solares: ${state.solar ? 'Sí' : 'No'}
-• Tiene Aire Acondicionado: ${state.ac ? 'Sí' : 'No'}
+• Aires Acondicionados: ${state.ac} ($250 c/u)
 • Requiere Remoción: ${state.removal ? 'Sí' : 'No'}
 • Capas de Remoción: ${state.layers || 1}
 ${state.pinLocation?.mapsUrl ? `
@@ -2575,9 +2565,9 @@ ${state.pinLocation.mapsUrl}` : ''}
           customFields: [
             { id: 'JVE4U8McHgJfAV20nSNH', value: String(Math.round(finalArea)) },
             { id: 'KNWSmZs63hL2jMXNZvpM', value: String(grandTotal.toFixed(2)) },
-            { id: 'qDVGDd879hOARK6M6Uax', value: state.cistern === true ? 'Si' : 'No' },
+            { id: 'qDVGDd879hOARK6M6Uax', value: String(state.cistern) },
             { id: 'D1yRe3BskNRgAtGbK7gJ', value: state.solar === true ? 'Si' : 'No' },
-            { id: '6wqy3fR4Osdt6xk55udZ', value: state.ac === true ? 'Si' : 'No' },
+            { id: '6wqy3fR4Osdt6xk55udZ', value: String(state.ac) },
             { id: 'usGrA7qJvXwrjZiU7kZh', value: state.service === 'Danosa' ? 'Danosa' : 'Silicone' },
             { id: 'VA7E6Ir1bk0zBqpbQ4Mb', value: state.removal === true ? 'Si' : 'No' },
             { id: 'j4FfurcAXnA7O8rCjv4z', value: String(state.layers || 1) },
@@ -2589,9 +2579,9 @@ ${state.pinLocation.mapsUrl}` : ''}
         console.log("📋 Custom Fields being sent:");
         console.log("  - Pies Cuadrados (JVE4U8McHgJfAV20nSNH):", String(Math.round(finalArea)));
         console.log("  - Valor Cotizacion (KNWSmZs63hL2jMXNZvpM):", String(grandTotal.toFixed(2)));
-        console.log("  - Cisterna (qDVGDd879hOARK6M6Uax):", state.cistern === true ? 'Si' : 'No');
+        console.log("  - Cisternas (qDVGDd879hOARK6M6Uax):", String(state.cistern));
         console.log("  - Placas Solares (D1yRe3BskNRgAtGbK7gJ):", state.solar === true ? 'Si' : 'No');
-        console.log("  - Aire Acondicionado (6wqy3fR4Osdt6xk55udZ):", state.ac === true ? 'Si' : 'No');
+        console.log("  - Aires Acondicionados (6wqy3fR4Osdt6xk55udZ):", String(state.ac));
         console.log("  - Material (usGrA7qJvXwrjZiU7kZh):", state.service === 'Danosa' ? 'Danosa' : 'Silicone');
         console.log("  - Remocion (VA7E6Ir1bk0zBqpbQ4Mb):", state.removal === true ? 'Si' : 'No', '| state.removal =', state.removal);
         console.log("  - Capas (j4FfurcAXnA7O8rCjv4z):", String(state.layers || 1));
@@ -2729,7 +2719,8 @@ ${state.pinLocation.mapsUrl}` : ''}
           total: grandTotal.toFixed(2),
 
           // Additional Options
-          tiene_cisterna: state.cistern ? true : false,
+          cantidad_cisternas: state.cistern,
+          cantidad_ac: state.ac,
           tiene_placas_solares: state.solar ? true : false,
           requiere_remocion: state.removal ? true : false,
           capas_remocion: state.layers || 1,
@@ -2861,13 +2852,13 @@ ${state.pinLocation.mapsUrl}` : ''}
               taxes: []
             });
 
-            // Cistern if applicable
-            if (state.cistern) {
+            // Cistern if applicable (quantity-based, $250 each)
+            if (state.cistern > 0) {
               invoiceItems.push({
-                name: sanitize('Remocion / Manejo de Cisterna'),
-                description: sanitize('Servicio adicional'),
-                amount: 150,
-                qty: 1,
+                name: sanitize(`Manejo de ${state.cistern} Cisterna${state.cistern > 1 ? 's' : ''}`),
+                description: sanitize(`${state.cistern} cisterna${state.cistern > 1 ? 's' : ''} x $250`),
+                amount: 250,
+                qty: state.cistern,
                 currency: 'USD',
                 taxes: []
               });
@@ -2885,13 +2876,13 @@ ${state.pinLocation.mapsUrl}` : ''}
               });
             }
 
-            // Air conditioning if applicable
-            if (state.ac) {
+            // Air conditioning if applicable (quantity-based, $250 each)
+            if (state.ac > 0) {
               invoiceItems.push({
-                name: sanitize('Proteccion Aire Acondicionado'),
-                description: sanitize('Proteccion de unidad AC'),
-                amount: 200,
-                qty: 1,
+                name: sanitize(`Proteccion de ${state.ac} Aire${state.ac > 1 ? 's' : ''} Acondicionado${state.ac > 1 ? 's' : ''}`),
+                description: sanitize(`${state.ac} unidad${state.ac > 1 ? 'es' : ''} AC x $250`),
+                amount: 250,
+                qty: state.ac,
                 currency: 'USD',
                 taxes: []
               });
@@ -3180,14 +3171,14 @@ ${state.pinLocation.mapsUrl}` : ''}
       console.log(`  Removal cost: $${removalCost.toFixed(2)}`);
 
       // 3. FIXED COSTS
-      const cisternCost = state.cistern ? 150.00 : 0;
+      const cisternCost = state.cistern * 250.00;  // $250 per cistern
       const solarCost = state.solar ? 1000.00 : 0;
-      const acCost = state.ac ? 200.00 : 0;
+      const acCost = state.ac * 250.00;  // $250 per AC unit
 
       console.log("Add-ons:");
-      console.log(`  Cisterna: ${state.cistern ? 'Yes' : 'No'} - $${cisternCost}`);
+      console.log(`  Cisternas: ${state.cistern} x $250 = $${cisternCost}`);
       console.log(`  Placas Solares: ${state.solar ? 'Yes' : 'No'} - $${solarCost}`);
-      console.log(`  Aire Acondicionado: ${state.ac ? 'Yes' : 'No'} - $${acCost}`);
+      console.log(`  Aires Acondicionados: ${state.ac} x $250 = $${acCost}`);
       console.log(`  Remoción: ${removalCost > 0 ? 'Yes' : 'No'} - $${removalCost.toFixed(2)}`);
 
       // 4. TOTALS (now includes removal cost)
@@ -3206,14 +3197,30 @@ ${state.pinLocation.mapsUrl}` : ''}
 
       safeSetText('sumBase', formatMoney(materialCost));
 
+      // Cistern row - show if count > 0
       const rCis = document.getElementById('rowCistern');
-      if (rCis) rCis.style.display = state.cistern ? 'table-row' : 'none';
+      if (rCis) {
+        const showCistern = state.cistern > 0;
+        rCis.style.display = showCistern ? 'table-row' : 'none';
+        if (showCistern) {
+          safeSetText('lblCistern', `Manejo de ${state.cistern} Cisterna${state.cistern > 1 ? 's' : ''} ($250 c/u)`);
+          safeSetText('sumCistern', '+' + formatMoney(cisternCost));
+        }
+      }
 
       const rSol = document.getElementById('rowSolar');
       if (rSol) rSol.style.display = state.solar ? 'table-row' : 'none';
 
+      // AC row - show if count > 0
       const rAC = document.getElementById('rowAC');
-      if (rAC) rAC.style.display = state.ac ? 'table-row' : 'none';
+      if (rAC) {
+        const showAC = state.ac > 0;
+        rAC.style.display = showAC ? 'table-row' : 'none';
+        if (showAC) {
+          safeSetText('lblAC', `Protección de ${state.ac} Aire${state.ac > 1 ? 's' : ''} Acondicionado${state.ac > 1 ? 's' : ''} ($250 c/u)`);
+          safeSetText('sumAC', '+' + formatMoney(acCost));
+        }
+      }
 
       // Show removal cost row if Danosa with removal layers >= 2
       const rRem = document.getElementById('rowRemoval');
@@ -3291,6 +3298,38 @@ ${state.pinLocation.mapsUrl}` : ''}
       if (newL > 5) newL = 5;
       state.layers = newL;
       document.getElementById('layerCount').innerText = newL;
+    }
+
+    // Cistern quantity adjustment
+    function adjustCistern(delta) {
+      let newCount = state.cistern + delta;
+      if (newCount < 0) newCount = 0;
+      if (newCount > 10) newCount = 10;
+      state.cistern = newCount;
+      document.getElementById('cisternCount').innerText = newCount;
+    }
+
+    function confirmCistern() {
+      console.log("Cistern count confirmed:", state.cistern);
+      showStep('step4');
+      currentStep = 4;
+      updateSteps();
+    }
+
+    // AC quantity adjustment
+    function adjustAC(delta) {
+      let newCount = state.ac + delta;
+      if (newCount < 0) newCount = 0;
+      if (newCount > 10) newCount = 10;
+      state.ac = newCount;
+      document.getElementById('acCount').innerText = newCount;
+    }
+
+    function confirmAC() {
+      console.log("AC count confirmed:", state.ac);
+      showStep('step5');
+      currentStep = 5;
+      updateSteps();
     }
 
     // Helper to manually show specific ID (bypassing number logic occasionally)
@@ -3520,18 +3559,10 @@ ${state.pinLocation.mapsUrl}` : ''}
     }
     // Restore visual selection state when navigating back to a step
     function restoreSelectionState() {
-      // Step 3: Cistern selection
-      if (currentStep === 3 && state.cistern !== null) {
-        const cards = document.querySelectorAll('#step3 .option-card');
-        cards.forEach(card => {
-          card.classList.remove('selected');
-          const onclick = card.getAttribute('onclick');
-          if (state.cistern === true && onclick && onclick.includes('true')) {
-            card.classList.add('selected');
-          } else if (state.cistern === false && onclick && onclick.includes('false')) {
-            card.classList.add('selected');
-          }
-        });
+      // Step 3: Cistern counter - restore the displayed count
+      if (currentStep === 3) {
+        const cisternCountEl = document.getElementById('cisternCount');
+        if (cisternCountEl) cisternCountEl.innerText = state.cistern;
       }
 
       // Step 4: Solar selection
@@ -3548,18 +3579,10 @@ ${state.pinLocation.mapsUrl}` : ''}
         });
       }
 
-      // Step 5: AC selection
-      if (currentStep === 5 && state.ac !== null) {
-        const cards = document.querySelectorAll('#step4B .option-card');
-        cards.forEach(card => {
-          card.classList.remove('selected');
-          const onclick = card.getAttribute('onclick');
-          if (state.ac === true && onclick && onclick.includes('true')) {
-            card.classList.add('selected');
-          } else if (state.ac === false && onclick && onclick.includes('false')) {
-            card.classList.add('selected');
-          }
-        });
+      // Step 5: AC counter - restore the displayed count (step4B)
+      if (currentStep === 5) {
+        const acCountEl = document.getElementById('acCount');
+        if (acCountEl) acCountEl.innerText = state.ac;
       }
 
       // Step 6: Service selection
@@ -3601,12 +3624,13 @@ ${state.pinLocation.mapsUrl}` : ''}
         const inputEl = document.getElementById('inputSqFt');
         valid = state.area > 0 || (inputEl && parseFloat(inputEl.value) >= 100);
       } else if (currentStep === 3) {
-        valid = state.cistern !== null;
+        // Cistern is now a counter (0+), always valid
+        valid = true;
       } else if (currentStep === 4) {
         valid = state.solar !== null;
       } else if (currentStep === 5) {
-        // Step 5 is now AC step (step4B)
-        valid = state.ac !== null;
+        // AC is now a counter (0+), always valid
+        valid = true;
       } else if (currentStep === 6) {
         // Step 6 is Service step (step5)
         valid = state.service !== null;
@@ -4460,9 +4484,13 @@ ${state.pinLocation.mapsUrl}` : ''}
         const basePrice = document.getElementById('sumBase')?.innerText || '$0.00';
         const taxAmount = document.getElementById('sumTax')?.innerText || '$0.00';
         const totalAmount = document.getElementById('sumTotal')?.innerText || '$0.00';
-        const showCistern = state.cistern === true;
+        const showCistern = state.cistern > 0;
+        const cisternLabel = `Manejo de ${state.cistern} Cisterna${state.cistern > 1 ? 's' : ''} ($250 c/u)`;
+        const cisternAmount = `+$${(state.cistern * 250).toFixed(2)}`;
         const showSolar = state.solar === true;
-        const showAC = state.ac === true;
+        const showAC = state.ac > 0;
+        const acLabel = `Protección de ${state.ac} Aire${state.ac > 1 ? 's' : ''} Acondicionado${state.ac > 1 ? 's' : ''} ($250 c/u)`;
+        const acAmount = `+$${(state.ac * 250).toFixed(2)}`;
         const showRemoval = state.removal === true && state.service === 'Danosa' && state.layers >= 2;
         const removalLabel = `Remoción de ${(state.layers || 1) - 1} Membranas`;
         const removalAmount = document.getElementById('sumRemoval')?.innerText || '+$0.00';
@@ -4560,8 +4588,8 @@ ${state.pinLocation.mapsUrl}` : ''}
             </tr>
             ${showCistern ? `
             <tr>
-              <td style="padding: 10px 0; color: #ffffff; font-size: 14px;">Manejo de Cisterna</td>
-              <td style="padding: 10px 0; text-align: right; color: #ff9900; font-size: 14px;">+$150.00</td>
+              <td style="padding: 10px 0; color: #ffffff; font-size: 14px;">${cisternLabel}</td>
+              <td style="padding: 10px 0; text-align: right; color: #ff9900; font-size: 14px;">${cisternAmount}</td>
             </tr>
             ` : ''}
             ${showSolar ? `
@@ -4572,8 +4600,8 @@ ${state.pinLocation.mapsUrl}` : ''}
             ` : ''}
             ${showAC ? `
             <tr>
-              <td style="padding: 10px 0; color: #ffffff; font-size: 14px;">Protección de Aire Acondicionado</td>
-              <td style="padding: 10px 0; text-align: right; color: #ff9900; font-size: 14px;">+$200.00</td>
+              <td style="padding: 10px 0; color: #ffffff; font-size: 14px;">${acLabel}</td>
+              <td style="padding: 10px 0; text-align: right; color: #ff9900; font-size: 14px;">${acAmount}</td>
             </tr>
             ` : ''}
             ${showRemoval ? `
@@ -4755,9 +4783,9 @@ ${state.pinLocation.mapsUrl}` : ''}
           },
           // Options
           options: {
-            cistern: state.cistern === true,
+            cisternCount: state.cistern,
             solar: state.solar === true,
-            ac: state.ac === true,
+            acCount: state.ac,
             removal: state.removal === true,
             layers: state.layers || 1
           },
