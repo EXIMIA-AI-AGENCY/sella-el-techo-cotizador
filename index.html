@@ -2057,7 +2057,7 @@
     <!-- STEP 5: Service Type -->
     <div class="step-content" id="step5">
       <div class="text-center my-auto">
-        <img src="assets/service.png" id="serviceImg" class="img-3d img-fluid mb-2">
+        <img src="assets/service.png" id="serviceImg" class="img-3d img-fluid mb-2 d-block mx-auto">
         <h3 class="mb-2">Tipo de Sellado</h3>
 
         <div class="row justify-content-center g-2 mb-2">
@@ -3327,8 +3327,7 @@ ${state.pinLocation.mapsUrl}` : ''}
 
     function confirmAC() {
       console.log("AC count confirmed:", state.ac);
-      showStep('step5');
-      currentStep = 5;
+      currentStep = 6;
       updateSteps();
     }
 
